@@ -13,7 +13,7 @@
  */
 import { readFileSync } from 'node:fs'
 
-const path = process.argv[2] ?? 'public/models/undifined.glb'
+const path = process.argv[2] ?? 'blender/source/undifined.glb'
 const buf = readFileSync(path)
 
 let g = null

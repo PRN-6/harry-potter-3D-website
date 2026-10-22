@@ -18,7 +18,7 @@ from collections import defaultdict
 import bpy
 import numpy as np
 
-GLB = r"E:\project\harry-potter-fest-website\public\models\undifined.glb"
+GLB = r"E:\project\harry-potter-fest-website\blender\source\undifined.glb"
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=GLB)

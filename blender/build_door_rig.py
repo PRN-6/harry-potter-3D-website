@@ -74,7 +74,7 @@ from mathutils import Vector
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEFAULT_MODEL = os.path.join(PROJECT_ROOT, "public", "models", "undifined.glb")
+DEFAULT_MODEL = os.path.join(PROJECT_ROOT, "blender", "source", "undifined.glb")
 RIGGED_GLB = os.path.join(PROJECT_ROOT, "public", "models", "hogwarts_dining_hall_rigged.glb")
 MANIFEST_JSON = os.path.join(PROJECT_ROOT, "public", "data", "hall-door.json")
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")

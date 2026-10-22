@@ -95,10 +95,10 @@ function openAngleOf(hinge: THREE.Object3D | null, fallback: number): number {
  */
 export function openDoors(hinges: DoorHinges): void {
   if (hinges.left) {
-    hinges.left.rotation.y = 0
+    hinges.left.rotation.y = openAngleOf(hinges.left, -DEFAULT_OPEN_ANGLE)
   }
   if (hinges.right) {
-    hinges.right.rotation.y = 0
+    hinges.right.rotation.y = openAngleOf(hinges.right, DEFAULT_OPEN_ANGLE)
   }
 
   for (const hinge of [hinges.left, hinges.right]) {

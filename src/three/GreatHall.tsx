@@ -12,7 +12,8 @@ import { HOUSE_BY_ID, type House } from '../data/houses'
  * external model files, so it loads instantly and can be edited as code.
  *
  * This is the FALLBACK. The site's primary hall is the real
- * `undifined.glb` model (see `DiningHallModel.tsx`); this
+ * `hogwarts_dining_hall_rigged.glb` model (see `DiningHallModel.tsx`);
+ * this
  * version is used when the model fails to load, and it is what makes the
  * site work at all on a connection too slow for 38 MB.
  *

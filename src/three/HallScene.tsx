@@ -8,6 +8,7 @@ import Fire from './Fire'
 import HallBloom from './HallBloom'
 import HallEnvironment from './HallEnvironment'
 import { EnchantedCeiling, FloatingCandles, Sparkles } from './Atmosphere'
+import Entrance from './Entrance'
 import { buildCameraPath, type CameraPath } from './cameraPath'
 import { hallFeatures, PROCEDURAL_HALL, type HallBounds, type HallFeatures } from './hallBounds'
 import { buildFirePoints } from './firePoints'
@@ -77,8 +78,22 @@ export function detectQualityTier(): QualityTier {
  *   The target gets a gentle easing so that the framing rotates like a
  *   camera operator's neck rather than snapping between shots. The
  *   position does not, because easing it would re-introduce the lag.
+ *
+ * THE VISITOR CAN STILL LOOK AROUND
+ *   The old scene used OrbitControls, which fought the scroll for the
+ *   camera's position and made the movement feel like it was being
+ *   argued with. Instead the mouse now adds a small OFFSET to the look
+ *   target — the visitor can glance at the ceiling or across the hall
+ *   without ever leaving the path. The offset is damped, so letting go
+ *   of the mouse drifts the view back to where the shot wants it.
  */
-function CameraRig({ path }: { path: CameraPath }) {
+function CameraRig({
+  path,
+  onChapter,
+}: {
+  path: CameraPath
+  onChapter?: (index: number) => void
+}) {
   const { camera } = useThree()
 
   const desired = useMemo(() => new THREE.Vector3(), [])
@@ -91,6 +106,9 @@ function CameraRig({ path }: { path: CameraPath }) {
   // too slow.
   const scrollRef = useRef(0)
 
+  // The visitor's mouse, as a -1..1 offset from the centre of the screen.
+  const look = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
+
   useEffect(() => {
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
@@ -99,9 +117,26 @@ function CameraRig({ path }: { path: CameraPath }) {
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
+
+    // The mouse-look. It is a TARGET that the camera eases towards, so
+    // the movement is damped and never snaps.
+    const onMove = (event: PointerEvent) => {
+      const target = look.current
+      target.targetX = (event.clientX / window.innerWidth) * 2 - 1
+      target.targetY = (event.clientY / window.innerHeight) * 2 - 1
+    }
+    const onLeave = () => {
+      look.current.targetX = 0
+      look.current.targetY = 0
+    }
+    window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('pointerleave', onLeave)
+
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerleave', onLeave)
     }
   }, [])
 
@@ -109,11 +144,24 @@ function CameraRig({ path }: { path: CameraPath }) {
   // swing around on the very first frame.
   const primed = useRef(false)
 
+  // The chapter the camera is currently at. The caption follows the
+  // CAMERA, not the scrollbar: the path is sampled by arc length, so a
+  // chapter changes when the camera arrives at that shot, which is not
+  // the same moment as a fixed fraction of the page.
+  const chapter = useRef(-1)
+
   useFrame((_, delta) => {
     const { position, target } = path.sample(scrollRef.current)
 
     desired.set(position[0], position[1], position[2])
     desiredTarget.set(target[0], target[1], target[2])
+
+    // The mouse offset, damped. It eases towards the pointer and back to
+    // centre when the pointer leaves.
+    const l = look.current
+    const lk = 1 - Math.pow(0.05, delta)
+    l.x += (l.targetX - l.x) * lk
+    l.y += (l.targetY - l.y) * lk
 
     if (!primed.current) {
       primed.current = true
@@ -130,7 +178,24 @@ function CameraRig({ path }: { path: CameraPath }) {
     // Frame-rate independent: the same curve at 30fps and 120fps.
     const k = 1 - Math.pow(0.002, delta)
     smoothTarget.lerp(desiredTarget, k)
-    camera.lookAt(smoothTarget)
+
+    // The mouse offset, applied perpendicular to the view, so looking
+    // around slides the gaze rather than shearing the camera.
+    const forward = desiredTarget.clone().sub(desired).normalize()
+    const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
+    const up = new THREE.Vector3().crossVectors(right, forward).normalize()
+    const offset = right.multiplyScalar(l.x * 2.6).add(up.multiplyScalar(-l.y * 1.6))
+
+    camera.lookAt(smoothTarget.clone().add(offset))
+
+    // Report the chapter, but only when it actually changes — the
+    // caption above the scene re-renders on every change, and firing it
+    // every frame would re-render React sixty times a second.
+    const active = path.chapterAt(scrollRef.current)
+    if (active !== chapter.current) {
+      chapter.current = active
+      onChapter?.(active)
+    }
   })
 
   return null
@@ -198,9 +263,16 @@ export interface HallSceneProps {
   onLoadProgress?: (p: number) => void
   /** Fired once the model is in the scene. */
   onModelReady?: () => void
+  /** Fired when the camera arrives at a new chapter. */
+  onChapter?: (index: number) => void
 }
 
-export default function HallScene({ house, onLoadProgress, onModelReady }: HallSceneProps) {
+export default function HallScene({
+  house,
+  onLoadProgress,
+  onModelReady,
+  onChapter,
+}: HallSceneProps) {
   const [tier] = useState<QualityTier>(() => detectQualityTier())
   const [modelFailed, setModelFailed] = useState(false)
 
@@ -294,8 +366,12 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
       <EnchantedCeiling features={features} />
       <Sparkles features={features} />
 
+      {/* The stone antechamber outside the open doors, so the doorway
+          frames a lit corridor rather than a void. */}
+      <Entrance features={features} />
+
       <HouseSpotlight house={house} features={features} castShadow={tier !== 'low'} />
-      <CameraRig path={path} />
+      <CameraRig path={path} onChapter={onChapter} />
 
       {/* The bloom. The model's fires are painted, and a painted flame has
           no glow around it — this is what makes them read as light. It

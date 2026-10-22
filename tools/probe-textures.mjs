@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { inflateSync } from 'node:zlib'
 
-const path = process.argv[2] ?? 'public/models/undifined.glb'
+const path = process.argv[2] ?? 'blender/source/undifined.glb'
 const outDir = process.argv[3] ?? 'blender/out/textures'
 
 const buf = readFileSync(path)

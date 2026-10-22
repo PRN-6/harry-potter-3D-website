@@ -28,7 +28,7 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
-GLB = r"E:\project\harry-potter-fest-website\public\models\undifined.glb"
+GLB = r"E:\project\harry-potter-fest-website\blender\source\undifined.glb"
 OUT = r"E:\project\harry-potter-fest-website\blender\out"
 os.makedirs(OUT, exist_ok=True)
 

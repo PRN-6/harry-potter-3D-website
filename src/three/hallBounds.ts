@@ -3,7 +3,8 @@ import type { HouseId } from '../data/houses'
 /**
  * The hall's dimensions and furniture, in world units.
  *
- * The hall the visitor sees is the real `undifined.glb`, and its
+ * The hall the visitor sees is the real `hogwarts_dining_hall_rigged.glb`,
+ * and its
  * size is only known once the file has downloaded and been fitted into the
  * scene. Until then the scene uses the procedural fallback's dimensions, and
  * `DiningHallModel` publishes the fitted ones the moment it has them.

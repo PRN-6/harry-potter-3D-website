@@ -114,9 +114,15 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
 
   const keyframes: CameraKeyframe[] = [
     {
-      // 0 — On the threshold, looking down the length of the hall.
-      position: [aisleX, 2.15, doorZ + 4.0],
-      target: [aisleX, 3.0, doorZ - 4.0],
+      // 0 — In the antechamber, looking in through the open doors.
+      //
+      // The doors stand open, so the hall is framed by the doorway
+      // itself: the visitor arrives in the corridor and sees the feast
+      // through the opening. This is the shot the whole site is built
+      // around, and it is why the doors are a fixed open pose rather
+      // than an animation.
+      position: [aisleX, 2.5, doorZ - 5.5],
+      target: [aisleX, 3.0, doorZ + 16],
       label: 'The Great Hall',
       caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',
     },

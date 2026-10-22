@@ -26,7 +26,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { Matrix4, Vector3, Box3, Quaternion } from 'three'
 
-const path = process.argv[2] ?? 'public/models/undifined.glb'
+const path = process.argv[2] ?? 'blender/source/undifined.glb'
 const outPath = process.argv[3] ?? 'blender/out/fire-points.json'
 
 const buf = readFileSync(path)

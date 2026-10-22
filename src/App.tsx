@@ -33,21 +33,13 @@ export default function App() {
     root.style.setProperty('--house-accent', houseData.accent)
   }, [houseData])
 
-  // Track the scroll position to know which chapter is on screen.
-  useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      const t = max > 0 ? window.scrollY / max : 0
-      // The chapter changes at the midpoint between keyframes, so the title
-      // changes as the camera ARRIVES rather than as it leaves.
-      const count = CHAPTERS.length
-      setChapter(Math.min(count - 1, Math.round(t * (count - 1))))
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
+  // The chapter follows the CAMERA, not the scrollbar.
+  //
+  // The camera path is sampled by arc length, so the camera does not
+  // reach a keyframe at a fixed fraction of the page — it reaches it
+  // when it has actually travelled that far. The scene reports the
+  // chapter it is at, and the caption changes with it. The two can
+  // never drift apart, because there is only one source of truth.
   const current = CHAPTERS[chapter]
 
   return (
@@ -59,6 +51,7 @@ export default function App() {
             house={house}
             onLoadProgress={setProgress}
             onModelReady={() => setModelReady(true)}
+            onChapter={setChapter}
           />
         </SceneErrorBoundary>
 

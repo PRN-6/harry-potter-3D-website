@@ -26,7 +26,7 @@ import os
 import bpy
 import numpy as np
 
-GLB = r"E:\project\harry-potter-fest-website\public\models\undifined.glb"
+GLB = r"E:\project\harry-potter-fest-website\blender\source\undifined.glb"
 OUT = r"E:\project\harry-potter-fest-website\blender\out"
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
