@@ -23,7 +23,7 @@ import { SCROLL_LENGTH } from './three/cameraPath'
  */
 
 export default function App() {
-  const { house, setHouse } = useHouse()
+  const { house } = useHouse()
   const [modelReady, setModelReady] = useState(false)
   const [showLoading, setShowLoading] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
@@ -65,7 +65,7 @@ export default function App() {
   // when it has actually travelled that far. The scene reports the
   // chapter it is at, and the caption changes with it. The two can
   // never drift apart, because there is only one source of truth.
-  const current = CHAPTERS[chapter]
+  // const current = CHAPTERS[chapter]
 
   return (
     <>
@@ -80,7 +80,7 @@ export default function App() {
             fadeRef={fadeRef}
           />
         </SceneErrorBoundary>
-        <FadeOverlay ref={fadeRef} />
+        <FadeOverlay ref={fadeRef as React.RefObject<HTMLDivElement>} />
 
         {/* Loading overlay, until the model is in the scene. */}
         {showLoading && (

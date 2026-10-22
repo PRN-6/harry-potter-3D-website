@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import React from 'react'
 
 /**
  * Overlay to handle the mid-animation screen fade.

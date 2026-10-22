@@ -1,5 +1,3 @@
-import React from 'react'
-
 /**
  * A Harry Potter themed loading screen.
  *
