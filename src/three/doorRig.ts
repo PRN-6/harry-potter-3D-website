@@ -95,14 +95,31 @@ function openAngleOf(hinge: THREE.Object3D | null, fallback: number): number {
  */
 export function openDoors(hinges: DoorHinges): void {
   if (hinges.left) {
-    hinges.left.rotation.y = openAngleOf(hinges.left, -DEFAULT_OPEN_ANGLE)
+    hinges.left.rotation.y = 0
   }
   if (hinges.right) {
-    hinges.right.rotation.y = openAngleOf(hinges.right, DEFAULT_OPEN_ANGLE)
+    hinges.right.rotation.y = 0
   }
 
   for (const hinge of [hinges.left, hinges.right]) {
     makeLeafSolid(hinge)
+  }
+}
+
+/**
+ * Smoothly opens the doors from shut (0) to their open angle.
+ *
+ * This is called every frame by the render loop.
+ * `t` is 0..1, where 0 is shut and 1 is fully open.
+ */
+export function animateDoors(hinges: DoorHinges, t: number): void {
+  if (hinges.left) {
+    const target = openAngleOf(hinges.left, -DEFAULT_OPEN_ANGLE)
+    hinges.left.rotation.y = target * t
+  }
+  if (hinges.right) {
+    const target = openAngleOf(hinges.right, DEFAULT_OPEN_ANGLE)
+    hinges.right.rotation.y = target * t
   }
 }
 

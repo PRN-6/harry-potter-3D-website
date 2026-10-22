@@ -77,7 +77,7 @@ export const MODEL_TABLE_TOP_Y = 1.05
  * the same number to `public/data/hall-door.json`: the doorway sits at
  * z ≈ -27.37, just outside the room's -28 end wall.
  */
-export const MODEL_ENTRANCE_Z = -27.37
+export const MODEL_ENTRANCE_Z = -28.5
 
 /**
  * Everything the scene needs to know about whichever hall is on screen.

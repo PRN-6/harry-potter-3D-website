@@ -87,3 +87,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--house) 75%, #1a1526);
 }
+
+@keyframes scroll-mouse {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}

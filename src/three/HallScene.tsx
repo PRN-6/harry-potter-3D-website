@@ -9,10 +9,12 @@ import HallBloom from './HallBloom'
 import HallEnvironment from './HallEnvironment'
 import { EnchantedCeiling, FloatingCandles, Sparkles } from './Atmosphere'
 import Entrance from './Entrance'
+import { FadeOverlay } from './FadeOverlay'
 import { buildCameraPath, type CameraPath } from './cameraPath'
 import { hallFeatures, PROCEDURAL_HALL, type HallBounds, type HallFeatures } from './hallBounds'
 import { buildFirePoints } from './firePoints'
 import { HOUSE_BY_ID, type HouseId } from '../data/houses'
+import { animateDoors, type DoorHinges } from './doorRig'
 
 /**
  * The R3F canvas: the camera, the controls and the quality tiering that
@@ -90,9 +92,13 @@ export function detectQualityTier(): QualityTier {
 function CameraRig({
   path,
   onChapter,
+  doorRef,
+  fadeRef,
 }: {
   path: CameraPath
   onChapter?: (index: number) => void
+  doorRef: React.MutableRefObject<DoorHinges | null>
+  fadeRef: React.MutableRefObject<HTMLDivElement | null>
 }) {
   const { camera } = useThree()
 
@@ -181,10 +187,16 @@ function CameraRig({
 
     // The mouse offset, applied perpendicular to the view, so looking
     // around slides the gaze rather than shearing the camera.
+    // We only enable mouse-look after the camera has moved slightly
+    // from the start to keep the initial shot perfectly centered.
     const forward = desiredTarget.clone().sub(desired).normalize()
     const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
     const up = new THREE.Vector3().crossVectors(right, forward).normalize()
-    const offset = right.multiplyScalar(l.x * 2.6).add(up.multiplyScalar(-l.y * 1.6))
+
+    const mouseEnabled = scrollRef.current > 0.01
+    const offset = mouseEnabled
+      ? right.multiplyScalar(l.x * 2.6).add(up.multiplyScalar(-l.y * 1.6))
+      : new THREE.Vector3(0, 0, 0)
 
     camera.lookAt(smoothTarget.clone().add(offset))
 
@@ -195,6 +207,39 @@ function CameraRig({
     if (active !== chapter.current) {
       chapter.current = active
       onChapter?.(active)
+    }
+
+    // Animate the doors based on scroll progress.
+    if (doorRef.current) {
+      // The target progress based on scroll.
+      const targetT = Math.min(1, scrollRef.current * 20)
+
+      animateDoors(doorRef.current, targetT)
+
+      // Handle the screen fade at halfway point (t ≈ 0.5)
+      if (fadeRef.current) {
+        // Hold at black for ~3 seconds while text is shown.
+        // To do this in a scroll-driven timeline, we need a "plateau" in the opacity function.
+        // t=0.2: start fade in
+        // t=0.4: reach full black (opacity 1)
+        // t=0.6: stay full black (hold)
+        // t=1.0: fade out to 0
+        const t = targetT
+        let opacity = 0
+
+        if (t < 0.4) {
+          // Fade in: 0 to 1 from t=0.2 to t=0.4
+          opacity = Math.max(0, (t - 0.2) / 0.2)
+        } else if (t < 0.5) {
+          // Hold: opacity = 1 from t=0.4 to t=0.5
+          opacity = 1
+        } else {
+          // Slow fade out: 1 to 0 from t=0.5 to t=1.0
+          opacity = Math.max(0, 1 - (t - 0.5) / 0.5)
+        }
+
+        fadeRef.current.style.opacity = opacity.toString()
+      }
     }
   })
 
@@ -229,7 +274,7 @@ function HouseSpotlight({
 
   useEffect(() => {
     target.position.set(spot.x, features.tableTopY, spot.z)
-    target.updateMatrixWorld()
+    target.updateWorldMatrix()
     if (light.current) {
       light.current.target = target
     }
@@ -272,7 +317,8 @@ export default function HallScene({
   onLoadProgress,
   onModelReady,
   onChapter,
-}: HallSceneProps) {
+  fadeRef,
+}: HallSceneProps & { fadeRef: React.RefObject<HTMLDivElement> }) {
   const [tier] = useState<QualityTier>(() => detectQualityTier())
   const [modelFailed, setModelFailed] = useState(false)
 
@@ -285,8 +331,9 @@ export default function HallScene({
   // and firebox rather than floating near them.
   const [fit, setFit] = useState<ModelFit | null>(null)
 
-  // Once the real model reports its size, the scene is laid out against
-  // THAT — not against the procedural fallback's numbers.
+  // The doors' opening progress.
+  const doorRef = useRef<DoorHinges | null>(null)
+
   const isModel = !modelFailed
   const features = useMemo(() => hallFeatures(bounds, isModel), [bounds, isModel])
   const path = useMemo(() => buildCameraPath(features), [features])
@@ -344,11 +391,12 @@ export default function HallScene({
         ) : (
           <DiningHallModel
             onProgress={onLoadProgress}
-            onReady={onModelReady}
+            onReady={(hinges) => {
+              doorRef.current = hinges
+              onModelReady?.()
+            }}
             onBounds={setBounds}
             onFit={setFit}
-            // If the GLB cannot be fetched or parsed, fall back to the
-            // procedural hall rather than showing an empty room.
             onError={() => setModelFailed(true)}
           />
         )}
@@ -371,10 +419,10 @@ export default function HallScene({
       <Entrance features={features} />
 
       <HouseSpotlight house={house} features={features} castShadow={tier !== 'low'} />
-      <CameraRig path={path} onChapter={onChapter} />
+      <CameraRig path={path} onChapter={onChapter} doorRef={doorRef} fadeRef={fadeRef} />
 
       {/* The bloom. The model's fires are painted, and a painted flame has
-          no glow around it — this is what makes them read as light. It
+          no glow around it — this is what makes it read as light. It
           takes over the render loop, so it goes last. */}
       <HallBloom enabled={tier !== 'low'} strength={0.5} radius={0.55} threshold={0.6} />
 

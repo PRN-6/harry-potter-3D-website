@@ -121,7 +121,7 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
       // through the opening. This is the shot the whole site is built
       // around, and it is why the doors are a fixed open pose rather
       // than an animation.
-      position: [aisleX, 2.5, doorZ - 5.5],
+      position: [aisleX, 2.5, doorZ - 2.5],
       target: [aisleX, 3.0, doorZ + 16],
       label: 'The Great Hall',
       caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',

@@ -65,7 +65,7 @@ const TARGET_LENGTH = 56
 
 interface ModelProps {
   /** Called once the model is loaded and fitted. */
-  onReady?: () => void
+  onReady?: (hinges: DoorHinges) => void
   /** Called with 0..1 while the file downloads. */
   onProgress?: (p: number) => void
   /** Called if the file cannot be fetched or parsed. */
@@ -454,9 +454,44 @@ function Model({ onReady, onProgress, onBounds, onFit }: ModelProps) {
     // The model is static, so its matrices never change.
     g.updateMatrixWorld(true)
 
-    // The doors stand open. They are turned once, here, and they stay put.
+    // The doors start shut. They will be animated in the render loop.
     // See `doorRig.ts` for why they have to be double-sided.
-    openDoors(findDoorHinges(scene))
+    const hinges = findDoorHinges(scene)
+
+    // Ensure they are made solid immediately
+    for (const hinge of [hinges.left, hinges.right]) {
+      if (hinge) {
+        hinge.traverse((obj) => {
+          const mesh = obj as THREE.Mesh
+          if (mesh.isMesh) {
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            for (const material of materials) {
+              if (material) {
+                material.side = THREE.DoubleSide
+                material.needsUpdate = true
+              }
+            }
+          }
+        })
+      }
+    }
+
+    // Set initial shut position
+    if (hinges.left) hinges.left.rotation.y = 0
+    if (hinges.right) hinges.right.rotation.y = 0
+
+    // Offset the door hinges slightly back from the tables to prevent clipping.
+    // This moves the hinge anchors along the Z axis.
+    const DOOR_Z_OFFSET = -1.2
+    if (hinges.left) hinges.left.position.z += DOOR_Z_OFFSET
+    if (hinges.right) hinges.right.position.z += DOOR_Z_OFFSET
+
+    // Shift the entire model slightly to the left.
+    // Since the model is centered at 0, we add a small value to the X position.
+    if (g) {
+      g.position.x += 0.5
+    }
+
 
     // Publish the fitted dimensions, so the rest of the scene can be laid
     // out against the real room.
@@ -465,7 +500,7 @@ function Model({ onReady, onProgress, onBounds, onFit }: ModelProps) {
       onFit?.(result.fit)
     }
 
-    onReady?.()
+    onReady?.(hinges)
   }, [scene, onReady, onBounds, onFit])
 
   return (

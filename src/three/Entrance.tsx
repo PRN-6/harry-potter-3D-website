@@ -54,7 +54,7 @@ export default function Entrance({ features }: EntranceProps) {
    */
   const room = useMemo(
     () => ({
-      width: 13,
+      width: 30,
       depth: 15,
       height: 12,
       /** How far the back wall sits beyond the doorway. */
