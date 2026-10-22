@@ -70,6 +70,15 @@ const PROCEDURAL_HOUSE_SPOTS: HouseSpot[] = [
 export const MODEL_TABLE_TOP_Y = 1.05
 
 /**
+ * The Z of the entrance doorway, in world units.
+ *
+ * Measured from the model by `blender/build_door_rig.py`, which writes
+ * the same number to `public/data/hall-door.json`: the doorway sits at
+ * z ≈ -27.37, just outside the room's -28 end wall.
+ */
+export const MODEL_ENTRANCE_Z = -27.37
+
+/**
  * Everything the scene needs to know about whichever hall is on screen.
  *
  * The camera path, the candle lattice and the house spotlight all need to
@@ -110,6 +119,6 @@ export function hallFeatures(bounds: HallBounds, model: boolean): HallFeatures {
     tableTopY: model ? MODEL_TABLE_TOP_Y : 1.9,
     aisleX,
     highTableZ: model ? length / 2 - 1.5 : length / 2 - 4,
-    entranceZ: model ? -length / 2 + 1.5 : -length / 2 + 4,
+    entranceZ: model ? MODEL_ENTRANCE_Z : -length / 2 + 4,
   }
 }

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "model": {
+    "url": "/models/hogwarts_dining_hall_rigged.glb"
+  },
+  "scale": 0.03210023,
+  "offset": [
+    -6.585115,
+    -12.27668,
+    15.999884
+  ],
+  "gltfSize": [
+    630.01,
+    540.67,
+    1744.54
+  ],
+  "doorway": {
+    "x": [
+      -3.9062,
+      4.0923
+    ],
+    "y": [
+      0.0185,
+      7.6591
+    ],
+    "z": [
+      -27.1661,
+      -27.3976
+    ]
+  },
+  "hinges": {
+    "DoorHinge_L": {
+      "side": "left",
+      "openAngle": -1.74533,
+      "position": [
+        -3.9062,
+        0.0185,
+        -27.2818
+      ]
+    },
+    "DoorHinge_R": {
+      "side": "right",
+      "openAngle": 1.74533,
+      "position": [
+        4.0923,
+        0.0185,
+        -27.2818
+      ]
+    }
+  }
+}

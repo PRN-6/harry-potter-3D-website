@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useHouse } from './context/HouseContext'
 import { HOUSE_BY_ID } from './data/houses'
+import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
 import SceneErrorBoundary from './components/SceneErrorBoundary'
 import { SCROLL_LENGTH } from './three/cameraPath'
@@ -77,7 +78,7 @@ export default function App() {
                 />
               </div>
               <p className="mt-2 text-[11px] text-stone-600">
-                The full 3D hall is 38 MB — it loads once, then is cached.
+                The full 3D hall is 36 MB — it loads once, then is cached.
               </p>
             </div>
           </div>
@@ -149,52 +150,3 @@ export default function App() {
     </>
   )
 }
-
-/**
- * The chapters, one per camera keyframe.
- *
- * These are the only words on the page. They appear as the camera reaches
- * each part of the hall and fade before the next one takes over.
- */
-const CHAPTERS = [
-  {
-    kicker: 'Enchanthia',
-    title: 'The Great Hall',
-    caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',
-  },
-  {
-    kicker: 'Enter',
-    title: 'The Doors Open',
-    caption: 'The hall has been laid for a feast that is three hundred years overdue.',
-  },
-  {
-    kicker: 'The Aisle',
-    title: 'Down the Centre',
-    caption: 'Goblets and platters stretch away on both sides, catching the candlelight.',
-  },
-  {
-    kicker: 'The Tables',
-    title: 'Four Houses',
-    caption: 'Every witch and wizard has a table, and every table has a house.',
-  },
-  {
-    kicker: 'The Rafters',
-    title: 'Look Up',
-    caption: 'Ribbed vaults arc away overhead, hung with baskets of fire.',
-  },
-  {
-    kicker: 'The Ceiling',
-    title: 'The Enchanted Sky',
-    caption: 'Above the rafters there is no sky at all. There is a spell, and it is moving.',
-  },
-  {
-    kicker: 'The High Table',
-    title: 'Head of the Hall',
-    caption: 'Where the professors watch, and where the House Cup is decided.',
-  },
-  {
-    kicker: 'Enchanthia 2026',
-    title: '12–14 September',
-    caption: 'Hogwarts College of Wizardry · Three days of Quidditch, Potions and the Yule Ball.',
-  },
-]

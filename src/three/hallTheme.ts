@@ -24,6 +24,11 @@ export const WOOD_LIGHT = '#6b4a2f'
 export const GOLD = '#c9a227'
 export const CANDLE_FLAME = '#fff3c4'
 
+/** The hot core of a flame. */
+export const FIRE_FLAME_COLOUR = '#ffb43c'
+/** The soft halo thrown off by a flame. */
+export const FIRE_GLOW_COLOUR = '#ff7a1a'
+
 export interface HallMaterials {
   floor: THREE.MeshStandardMaterial
   floorEdge: THREE.MeshStandardMaterial
@@ -40,6 +45,14 @@ export interface HallMaterials {
   tableCloth: THREE.MeshStandardMaterial
   goblet: THREE.MeshStandardMaterial
   plate: THREE.MeshStandardMaterial
+  /** The animated flame's billboard material. */
+  fireFlame: THREE.MeshBasicMaterial
+  /** The soft halo around each flame. */
+  fireGlow: THREE.MeshBasicMaterial
+  /** The floating candles' own small flames. */
+  candleFlame: THREE.MeshBasicMaterial
+  /** The halo around each floating candle's flame. */
+  candleGlow: THREE.MeshBasicMaterial
 }
 
 export function createHallMaterials(): HallMaterials {
@@ -72,6 +85,51 @@ export function createHallMaterials(): HallMaterials {
       metalness: 0.9,
     }),
     plate: new THREE.MeshStandardMaterial({ color: '#f0ece0', roughness: 0.4 }),
+    fireFlame: new THREE.MeshBasicMaterial({
+      // WHITE, not orange. The per-fire colour rides on the instance colour
+      // attribute, which MULTIPLIES the material's colour — so a coloured
+      // material would tint every flame the same way and the instance
+      // colours would have no effect. White leaves the tint to the
+      // instance, so one draw call can hold a roaring fireplace AND a pale
+      // table candle.
+      color: 0xffffff,
+      map: getFlameTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
+    fireGlow: new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      map: getGlowTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
+    // The floating candles' flames.
+    //
+    // The same teardrop as the big fires, but TINTED WARM at the material
+    // level rather than through the instance colour, because these are a
+    // separate mesh with a separate material. Additive blending, so
+    // overlapping candles build up into a warm haze rather than turning
+    // into a sheet of white.
+    candleFlame: new THREE.MeshBasicMaterial({
+      color: '#ffb861',
+      map: getFlameTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
+    candleGlow: new THREE.MeshBasicMaterial({
+      color: '#ff9a3c',
+      map: getGlowTexture(),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
   }
 }
 
@@ -132,6 +190,112 @@ export function getDotTexture(): THREE.Texture {
   const texture = new THREE.CanvasTexture(canvas)
   texture.needsUpdate = true
   _dotTexture = texture
+  return texture
+}
+
+/**
+ * The flame's texture — a teardrop with a hot core.
+ *
+ * Drawn on a canvas rather than downloaded, so it costs nothing.
+ *
+ * The shape matters more than the colour: a flame is a teardrop that is
+ * WIDE at the base and comes to a point at the top, and it fades out at the
+ * edges. A plain soft blob reads as a light, not as fire.
+ */
+let _flameTexture: THREE.Texture | null = null
+
+export function getFlameTexture(): THREE.Texture {
+  if (_flameTexture) return _flameTexture
+
+  const w = 128
+  const h = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.clearRect(0, 0, w, h)
+
+    // The flame's outline: a teardrop. The width narrows as it rises, and it
+    // comes to a point at the top.
+    const path = new Path2D()
+    const cx = w / 2
+    path.moveTo(cx, h * 0.02)
+    path.bezierCurveTo(cx + w * 0.34, h * 0.34, cx + w * 0.46, h * 0.72, cx + w * 0.3, h * 0.93)
+    path.bezierCurveTo(cx + w * 0.16, h * 0.99, cx - w * 0.16, h * 0.99, cx - w * 0.3, h * 0.93)
+    path.bezierCurveTo(cx - w * 0.46, h * 0.72, cx - w * 0.34, h * 0.34, cx, h * 0.02)
+    path.closePath()
+
+    // A vertical gradient: white-hot at the base, orange at the tip, and
+    // fading out entirely at the very bottom where the wax is.
+    const grad = ctx.createLinearGradient(0, h, 0, 0)
+    grad.addColorStop(0.0, 'rgba(255,255,240,0.95)')
+    grad.addColorStop(0.18, 'rgba(255,236,150,0.9)')
+    grad.addColorStop(0.48, 'rgba(255,170,50,0.72)')
+    grad.addColorStop(0.78, 'rgba(255,110,25,0.38)')
+    grad.addColorStop(1.0, 'rgba(255,80,10,0)')
+
+    ctx.fillStyle = grad
+    ctx.fill(path)
+
+    // The hot inner core, a smaller teardrop offset downward.
+    const core = new Path2D()
+    core.moveTo(cx, h * 0.3)
+    core.bezierCurveTo(cx + w * 0.2, h * 0.55, cx + w * 0.22, h * 0.84, cx, h * 0.95)
+    core.bezierCurveTo(cx - w * 0.22, h * 0.84, cx - w * 0.2, h * 0.55, cx, h * 0.3)
+    core.closePath()
+    const coreGrad = ctx.createLinearGradient(0, h, 0, h * 0.3)
+    coreGrad.addColorStop(0, 'rgba(255,255,255,0.95)')
+    coreGrad.addColorStop(1, 'rgba(255,240,190,0)')
+    ctx.fillStyle = coreGrad
+    ctx.fill(core)
+  }
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  _flameTexture = texture
+  return texture
+}
+
+/**
+ * The soft halo thrown off by a flame.
+ *
+ * A plain radial gradient, tinted warm. It sits behind the flame and makes
+ * the fire look like it is glowing into the air around it, rather than
+ * pasted on top of the scene.
+ */
+let _glowTexture: THREE.Texture | null = null
+
+export function getGlowTexture(): THREE.Texture {
+  if (_glowTexture) return _glowTexture
+
+  const size = 128
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2,
+    )
+    gradient.addColorStop(0, 'rgba(255,190,90,0.75)')
+    gradient.addColorStop(0.25, 'rgba(255,140,40,0.35)')
+    gradient.addColorStop(0.6, 'rgba(255,100,20,0.1)')
+    gradient.addColorStop(1, 'rgba(255,80,10,0)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, size, size)
+  }
+
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  _glowTexture = texture
   return texture
 }
 

@@ -73,14 +73,9 @@ def bisect_keep(ob, keep_negative_x):
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.bisect(
-        geom_cut=[],
-        dist=1e-5,
         plane_co=(mid_x, 0.0, 0.0),
         plane_no=(1.0, 0.0, 0.0),
-        use_snap_center=False,
-        use_snap_normal=False,
-        use_even_offset=True,
-        use_swap=False,
+        use_fill=False,
         # clear_inner removes the +X side; clear_outer removes the -X side.
         clear_inner=keep_negative_x,
         clear_outer=not keep_negative_x,

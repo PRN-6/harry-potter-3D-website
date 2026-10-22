@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import type { HallFeatures } from './hallBounds'
 
 /**
@@ -16,14 +17,35 @@ import type { HallFeatures } from './hallBounds'
  * WHY A PATH AND NOT PRESETS
  *   The old design had four buttons that jumped between fixed viewpoints.
  *   That reads as a slideshow. A path reads as a journey: the visitor
- *   enters through the doors, walks the aisle, rises to the rafters, and
- *   ends looking down the length of the hall.
+ *   enters through the doors, walks the aisle, rises to the rafters,
+ *   and ends looking down the length of the hall.
  *
- * THE INTERPOLATION
- *   Positions are interpolated with a smoothstep, so the camera eases into
- *   and out of each keyframe instead of moving at a constant rate. The
- *   easing is applied to the *fraction between keyframes*, not to the
- *   positions themselves, so the camera never overshoots.
+ * WHY A SPLINE AND NOT A STRAIGHT LINE BETWEEN KEYFRAMES
+ *   The first version of this file interpolated each segment with a
+ *   smoothstep. That is the classic mistake: a smoothstep has ZERO
+ *   velocity at both ends, so the camera decelerated to a dead stop at
+ *   every keyframe and then accelerated again. Eleven keyframes meant
+ *   eleven little stalls — the "jerky" feeling.
+ *
+ *   The path here is a CENTRIPETAL CATMULL-ROM SPLINE through the
+ *   keyframes. It is C1-continuous: the camera's velocity is continuous
+ *   all the way through, so it never stops and never changes direction
+ *   abruptly. It also has no overshoot — centripetal parameterisation
+ *   cannot loop or bulge the way the uniform version does, which matters
+ *   when the path runs through a room with walls in it.
+ *
+ * THE SPEED IS CONSTANT
+ *   The camera is placed by ARC LENGTH along the spline, not by spline
+ *   parameter. Without this the camera would race through the short
+ *   segments and crawl through the long ones, because spline parameter
+ *   is not distance. The result is a camera that moves at one even
+ *   speed the whole way through, like a dolly on rails.
+ *
+ * THE LOOK TARGET MOVES WITH IT
+ *   The target has its own spline, and it is sampled at the SAME curve
+ *   parameter as the position. The camera therefore always looks where
+ *   the shot is pointing, and the framing rotates smoothly instead of
+ *   snapping between keyframes.
  */
 
 export interface CameraKeyframe {
@@ -38,7 +60,31 @@ export interface CameraKeyframe {
 }
 
 /** How tall the scrollable page is, in pixels. */
-export const SCROLL_LENGTH = 5600
+export const SCROLL_LENGTH = 7200
+
+/**
+ * A camera path: the keyframes it was built from, plus the splines that
+ * interpolate them.
+ */
+export interface CameraPath {
+  /** The keyframes, in order. */
+  keyframes: CameraKeyframe[]
+  /**
+   * Samples the path at a normalised position.
+   *
+   * `t` is 0..1 along the whole path. The result is the camera's position
+   * and look-at target for that moment.
+   */
+  sample(t: number): { position: [number, number, number]; target: [number, number, number] }
+  /**
+   * The index of the keyframe the camera is nearest to.
+   *
+   * This is the chapter the visitor is looking at. It is measured in
+   * ARC LENGTH, so a chapter changes when the camera has actually
+   * ARRIVED at that shot rather than at some arbitrary scroll fraction.
+   */
+  chapterAt(t: number): number
+}
 
 /**
  * Builds the keyframes for a given hall.
@@ -46,14 +92,14 @@ export const SCROLL_LENGTH = 5600
  * The path is expressed in terms of the hall's own dimensions, so it works
  * for the real model and for the procedural fallback alike.
  *
- * EVERY KEYFRAME STAYS INSIDE THE ROOM
- *   The real model is 20.2 wide, 17.4 tall and 56 long, with the entrance
- *   doors at z = -27 and the High Table at z = +27. A camera placed at
- *   z = -31 would be OUTSIDE the entrance wall, looking at the back of the
- *   door — which renders as a black wall, not a hall. So the path starts
- *   just inside the threshold.
+ * THE JOURNEY
+ *   The path begins AT the doors — just inside the threshold, where the
+ *   visitor has just come in — and never leaves the room. It walks the
+ *   central aisle, turns to the house tables, rises through the rafters
+ *   to the enchanted sky, comes back down to the High Table, and finishes
+ *   looking back down the length of the hall.
  */
-export function buildCameraPath(features: HallFeatures): CameraKeyframe[] {
+export function buildCameraPath(features: HallFeatures): CameraPath {
   const { bounds, aisleX, highTableZ } = features
   const { width, height, length } = bounds
   const half = length / 2
@@ -62,114 +108,172 @@ export function buildCameraPath(features: HallFeatures): CameraKeyframe[] {
   // table-height shots.
   const eyeY = 1.9
 
-  return [
+  // The doorway's plane. The camera starts just INSIDE it — the visitor
+  // has already stepped into the hall — and looks down its length.
+  const doorZ = features.entranceZ
+
+  const keyframes: CameraKeyframe[] = [
     {
       // 0 — On the threshold, looking down the length of the hall.
-      position: [aisleX, 4.2, -half + 6],
-      target: [aisleX, 5.4, 6],
+      position: [aisleX, 2.15, doorZ + 4.0],
+      target: [aisleX, 3.0, doorZ - 4.0],
       label: 'The Great Hall',
       caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',
     },
     {
-      // 1 — Down at table height, walking the aisle.
-      position: [aisleX, eyeY, -half * 0.42],
-      target: [aisleX, 2.4, half * 0.2],
+      // 1 — Crossing the threshold, the hall opening up around you.
+      position: [aisleX, 2.0, doorZ + 8.5],
+      target: [aisleX, 2.9, 2],
       label: 'The Aisle',
       caption: 'Goblets and platters stretch away on both sides, catching the candlelight.',
     },
     {
-      // 2 — Turning to the house tables on the left.
-      position: [aisleX + 0.4, eyeY + 0.3, -half * 0.16],
-      target: [-width * 0.3, 1.3, -half * 0.12],
-      label: 'The House Tables',
-      caption: 'Every witch and wizard has a table, and every table has a house.',
+      // 2 — Down the centre, at table height.
+      position: [aisleX, eyeY, -half * 0.45],
+      target: [aisleX, 1.95, half * 0.14],
+      label: 'The Long Tables',
+      caption: 'Four benches, four houses, and a place set for every witch and wizard.',
     },
     {
-      // 3 — Swinging across to the other side of the hall.
-      position: [aisleX - 0.4, eyeY + 0.3, half * 0.1],
-      target: [width * 0.32, 1.3, half * 0.06],
+      // 3 — Turning to the house tables on the left.
+      position: [aisleX + 0.8, eyeY - 0.3, -half * 0.16],
+      target: [-width * 0.3, 1.15, -half * 0.12],
       label: 'Four Houses',
       caption: 'Choose a house. It decides your table, your colour and your chances of the Cup.',
     },
     {
-      // 4 — Rising above the feast, looking back down the hall.
-      position: [aisleX, height * 0.36, -half * 0.2],
-      target: [aisleX, 1.8, half * 0.24],
-      label: 'The Rafters',
+      // 4 — Swinging across to the other side of the hall.
+      position: [aisleX - 0.8, eyeY - 0.25, half * 0.12],
+      target: [width * 0.32, 1.2, half * 0.08],
+      label: 'A Thousand Candles',
+      caption: 'A thousand candles drift above the tables, waiting for the first course.',
+    },
+    {
+      // 5 — Rising above the feast.
+      position: [aisleX, height * 0.3, -half * 0.05],
+      target: [aisleX, 1.6, half * 0.36],
+      label: 'The Vault',
       caption: 'Ribbed vaults arc away overhead, hung with baskets of fire.',
     },
     {
-      // 5 — Up among the floating candles.
-      position: [aisleX, height * 0.72, -half * 0.3],
-      target: [aisleX, height * 0.3, half * 0.18],
-      label: 'The Enchanted Ceiling',
+      // 6 — Up among the rafters.
+      position: [aisleX, height * 0.55, -half * 0.2],
+      target: [aisleX, height * 0.25, half * 0.3],
+      label: 'High Above',
+      caption: 'From up here the four tables read as a single page of the story.',
+    },
+    {
+      // 7 — Near the enchanted ceiling.
+      position: [aisleX, height * 0.78, -half * 0.24],
+      target: [aisleX, height * 0.42, half * 0.16],
+      label: 'The Enchanted Sky',
       caption: 'Above the rafters there is no sky at all. There is a spell, and it is moving.',
     },
     {
-      // 6 — The High Table.
-      position: [aisleX, 3.2, highTableZ - 12],
-      target: [aisleX, 2.2, highTableZ],
-      label: 'The High Table',
+      // 8 — Coming back down towards the High Table.
+      position: [aisleX, height * 0.22, half * 0.22],
+      target: [aisleX, 2.0, highTableZ],
+      label: 'Head of the Hall',
       caption: 'Where the professors watch, and where the House Cup is decided.',
     },
     {
-      // 7 — The last look, from high and wide.
-      position: [-width * 0.26, height * 0.5, -half * 0.42],
-      target: [aisleX, 2.0, half * 0.05],
+      // 9 — The High Table, close.
+      position: [aisleX, 2.4, highTableZ - 7.5],
+      target: [aisleX, 1.9, highTableZ],
+      label: 'Points of Glory',
+      caption: 'The fires burn gold tonight, and every goblet is already full.',
+    },
+    {
+      // 10 — The last look, from high and wide.
+      position: [-width * 0.28, height * 0.45, -half * 0.45],
+      target: [aisleX, 1.8, half * 0.1],
       label: 'Enchanthia',
       caption: '12–14 September 2026 · Hogwarts College of Wizardry',
     },
   ]
-}
 
-/** Smoothstep — eases in and out, and never overshoots. */
-function smoothstep(t: number): number {
-  return t * t * (3 - 2 * t)
+  return createPath(keyframes)
 }
 
 /**
- * Samples the path at a normalised position.
+ * Turns keyframes into a smooth, constant-speed path.
  *
- * `t` is 0..1 along the whole path. The result is the camera's position
- * and look-at target for that moment.
+ * The spline is built once and the arc-length table is measured once, so
+ * sampling the path every frame is just two table lookups.
  */
-export function sampleCameraPath(
-  path: CameraKeyframe[],
-  t: number,
-): { position: [number, number, number]; target: [number, number, number] } {
-  if (path.length === 0) {
-    return { position: [0, 0, 0], target: [0, 0, 0] }
-  }
-  if (path.length === 1) {
-    return { position: path[0].position, target: path[0].target }
-  }
+function createPath(keyframes: CameraKeyframe[]): CameraPath {
+  const points = keyframes.map((k) => new THREE.Vector3(...k.position))
+  const targets = keyframes.map((k) => new THREE.Vector3(...k.target))
 
-  const clamped = Math.min(1, Math.max(0, t))
-  const scaled = clamped * (path.length - 1)
-  const index = Math.min(path.length - 2, Math.floor(scaled))
-  const local = smoothstep(scaled - index)
+  // `centripetal` is the parameterisation that cannot overshoot. The
+  // uniform version of Catmull-Rom bulges badly when keyframes are
+  // unevenly spaced, and this path's keyframes are VERY unevenly spaced
+  // — a two-unit step next to a twenty-unit one.
+  const positionCurve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.5)
+  const targetCurve = new THREE.CatmullRomCurve3(targets, false, 'centripetal', 0.5)
 
-  const a = path[index]
-  const b = path[index + 1]
+  // Arc-length reparameterisation.
+  //
+  // `getLengths` measures the curve at 200 evenly-spaced PARAMETERS.
+  // `getUtoTmapping` converts an arc-length fraction into the parameter
+  // that sits at that distance along the curve — which is what makes the
+  // camera move at a constant speed.
+  const lengths = positionCurve.getLengths(200)
+  const totalLength = lengths[lengths.length - 1] || 1
 
-  const lerp = (u: number, v: number) => u + (v - u) * local
+  // Where each keyframe sits along the path, as an arc-length fraction.
+  //
+  // The curve parameter of keyframe i is i / (n - 1), and the arc length
+  // there is read out of the same table. These are the positions the
+  // chapter titles are anchored to.
+  const keyframeFractions = keyframes.map((_, i) => {
+    const parameter = i / (keyframes.length - 1)
+    const tableIndex = parameter * (lengths.length - 1)
+    const low = Math.floor(tableIndex)
+    const high = Math.min(lengths.length - 1, low + 1)
+    const fraction = tableIndex - low
+    const arc = lengths[low] + (lengths[high] - lengths[low]) * fraction
+    return arc / totalLength
+  })
 
   return {
-    position: [
-      lerp(a.position[0], b.position[0]),
-      lerp(a.position[1], b.position[1]),
-      lerp(a.position[2], b.position[2]),
-    ],
-    target: [
-      lerp(a.target[0], b.target[0]),
-      lerp(a.target[1], b.target[1]),
-      lerp(a.target[2], b.target[2]),
-    ],
-  }
-}
+    keyframes,
 
-/** The index of the keyframe the camera is closest to, for the caption. */
-export function activeKeyframe(path: CameraKeyframe[], t: number): number {
-  if (path.length === 0) return 0
-  return Math.min(path.length - 1, Math.round(Math.min(1, Math.max(0, t)) * (path.length - 1)))
+    sample(t: number) {
+      const clamped = Math.min(1, Math.max(0, t))
+
+      // The arc-length fraction — this is the "distance along the path".
+      const u = clamped
+
+      // The parameter that sits at that distance. The position and the
+      // target are both sampled at THIS parameter, so they stay in step.
+      const parameter = positionCurve.getUtoTmapping(u, 0)
+
+      const p = positionCurve.getPoint(parameter)
+      const q = targetCurve.getPoint(parameter)
+
+      return {
+        position: [p.x, p.y, p.z],
+        target: [q.x, q.y, q.z],
+      }
+    },
+
+    chapterAt(t: number) {
+      const u = Math.min(1, Math.max(0, t))
+
+      // The nearest keyframe in ARC LENGTH. Comparing fractions rather
+      // than raw indices is what makes the chapter change when the
+      // camera arrives at the shot.
+      let best = 0
+      let bestDistance = Infinity
+      for (let i = 0; i < keyframeFractions.length; i++) {
+        const distance = Math.abs(keyframeFractions[i] - u)
+        if (distance < bestDistance) {
+          bestDistance = distance
+          best = i
+        }
+      }
+      return best
+    },
+  }
 }

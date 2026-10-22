@@ -1,12 +1,16 @@
-import { Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, AdaptiveDpr, Preload } from '@react-three/drei'
+import { AdaptiveDpr, Preload } from '@react-three/drei'
 import GreatHall from './GreatHall'
-import DiningHallModel from './DiningHallModel'
+import DiningHallModel, { type ModelFit } from './DiningHallModel'
+import Fire from './Fire'
+import HallBloom from './HallBloom'
+import HallEnvironment from './HallEnvironment'
 import { EnchantedCeiling, FloatingCandles, Sparkles } from './Atmosphere'
-import { buildCameraPath, sampleCameraPath } from './cameraPath'
+import { buildCameraPath, type CameraPath } from './cameraPath'
 import { hallFeatures, PROCEDURAL_HALL, type HallBounds, type HallFeatures } from './hallBounds'
+import { buildFirePoints } from './firePoints'
 import { HOUSE_BY_ID, type HouseId } from '../data/houses'
 
 /**
@@ -23,10 +27,10 @@ import { HOUSE_BY_ID, type HouseId } from '../data/houses'
  * `AdaptiveDpr` handles when the frame rate drops.
  *
  * THE MODEL
- *   The hall is the real `undifined.glb`. If that file fails to
- *   load, the procedural `GreatHall` takes over so the visitor never gets
- *   an empty box. The magical atmosphere — candles, stars, motes — is
- *   layered on top of EITHER hall.
+ *   The hall is the real `hogwarts_dining_hall_rigged.glb`. If that file
+ *   fails to load, the procedural `GreatHall` takes over so the visitor
+ *   never gets an empty box. The magical atmosphere — candles, stars,
+ *   motes — is layered on top of EITHER hall.
  *
  * SCROLL DRIVES THE CAMERA
  *   The canvas is fixed behind a tall scrolling page, and `CameraRig` reads
@@ -53,27 +57,40 @@ export function detectQualityTier(): QualityTier {
  * The scroll-driven camera.
  *
  * The page is `SCROLL_LENGTH` pixels tall; the canvas is fixed behind it.
- * The scroll position therefore IS the timeline: 0 is the entrance, 100%
- * is the last keyframe.
+ * The scroll position therefore IS the timeline: 0 is on the threshold,
+ * 100% is the last keyframe.
  *
- * The camera position is eased towards the sampled target with a
- * frame-rate independent lerp, so a flick of the scroll wheel glides the
- * camera into place instead of teleporting it. The look-at target is
- * applied directly, because the camera's orientation is what sells the
- * movement.
+ * THE CAMERA IS PLACED, NOT STEERED
+ *   The path in `cameraPath.ts` is a spline, and it is sampled by ARC
+ *   LENGTH, so the camera moves at one even speed the whole way. It is
+ *   then placed there DIRECTLY — the position and the look-at target are
+ *   both written straight from the sample.
+ *
+ *   The older version of this file lerped the camera towards the sample
+ *   every frame. That is what made the movement feel like it was
+ *   fighting something: the camera was always chasing a position that
+ *   had already moved on, so it lagged, and the lag was worst exactly
+ *   where the path was turning. Placing the camera directly removes the
+ *   lag entirely, and the spline removes the stutter.
+ *
+ * THE LOOK TARGET IS SMOOTHED, THE POSITION IS NOT
+ *   The target gets a gentle easing so that the framing rotates like a
+ *   camera operator's neck rather than snapping between shots. The
+ *   position does not, because easing it would re-introduce the lag.
  */
-function CameraRig({ path }: { path: ReturnType<typeof buildCameraPath> }) {
-  const controls = useRef<ComponentRef<typeof OrbitControls>>(null)
+function CameraRig({ path }: { path: CameraPath }) {
   const { camera } = useThree()
 
   const desired = useMemo(() => new THREE.Vector3(), [])
   const desiredTarget = useMemo(() => new THREE.Vector3(), [])
-  const scrollRef = useRef(0)
+  const smoothTarget = useMemo(() => new THREE.Vector3(), [])
 
-  // Track the scroll position. It is written to a ref rather than state so
-  // that scrolling never triggers a React re-render — the camera moves in
+  // The scroll position. It is written to a ref rather than state so that
+  // scrolling never triggers a React re-render — the camera moves in
   // `useFrame`, at 60fps, and a re-render per scroll event would be far
   // too slow.
+  const scrollRef = useRef(0)
+
   useEffect(() => {
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
@@ -88,38 +105,35 @@ function CameraRig({ path }: { path: ReturnType<typeof buildCameraPath> }) {
     }
   }, [])
 
-  useFrame((_, delta) => {
-    const c = controls.current
-    if (!c) return
+  // Prime the smoothed target at the first sample, so the camera does not
+  // swing around on the very first frame.
+  const primed = useRef(false)
 
-    const { position, target } = sampleCameraPath(path, scrollRef.current)
+  useFrame((_, delta) => {
+    const { position, target } = path.sample(scrollRef.current)
+
     desired.set(position[0], position[1], position[2])
     desiredTarget.set(target[0], target[1], target[2])
 
-    // Frame-rate independent easing (the same curve at 30fps and 120fps).
-    const k = 1 - Math.pow(0.0015, delta)
-    camera.position.lerp(desired, k)
-    c.target.lerp(desiredTarget, k)
-    c.update()
+    if (!primed.current) {
+      primed.current = true
+      smoothTarget.copy(desiredTarget)
+      camera.position.copy(desired)
+      camera.lookAt(smoothTarget)
+      return
+    }
+
+    // The camera is PLACED. No lerp, no lag.
+    camera.position.copy(desired)
+
+    // The look-at is eased, so the framing turns smoothly.
+    // Frame-rate independent: the same curve at 30fps and 120fps.
+    const k = 1 - Math.pow(0.002, delta)
+    smoothTarget.lerp(desiredTarget, k)
+    camera.lookAt(smoothTarget)
   })
 
-  return (
-    <OrbitControls
-      ref={controls}
-      makeDefault
-      enableDamping
-      dampingFactor={0.08}
-      // The visitor can look around, but cannot leave the hall or fall
-      // through the floor.
-      minDistance={1.5}
-      maxDistance={40}
-      maxPolarAngle={Math.PI / 2.02}
-      minPolarAngle={0.12}
-      enablePan={false}
-      // The scroll drives the camera, so the wheel must NOT zoom.
-      enableZoom={false}
-    />
-  )
+  return null
 }
 
 /**
@@ -194,6 +208,11 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
   // laid out against the procedural fallback's size.
   const [bounds, setBounds] = useState<HallBounds>(PROCEDURAL_HALL)
 
+  // The transform that maps the model's own space into the scene. The fire
+  // layer needs it, so the flames land on the model's own candles, bowls
+  // and firebox rather than floating near them.
+  const [fit, setFit] = useState<ModelFit | null>(null)
+
   // Once the real model reports its size, the scene is laid out against
   // THAT — not against the procedural fallback's numbers.
   const isModel = !modelFailed
@@ -211,6 +230,12 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
     return cores >= 8 ? 150 : cores >= 4 ? 90 : 54
   }, [])
 
+  // The fires, placed once the model's fit is known.
+  const firePoints = useMemo(() => {
+    if (!fit) return []
+    return buildFirePoints(fit.scale, fit.offset)
+  }, [fit])
+
   return (
     <Canvas
       shadows={tier !== 'low'}
@@ -225,7 +250,7 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
         fov: 58,
         near: 0.1,
         far: 300,
-        position: path[0].position,
+        position: path.keyframes[0].position,
       }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
@@ -236,6 +261,11 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
       <color attach="background" args={['#0a0714']} />
       <fog attach="fog" args={['#0a0714', 26, 96]} />
 
+      {/* The environment map. Every material in the model is a PBR
+          material with nothing to reflect, which is what makes it look
+          flat — this gives them all a candlelit room to reflect. */}
+      <HallEnvironment intensity={0.6} />
+
       <Suspense fallback={null}>
         {modelFailed ? (
           <GreatHall />
@@ -244,12 +274,20 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
             onProgress={onLoadProgress}
             onReady={onModelReady}
             onBounds={setBounds}
+            onFit={setFit}
             // If the GLB cannot be fetched or parsed, fall back to the
             // procedural hall rather than showing an empty room.
             onError={() => setModelFailed(true)}
           />
         )}
       </Suspense>
+
+      {/* The fires: the fireplace, the wall braziers and the table candles.
+          They are a separate layer because the model's own fire is a flat
+          orange sheet that cannot be animated. */}
+      {firePoints.length > 0 && (
+        <Fire points={firePoints} lowPower={tier === 'low'} />
+      )}
 
       {/* The magic, layered over whichever hall is showing. */}
       <FloatingCandles count={candleCount} features={features} />
@@ -258,6 +296,11 @@ export default function HallScene({ house, onLoadProgress, onModelReady }: HallS
 
       <HouseSpotlight house={house} features={features} castShadow={tier !== 'low'} />
       <CameraRig path={path} />
+
+      {/* The bloom. The model's fires are painted, and a painted flame has
+          no glow around it — this is what makes them read as light. It
+          takes over the render loop, so it goes last. */}
+      <HallBloom enabled={tier !== 'low'} strength={0.5} radius={0.55} threshold={0.6} />
 
       {/* Drops the pixel ratio automatically when the frame rate sags. */}
       <AdaptiveDpr pixelated={false} />

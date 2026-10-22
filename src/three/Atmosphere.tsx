@@ -11,8 +11,8 @@ import type { HallFeatures } from './hallBounds'
  * enchanted ceiling and dust drifting in the candlelight.
  *
  * This layer sits INSIDE whichever hall is being shown — the real
- * `undifined.glb` or the procedural one — so both get the same
- * enchanted feel.
+ * `hogwarts_dining_hall_rigged.glb` or the procedural one — so both get
+ * the same enchanted feel.
  *
  * EVERYTHING HERE IS LAID OUT AGAINST THE HALL'S REAL SIZE
  *   The candles, the stars and the motes are positioned from the hall's
@@ -20,8 +20,16 @@ import type { HallFeatures } from './hallBounds'
  *   The real model is 20.2 wide and 17.4 tall; candles placed against the
  *   procedural hall's 34 × 22 would hang outside the stone walls.
  *
- * The candles are the expensive part, so their count is passed in from the
- * quality tier.
+ * THE CANDLES ARE SMALL ON PURPOSE
+ *   A floating candle in the films is a thin stub of wax with a small
+ *   flame on top — a couple of centimetres across. The earlier version
+ *   drew them as half-metre white tubes with a white ball on the end,
+ *   which read as floating PVC pipe rather than as magic. The wax here
+ *   is barely wider than the flame, and the flame is a real teardrop.
+ *
+ * THE DUST IS DUST, NOT SNOW
+ *   The motes are tiny, warm and slow. They are the size of a speck of
+ *   plaster, and they only show up where the candlelight catches them.
  */
 
 // ─── Floating candles ──────────────────────────────────────────────────────
@@ -32,7 +40,9 @@ interface CandlesProps {
 }
 
 export function FloatingCandles({ count, features }: CandlesProps) {
+  const wax = useRef<THREE.InstancedMesh>(null)
   const flames = useRef<THREE.InstancedMesh>(null)
+  const glows = useRef<THREE.InstancedMesh>(null)
   const { bounds } = features
 
   /**
@@ -44,7 +54,12 @@ export function FloatingCandles({ count, features }: CandlesProps) {
    * candles reads as a grid rather than as floating magic.
    */
   const candles = useMemo(() => {
-    const out: { position: [number, number, number]; phase: number; speed: number }[] = []
+    const out: {
+      position: [number, number, number]
+      phase: number
+      speed: number
+      scale: number
+    }[] = []
 
     // Spread the candles over three bands of height, so they fill the
     // volume of the room the way they do in the film.
@@ -84,46 +99,97 @@ export function FloatingCandles({ count, features }: CandlesProps) {
         ],
         phase: Math.random() * Math.PI * 2,
         speed: 0.35 + Math.random() * 0.4,
+        // A little variation in size, so the swarm is not a regiment.
+        scale: 0.75 + Math.random() * 0.5,
       })
     }
     return out
   }, [count, bounds])
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const cameraMatrix = useMemo(() => new THREE.Matrix4(), [])
+  const materials = getHallMaterials()
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    if (!flames.current) return
+    const waxMesh = wax.current
+    const flameMesh = flames.current
+    const glowMesh = glows.current
+    if (!flameMesh) return
+
+    cameraMatrix.copy(state.camera.matrixWorld)
+
     candles.forEach((c, i) => {
       const bob = Math.sin(t * c.speed + c.phase) * 0.16
-      dummy.position.set(c.position[0], c.position[1] + bob, c.position[2])
-      // Flames flicker slightly in scale.
       const flicker = 1 + Math.sin(t * 8 + c.phase * 3) * 0.09
-      dummy.scale.set(flicker, flicker, flicker)
-      dummy.updateMatrix()
-      flames.current!.setMatrixAt(i, dummy.matrix)
-    })
-    flames.current.instanceMatrix.needsUpdate = true
-  })
 
-  const waxMaterial = getHallMaterials().candleWax
+      // The wax stub. It bobs with its flame, and it is the only part of
+      // the candle that has any volume.
+      if (waxMesh) {
+        dummy.position.set(c.position[0], c.position[1] + bob, c.position[2])
+        dummy.quaternion.identity()
+        dummy.scale.set(c.scale, c.scale, c.scale)
+        dummy.updateMatrix()
+        waxMesh.setMatrixAt(i, dummy.matrix)
+      }
+
+      // The flame: a billboard, so it always shows its full shape.
+      dummy.position.set(c.position[0], c.position[1] + bob + 0.11, c.position[2])
+      dummy.quaternion.setFromRotationMatrix(cameraMatrix)
+      dummy.scale.set(0.09 * c.scale * flicker, 0.13 * c.scale * flicker, 1)
+      dummy.updateMatrix()
+      flameMesh.setMatrixAt(i, dummy.matrix)
+
+      // The halo around the flame, breathing on its own rhythm.
+      if (glowMesh) {
+        const pulse = 1 + Math.sin(t * c.speed * 2.2 + c.phase) * 0.14
+        const g = 0.3 * c.scale * pulse
+        dummy.position.set(c.position[0], c.position[1] + bob + 0.12, c.position[2])
+        dummy.scale.set(g, g, g)
+        dummy.quaternion.setFromRotationMatrix(cameraMatrix)
+        dummy.updateMatrix()
+        glowMesh.setMatrixAt(i, dummy.matrix)
+      }
+    })
+
+    if (waxMesh) waxMesh.instanceMatrix.needsUpdate = true
+    flameMesh.instanceMatrix.needsUpdate = true
+    if (glowMesh) glowMesh.instanceMatrix.needsUpdate = true
+  })
 
   return (
     <group>
-      {candles.map((c, i) => (
-        <mesh key={`candle-${i}`} position={c.position} material={waxMaterial}>
-          <cylinderGeometry args={[0.09, 0.11, 0.55, 8]} />
-        </mesh>
-      ))}
-
-      {/* Flames as one instanced mesh — far cheaper than one mesh per candle. */}
+      {/* The wax. A thin stub, instanced — one draw call for the whole
+          swarm rather than one per candle. */}
       <instancedMesh
-        ref={flames}
-        args={[undefined, undefined, count]}
-        material={getHallMaterials().flame}
+        ref={wax}
+        args={[undefined, undefined, Math.max(1, count)]}
+        material={materials.candleWax}
         frustumCulled={false}
       >
-        <sphereGeometry args={[0.1, 6, 6]} />
+        <cylinderGeometry args={[0.028, 0.034, 0.16, 6]} />
+      </instancedMesh>
+
+      {/* The flames — one instanced mesh for the whole hall. */}
+      <instancedMesh
+        ref={flames}
+        args={[undefined, undefined, Math.max(1, count)]}
+        material={materials.candleFlame}
+        frustumCulled={false}
+        renderOrder={2}
+      >
+        <planeGeometry args={[1, 1]} />
+      </instancedMesh>
+
+      {/* The soft halo that makes the flame read as light. */}
+      <instancedMesh
+        ref={glows}
+        args={[undefined, undefined, Math.max(1, count)]}
+        material={materials.candleGlow}
+        frustumCulled={false}
+        renderOrder={1}
+      >
+        <planeGeometry args={[1, 1]} />
       </instancedMesh>
 
       {/*
@@ -143,8 +209,34 @@ export function FloatingCandles({ count, features }: CandlesProps) {
           color={CANDLE_LIGHT}
         />
       ))}
-      <ambientLight intensity={0.55} color="#c8b8ff" />
-      <hemisphereLight args={['#6a5a92', '#241c16', 0.85]} />
+
+      {/*
+        THE AMBIENT LIGHT
+ *
+ *   This is the single most important number in the whole scene, and it
+ *   is deliberately LOW.
+ *
+ *   A hall lit by a thousand candles is NOT a bright room. It is a dark
+ *   room with a thousand small bright points in it. The eye adapts to
+ *   the bright points and the stone between them falls away into warm
+ *   shadow. That contrast — the pools of light and the dark between them
+ *   — is what makes a candlelit hall feel like a candlelit hall.
+ *
+ *   The earlier version used a strong ambient plus a strong hemisphere
+ *   light, which flooded every surface with flat, shadowless fill. It
+ *   looked like a photo of a set with the lights on. Dropping both
+ *   right down lets the fires, the sconces and the candle swarms do the
+ *   work, and the stonework finally has depth.
+ *
+ *   The ambient is not zero: a little warm fill keeps the deepest
+ *   shadows from crushing to pure black, which is what a real room
+ *   full of firelight does — the shadows are warm, not empty.
+ */}
+      <ambientLight intensity={0.16} color="#5a3f2e" />
+
+      {/* A dim cool sky fill from the enchanted ceiling above, so the
+          top of the vault is not the same value as the floor. */}
+      <hemisphereLight args={['#3b3a63', '#2a1c12', 0.32]} />
     </group>
   )
 }
@@ -156,7 +248,7 @@ export function EnchantedCeiling({ features }: { features: HallFeatures }) {
   const { bounds } = features
 
   const starPositions = useMemo(() => {
-    const count = 900
+    const count = 700
     const arr = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       arr[i * 3] = (Math.random() - 0.5) * bounds.width
@@ -185,11 +277,11 @@ export function EnchantedCeiling({ features }: { features: HallFeatures }) {
           <bufferAttribute attach="attributes-position" args={[starPositions, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.24}
+          size={0.09}
           color="#dfe9ff"
           sizeAttenuation
           transparent
-          opacity={0.8}
+          opacity={0.55}
           map={getDotTexture()}
           alphaTest={0.01}
           depthWrite={false}
@@ -206,7 +298,7 @@ export function Sparkles({ features }: { features: HallFeatures }) {
   const { bounds } = features
 
   const positions = useMemo(() => {
-    const count = 220
+    const count = 180
     const arr = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       arr[i * 3] = (Math.random() - 0.5) * bounds.width
@@ -231,10 +323,10 @@ export function Sparkles({ features }: { features: HallFeatures }) {
         // Small and faint: these are dust in candlelight, not a snowstorm.
         // `sizeAttenuation` makes a mote close to the camera huge, so the
         // size has to stay small to survive being near the lens.
-        size={0.12}
-        color="#ffe9b8"
+        size={0.045}
+        color="#ffd9a0"
         transparent
-        opacity={0.32}
+        opacity={0.22}
         sizeAttenuation
         map={getDotTexture()}
         alphaTest={0.01}
