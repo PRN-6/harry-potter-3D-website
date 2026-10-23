@@ -9,7 +9,6 @@ import HallBloom from './HallBloom'
 import HallEnvironment from './HallEnvironment'
 import { EnchantedCeiling, FloatingCandles, Sparkles } from './Atmosphere'
 import Entrance from './Entrance'
-import { FadeOverlay } from './FadeOverlay'
 import { buildCameraPath, type CameraPath } from './cameraPath'
 import { hallFeatures, PROCEDURAL_HALL, type HallBounds, type HallFeatures } from './hallBounds'
 import { buildFirePoints } from './firePoints'
@@ -177,8 +176,12 @@ function CameraRig({
       return
     }
 
-    // The camera is PLACED. No lerp, no lag.
-    camera.position.copy(desired)
+    // SMOOTHING THE POSITION
+    // Instead of placing the camera directly (which trips when scrolling is jerky),
+    // we lerp towards the sample. To prevent the "lag" feel, we use a very fast
+    // constant that ensures it catches up almost instantly but filters out spikes.
+    const posK = 1 - Math.pow(0.001, delta)
+    camera.position.lerp(desired, posK)
 
     // The look-at is eased, so the framing turns smoothly.
     // Frame-rate independent: the same curve at 30fps and 120fps.
@@ -189,7 +192,7 @@ function CameraRig({
     // around slides the gaze rather than shearing the camera.
     // We only enable mouse-look after the camera has moved slightly
     // from the start to keep the initial shot perfectly centered.
-    const forward = desiredTarget.clone().sub(desired).normalize()
+    const forward = new THREE.Vector3().subVectors(smoothTarget, camera.position).normalize()
     const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
     const up = new THREE.Vector3().crossVectors(right, forward).normalize()
 
@@ -214,7 +217,17 @@ function CameraRig({
       // The target progress based on scroll.
       const targetT = Math.min(1, scrollRef.current * 20)
 
-      animateDoors(doorRef.current, targetT)
+      // SMOOTHING THE DOORS
+      // Instead of applying targetT directly, we use a fast lerp to filter
+      // out scroll stutters. This removes the "laggy" or "jittery" feel
+      // during the door opening sequence.
+      const doorK = 1 - Math.pow(0.01, delta)
+      const doorState = doorRef.current as any
+      const currentT = doorState.currentT ?? 0
+      const smoothedT = currentT + (targetT - currentT) * doorK
+      doorState.currentT = smoothedT
+
+      animateDoors(doorRef.current, smoothedT)
 
       // Handle the screen fade at halfway point (t ≈ 0.5)
       if (fadeRef.current) {
@@ -224,7 +237,7 @@ function CameraRig({
         // t=0.4: reach full black (opacity 1)
         // t=0.6: stay full black (hold)
         // t=1.0: fade out to 0
-        const t = targetT
+        const t = smoothedT
         let opacity = 0
 
         if (t < 0.4) {
@@ -274,7 +287,7 @@ function HouseSpotlight({
 
   useEffect(() => {
     target.position.set(spot.x, features.tableTopY, spot.z)
-    target.updateWorldMatrix()
+    target.updateWorldMatrix(true, false)
     if (light.current) {
       light.current.target = target
     }

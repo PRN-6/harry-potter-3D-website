@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useHouse } from './context/HouseContext'
 import { HOUSE_BY_ID } from './data/houses'
-import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
 import { FadeOverlay } from './three/FadeOverlay'
 import SceneErrorBoundary from './components/SceneErrorBoundary'
@@ -28,7 +27,6 @@ export default function App() {
   const [showLoading, setShowLoading] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [chapter, setChapter] = useState(0)
   const fadeRef = useRef<HTMLDivElement>(null)
 
   const houseData = HOUSE_BY_ID[house]
@@ -76,8 +74,7 @@ export default function App() {
             house={house}
             onLoadProgress={setProgress}
             onModelReady={() => setModelReady(true)}
-            onChapter={setChapter}
-            fadeRef={fadeRef}
+            fadeRef={fadeRef as React.RefObject<HTMLDivElement>}
           />
         </SceneErrorBoundary>
         <FadeOverlay ref={fadeRef as React.RefObject<HTMLDivElement>} />

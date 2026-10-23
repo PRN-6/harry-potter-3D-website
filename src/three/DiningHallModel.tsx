@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useGLTF, useProgress } from '@react-three/drei'
 import type { Group } from 'three'
 import type { HallBounds } from './hallBounds'
-import { findDoorHinges, openDoors } from './doorRig'
+import { findDoorHinges, type DoorHinges } from './doorRig'
 
 /**
  * THE DINING HALL — the real 3D model.
