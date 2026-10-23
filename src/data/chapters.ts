@@ -24,7 +24,12 @@ export const CHAPTERS: Chapter[] = [
   {
     kicker: 'Enchanthia',
     title: 'The Great Hall',
-    caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',
+    caption: 'Welcome to the heart of Hogwarts. A place of magic, feasts, and the four great houses.',
+  },
+  {
+    kicker: 'Enter',
+    title: 'The Four Houses',
+    caption: 'Four legendary houses, each with its own spirit and strength.',
   },
   {
     kicker: 'Enter',

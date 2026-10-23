@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useHouse } from './context/HouseContext'
 import { HOUSE_BY_ID } from './data/houses'
+import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
 import { FadeOverlay } from './three/FadeOverlay'
 import SceneErrorBoundary from './components/SceneErrorBoundary'
@@ -27,6 +28,7 @@ export default function App() {
   const [showLoading, setShowLoading] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [chapter, setChapter] = useState(0)
   const fadeRef = useRef<HTMLDivElement>(null)
 
   const houseData = HOUSE_BY_ID[house]
@@ -74,10 +76,33 @@ export default function App() {
             house={house}
             onLoadProgress={setProgress}
             onModelReady={() => setModelReady(true)}
+            onChapter={setChapter}
             fadeRef={fadeRef as React.RefObject<HTMLDivElement>}
           />
         </SceneErrorBoundary>
         <FadeOverlay ref={fadeRef as React.RefObject<HTMLDivElement>} />
+
+        {/* Chapter Overlay: Centered captions that fade in/out as you scroll */}
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-center p-6">
+          <div
+            className="transition-all duration-1000 ease-in-out"
+            style={{
+              opacity: (showLoading || chapter === undefined || chapter === null) ? 0 : 1,
+              transform: `scale(${(showLoading || chapter === undefined || chapter === null) ? 0.95 : 1})`,
+              filter: `blur(${(showLoading || chapter === undefined || chapter === null) ? '10px' : '0px'})`
+            }}
+          >
+            <p className="font-cinzel text-xs uppercase tracking-[0.3em] text-amber-200/60 mb-2">
+              {CHAPTERS[chapter]?.kicker}
+            </p>
+            <h1 className="font-cinzel text-3xl sm:text-5xl md:text-6xl font-bold text-stone-100 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-4">
+              {CHAPTERS[chapter]?.title}
+            </h1>
+            <p className="italic text-sm sm:text-lg text-stone-300/80 max-w-md mx-auto leading-relaxed" style={{ fontFamily: '"Crimson Pro", serif' }}>
+              {CHAPTERS[chapter]?.caption}
+            </p>
+          </div>
+        </div>
 
         {/* Loading overlay, until the model is in the scene. */}
         {showLoading && (
