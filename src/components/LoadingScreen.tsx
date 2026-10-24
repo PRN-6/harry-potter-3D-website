@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function LoadingScreen({ progress }: { progress: number }) {
   const getLoadingText = () => {
     if (progress === 0) return 'Lighting the candles...'
