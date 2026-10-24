@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useHouse } from './context/HouseContext'
-import { HOUSE_BY_ID } from './data/houses'
+import { HOUSE_BY_ID, HOUSES } from './data/houses'
 import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
 import { FadeOverlay } from './three/FadeOverlay'
@@ -9,6 +9,9 @@ import { LoadingScreen } from './components/LoadingScreen'
 import { FadeOutWrapper } from './components/FadeOutWrapper'
 import { ScrollHint } from './components/ScrollHint'
 import { GlobalStyles } from './components/GlobalStyles'
+import { HouseCard } from './components/HouseCard'
+import { Header } from './components/Header'
+import { TeamOverlay } from './components/TeamOverlay'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 /**
@@ -30,7 +33,9 @@ export default function App() {
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
+  const [isTeamOpen, setIsTeamOpen] = useState(false)
   const fadeRef = useRef<HTMLDivElement>(null)
+
 
   const houseData = HOUSE_BY_ID[house]
 
@@ -70,6 +75,14 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
+
+      {/* Header: revealed only after the House Cards appear (Chapter 10+) */}
+      <div className={`fixed top-0 left-0 w-full z-[100] transition-all duration-[2000ms] ease-in-out ${
+        chapter >= 10 ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
+      }`}>
+        <Header onTeamClick={() => setIsTeamOpen(true)} />
+      </div>
+
       {/* ── The 3D hall, fixed behind everything ─────────────────────────── */}
       <div className="fixed inset-0 z-0 bg-[#0a0714]">
         <SceneErrorBoundary>
@@ -88,9 +101,9 @@ export default function App() {
           <div
             className="transition-all duration-[2000ms] ease-in-out"
             style={{
-              opacity: (showLoading || chapter === undefined || chapter === null) ? 0 : 1,
-              transform: `scale(${(showLoading || chapter === undefined || chapter === null) ? 0.95 : 1})`,
-              filter: `blur(${(showLoading || chapter === undefined || chapter === null) ? '10px' : '0px'})`
+              opacity: (showLoading || chapter === undefined || chapter === null || chapter >= 10) ? 0 : 1,
+              transform: `scale(${(showLoading || chapter === undefined || chapter === null || chapter >= 10) ? 0.95 : 1})`,
+              filter: `blur(${(showLoading || chapter === undefined || chapter === null || chapter >= 10) ? '10px' : '0px'})`
             }}
           >
             <p className="font-cinzel text-xs uppercase tracking-[0.3em] text-amber-200/60 mb-2">
@@ -105,6 +118,21 @@ export default function App() {
           </div>
         </div>
 
+        {/* House Cards Grid: Appears after "Points of Glory" (Chapter 10) */}
+        <div className={`pointer-events-none fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-1000 ${
+          chapter >= 10 ? 'opacity-100' : 'opacity-0'
+        }`}>
+          <div className="flex flex-row gap-12 p-6 w-full max-w-7xl mx-auto justify-center">
+            {HOUSES.map((house) => (
+              <HouseCard
+                key={house.id}
+                house={house}
+                isVisible={chapter >= 10}
+              />
+            ))}
+          </div>
+        </div>
+
 
         {/* Loading overlay, until the model is in the scene. */}
         {showLoading && (
@@ -113,6 +141,8 @@ export default function App() {
           </FadeOutWrapper>
         )}
       </div>
+
+      <TeamOverlay isOpen={isTeamOpen} onClose={() => setIsTeamOpen(false)} />
 
       {/* The rest of the UI is hidden until the model is ready and loading screen is gone */}
       {!showLoading && (
