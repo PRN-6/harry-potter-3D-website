@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-
 export function Header({ onTeamClick }: { onTeamClick?: () => void }) {
   return (
     <header className="fixed top-0 left-0 w-full z-[100] p-6 flex justify-end items-center pointer-events-none">
