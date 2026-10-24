@@ -386,7 +386,7 @@ export default function HallScene({
       }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
-        gl.toneMappingExposure = 1.05
+        gl.toneMappingExposure = 0.5
         gl.shadowMap.type = THREE.PCFSoftShadowMap
       }}
     >

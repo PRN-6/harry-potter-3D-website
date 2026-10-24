@@ -86,7 +86,7 @@ export default function App() {
         {/* Chapter Overlay: Centered captions that fade in/out as you scroll */}
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-center p-6">
           <div
-            className="transition-all duration-1000 ease-in-out"
+            className="transition-all duration-[2000ms] ease-in-out"
             style={{
               opacity: (showLoading || chapter === undefined || chapter === null) ? 0 : 1,
               transform: `scale(${(showLoading || chapter === undefined || chapter === null) ? 0.95 : 1})`,
