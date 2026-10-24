@@ -8,6 +8,7 @@ import SceneErrorBoundary from './components/SceneErrorBoundary'
 import { LoadingScreen } from './components/LoadingScreen'
 import { FadeOutWrapper } from './components/FadeOutWrapper'
 import { ScrollHint } from './components/ScrollHint'
+import { GlobalStyles } from './components/GlobalStyles'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 /**
@@ -43,17 +44,16 @@ export default function App() {
   // Handle the transition from loading screen to actual app
   useEffect(() => {
     if (modelReady) {
-      // 1. Wait for a minimum of 1.5s to ensure the branding is seen
+      // 1. Small delay to ensure the model is painted on screen
       const timer = setTimeout(() => {
-        // 2. Trigger the fade-out animation
+        // 2. Trigger the splitting animation immediately
         setIsFadingOut(true)
 
-        // 3. Actually remove the component from DOM after the animation completes
-        // Matches the 1.5s duration in FadeOutWrapper
+        // 3. Remove the wrapper from the DOM after the animation finishes
         setTimeout(() => {
           setShowLoading(false)
         }, 1500)
-      }, 1500)
+      }, 500) // Reduced from 1500ms to 500ms for faster reveal
       return () => clearTimeout(timer)
     }
   }, [modelReady])
@@ -69,6 +69,7 @@ export default function App() {
 
   return (
     <>
+      <GlobalStyles />
       {/* ── The 3D hall, fixed behind everything ─────────────────────────── */}
       <div className="fixed inset-0 z-0 bg-[#0a0714]">
         <SceneErrorBoundary>
@@ -103,6 +104,7 @@ export default function App() {
             </p>
           </div>
         </div>
+
 
         {/* Loading overlay, until the model is in the scene. */}
         {showLoading && (

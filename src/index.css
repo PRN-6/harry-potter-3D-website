@@ -75,17 +75,7 @@ body {
 
 /* Custom scrollbar, so the page does not look like a default browser. */
 ::-webkit-scrollbar {
-  width: 10px;
-}
-::-webkit-scrollbar-track {
-  background: #0a0714;
-}
-::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--house) 55%, #1a1526);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--house) 75%, #1a1526);
+  display: none;
 }
 
 @keyframes scroll-mouse {

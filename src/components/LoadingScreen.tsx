@@ -1,12 +1,5 @@
-/**
- * A Harry Potter themed loading screen.
- *
- * Features:
- * - Deep mystical background.
- * - Magical "sparkle" animation.
- * - Themed loading text that changes based on progress.
- * - A golden progress bar with a glow effect.
- */
+import React from 'react'
+
 export function LoadingScreen({ progress }: { progress: number }) {
   const getLoadingText = () => {
     if (progress === 0) return 'Lighting the candles...'
@@ -17,15 +10,12 @@ export function LoadingScreen({ progress }: { progress: number }) {
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center bg-[#0a0714] overflow-hidden">
-      {/* Background magical ambience */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-900/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute top-1/4 left-1/3 w-2 h-2 bg-amber-200 rounded-full blur-[1px] animate-ping" style={{ animationDuration: '3s' }} />
-        <div className="absolute bottom-1/3 right-1/4 w-1 h-1 bg-amber-100 rounded-full blur-[1px] animate-ping" style={{ animationDuration: '4s' }} />
-        <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-amber-300 rounded-full blur-[1px] animate-ping" style={{ animationDuration: '2s' }} />
-      </div>
-
+    <div className="fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
+      {/*
+          We removed the background color and the gradient overlay from here
+          because the FadeOutWrapper now provides the background images.
+          The gradient is moved to the wrapper to avoid blocking the images.
+      */}
       <div className="relative z-10 w-full max-w-xs px-6 text-center">
         {/* Themed Header */}
         <div className="mb-8">
@@ -47,7 +37,6 @@ export function LoadingScreen({ progress }: { progress: number }) {
               className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-300 to-amber-600 transition-all duration-500 ease-out relative"
               style={{ width: `${Math.max(4, progress * 100)}%` }}
             >
-              {/* Glow effect on the tip of the progress bar */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-amber-200 rounded-full blur-sm" />
             </div>
           </div>
