@@ -1,5 +1,4 @@
-import React from 'react'
-import { HOUSES, type House } from '../data/houses'
+import { type House } from '../data/houses'
 
 interface HouseCardProps {
   house: House
