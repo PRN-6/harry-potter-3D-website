@@ -10,7 +10,7 @@ export function HouseCard({ house, isVisible }: HouseCardProps) {
     <div
       className={`
         relative w-full h-96 p-6 rounded-2xl border-2 transition-all duration-1000 ease-in-out
-        flex flex-col items-center justify-center text-center backdrop-blur-md
+        flex flex-col items-center justify-center text-center backdrop-blur-md overflow-hidden
         ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}
       `}
       style={{
@@ -19,23 +19,16 @@ export function HouseCard({ house, isVisible }: HouseCardProps) {
         boxShadow: `0 0 20px ${house.color}30`,
       }}
     >
-      <div className="text-5xl mb-3 drop-shadow-lg">{house.crest}</div>
-      <h3 className="font-cinzel text-xl font-bold text-stone-100 mb-2 tracking-wider">
-        {house.name}
-      </h3>
-      <div className="flex flex-wrap justify-center gap-2 mb-3">
-        {house.traits.map((trait) => (
-          <span
-            key={trait}
-            className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20 text-stone-300 bg-white/10"
-          >
-            {trait}
-          </span>
-        ))}
+      <img
+        src={house.image}
+        alt={house.name}
+        className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+      />
+      <div className="relative z-10 flex flex-col items-center justify-center h-full">
+        <h3 className="font-cinzel text-xl font-bold text-stone-100 mb-2 tracking-wider">
+          {house.name}
+        </h3>
       </div>
-      <p className="italic text-xs text-stone-300/80 leading-relaxed font-serif" style={{ fontFamily: '"Crimson Pro", serif' }}>
-        "{house.motto}"
-      </p>
     </div>
   )
 }

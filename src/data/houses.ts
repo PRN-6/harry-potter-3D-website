@@ -21,6 +21,8 @@ export interface House {
   traits: string[]
   /** One line of house lore. */
   motto: string
+  /** Path to the card image. */
+  image: string
   /** The elemental glow the floating candles take in this house's corner. */
   glow: string
 }
@@ -35,6 +37,7 @@ export const HOUSES: House[] = [
     accent: '#d4a017',
     traits: ['Courage', 'Chivalry', 'Nerve'],
     motto: 'Might makes right.',
+    image: '/cards/c1.jpg',
     glow: '#ffb648',
   },
   {
@@ -45,6 +48,7 @@ export const HOUSES: House[] = [
     accent: '#c0c8d0',
     traits: ['Ambition', 'Cunning', 'Leadership'],
     motto: 'Courage can be found in others.',
+    image: '/cards/c2.jpg',
     glow: '#5ce6a0',
   },
   {
@@ -55,6 +59,7 @@ export const HOUSES: House[] = [
     accent: '#8ec9ff',
     traits: ['Wit', 'Learning', 'Curiosity'],
     motto: 'Might is made, not born.',
+    image: '/cards/c3.jpg',
     glow: '#7fb5ff',
   },
   {
@@ -65,6 +70,7 @@ export const HOUSES: House[] = [
     accent: '#6b4a12',
     traits: ['Loyalty', 'Patience', 'Fairness'],
     motto: 'We are the best of what we are.',
+    image: '/cards/Hufflepuff Wallpaper.jpg',
     glow: '#ffd75e',
   },
 ]

@@ -8,7 +8,7 @@ export function FadeOverlay({ ref }: { ref: React.RefObject<HTMLDivElement> }) {
   return (
     <div
       ref={ref}
-      className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-75"
+      className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-700 ease-in-out"
       style={{ opacity: 0 }}
     >
       <div className="text-center px-6 transition-opacity duration-500 fade-text">
