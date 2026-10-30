@@ -83,15 +83,15 @@ export function TeamOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed inset-0 z-[200] overflow-hidden bg-black"
     >
-      {/* Close Button */}
+      {/* Back Button */}
       <motion.button
-        initial={{ opacity: 0, x: 20 }}
+        initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
         onClick={onClose}
-        className="fixed top-4 right-4 z-[210] font-cinzel text-stone-400 hover:text-white transition-colors text-xs uppercase tracking-widest pointer-events-auto bg-black/40 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md shadow-md"
+        className="fixed top-4 left-4 z-[210] font-cinzel text-stone-400 hover:text-white transition-colors text-xs uppercase tracking-widest pointer-events-auto bg-black/40 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md shadow-md"
       >
-        Close ✕
+        ← Back
       </motion.button>
 
       {/* Responsive Layout Container */}
@@ -103,23 +103,15 @@ export function TeamOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             return (
               <motion.div
                 key={idx}
-                layout
-                // Use a simpler, faster spring for the flex shift to reduce lag when moving mouse
+                // Animate flex on hover without Framer's layout measurements
+                // (those caused major lag across 12 cards).
                 whileHover={{ flex: 2.5 }}
-                transition={{
-                  layout: {
-                    type: 'spring',
-                    stiffness: 500, // Higher stiffness = faster response
-                    damping: 45,    // Higher damping = less oscillation (no bounce-back)
-                    mass: 0.5       // Lower mass = lighter, faster movement
-                  }
-                }}
-                className="relative aspect-[3/4] md:aspect-auto md:h-full overflow-hidden rounded-lg md:rounded-sm flex-1 cursor-pointer group will-change-transform shadow-xl"
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="relative aspect-[3/4] md:aspect-auto md:h-full overflow-hidden rounded-lg md:rounded-sm flex-1 cursor-pointer group will-change-[flex] shadow-xl"
               >
                 {/* Full-Block Face Image */}
                 <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                   <motion.img
-                    layout
                     initial={{
                       y: isEven ? '100%' : '-100%',
                       filter: 'grayscale(100%) blur(10px)'
@@ -133,17 +125,15 @@ export function TeamOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       filter: { duration: 0.8, delay: idx * 0.05 },
                       opacity: { delay: (idx * 0.05) + 0.2 }
                     }}
-                    whileHover={{ scale: 1.05 }}
                     src={section.image}
                     alt={section.title}
-                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-500"
+                    className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                   />
                 </div>
 
                 {/* Text Overlay */}
                 <div className="relative z-10 h-full w-full flex flex-col justify-end items-center p-4 pb-6 md:pb-12 text-center bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none">
                   <motion.h2
-                    layout
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: (idx * 0.05) + 0.5 }}
@@ -152,7 +142,6 @@ export function TeamOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                     {section.title}
                   </motion.h2>
                   <motion.p
-                    layout
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: (idx * 0.05) + 0.6 }}

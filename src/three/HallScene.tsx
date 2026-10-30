@@ -92,12 +92,10 @@ function CameraRig({
   path,
   onChapter,
   doorRef,
-  fadeRef,
 }: {
   path: CameraPath
   onChapter?: (index: number) => void
   doorRef: React.MutableRefObject<DoorHinges | null>
-  fadeRef: React.MutableRefObject<HTMLDivElement | null>
 }) {
   const { camera } = useThree()
 
@@ -228,31 +226,6 @@ function CameraRig({
       doorState.currentT = smoothedT
 
       animateDoors(doorRef.current, smoothedT)
-
-      // Handle the screen fade at halfway point (t ≈ 0.5)
-      if (fadeRef.current) {
-        // Hold at black for ~3 seconds while text is shown.
-        // To do this in a scroll-driven timeline, we need a "plateau" in the opacity function.
-        // t=0.2: start fade in
-        // t=0.4: reach full black (opacity 1)
-        // t=0.6: stay full black (hold)
-        // t=1.0: fade out to 0
-        const t = smoothedT
-        let opacity = 0
-
-        if (t < 0.4) {
-          // Fade in: 0 to 1 from t=0.2 to t=0.4
-          opacity = Math.max(0, (t - 0.2) / 0.2)
-        } else if (t < 0.5) {
-          // Hold: opacity = 1 from t=0.4 to t=0.5
-          opacity = 1
-        } else {
-          // Slow fade out: 1 to 0 from t=0.5 to t=1.0
-          opacity = Math.max(0, 1 - (t - 0.5) / 0.5)
-        }
-
-        fadeRef.current.style.opacity = opacity.toString()
-      }
     }
   })
 
@@ -302,7 +275,7 @@ function HouseSpotlight({
         position={[spot.x, features.bounds.height * 0.72, spot.z + 2]}
         angle={0.5}
         penumbra={0.8}
-        intensity={90}
+        intensity={50}
         distance={34}
         decay={2}
         castShadow={castShadow}
@@ -330,8 +303,7 @@ export default function HallScene({
   onLoadProgress,
   onModelReady,
   onChapter,
-  fadeRef,
-}: HallSceneProps & { fadeRef: React.RefObject<HTMLDivElement> }) {
+}: HallSceneProps) {
   const [tier] = useState<QualityTier>(() => detectQualityTier())
   const [modelFailed, setModelFailed] = useState(false)
 
@@ -386,7 +358,7 @@ export default function HallScene({
       }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
-        gl.toneMappingExposure = 0.5
+        gl.toneMappingExposure = 0.32
         gl.shadowMap.type = THREE.PCFSoftShadowMap
       }}
     >
@@ -396,7 +368,7 @@ export default function HallScene({
       {/* The environment map. Every material in the model is a PBR
           material with nothing to reflect, which is what makes it look
           flat — this gives them all a candlelit room to reflect. */}
-      <HallEnvironment intensity={0.6} />
+      <HallEnvironment intensity={0.3} />
 
       <Suspense fallback={null}>
         {modelFailed ? (
@@ -432,12 +404,12 @@ export default function HallScene({
       <Entrance features={features} />
 
       <HouseSpotlight house={house} features={features} castShadow={tier !== 'low'} />
-      <CameraRig path={path} onChapter={onChapter} doorRef={doorRef} fadeRef={fadeRef} />
+      <CameraRig path={path} onChapter={onChapter} doorRef={doorRef} />
 
       {/* The bloom. The model's fires are painted, and a painted flame has
           no glow around it — this is what makes it read as light. It
           takes over the render loop, so it goes last. */}
-      <HallBloom enabled={tier !== 'low'} strength={0.5} radius={0.55} threshold={0.6} />
+      <HallBloom enabled={tier !== 'low'} strength={0.25} radius={0.55} threshold={0.6} />
 
       {/* Drops the pixel ratio automatically when the frame rate sags. */}
       <AdaptiveDpr pixelated={false} />

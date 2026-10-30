@@ -1,9 +1,8 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useHouse } from './context/HouseContext'
 import { HOUSE_BY_ID, HOUSES } from './data/houses'
 import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
-import { FadeOverlay } from './three/FadeOverlay'
 import SceneErrorBoundary from './components/SceneErrorBoundary'
 import { LoadingScreen } from './components/LoadingScreen'
 import { FadeOutWrapper } from './components/FadeOutWrapper'
@@ -34,7 +33,6 @@ export default function App() {
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
   const [isTeamOpen, setIsTeamOpen] = useState(false)
-  const fadeRef = useRef<HTMLDivElement>(null)
 
 
   const houseData = HOUSE_BY_ID[house]
@@ -91,11 +89,8 @@ export default function App() {
             onLoadProgress={setProgress}
             onModelReady={() => setModelReady(true)}
             onChapter={setChapter}
-            fadeRef={fadeRef as React.RefObject<HTMLDivElement>}
           />
         </SceneErrorBoundary>
-        <FadeOverlay ref={fadeRef as React.RefObject<HTMLDivElement>} />
-
         {/* Chapter Overlay: Centered captions that fade in/out as you scroll */}
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center text-center p-6">
           <div

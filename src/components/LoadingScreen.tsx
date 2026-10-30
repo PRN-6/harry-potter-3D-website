@@ -1,4 +1,4 @@
-export function LoadingScreen({ progress }: { progress: number }) {
+export function LoadingScreen({ progress: _progress }: { progress: number }) {
   return (
     <div className="fixed inset-0 z-0 flex items-center justify-center overflow-hidden bg-stone-950">
       <img
