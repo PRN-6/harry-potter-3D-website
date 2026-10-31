@@ -31,15 +31,9 @@ export function detectQualityTier(): QualityTier {
 }
 
 /**
- * The scroll-driven camera rig with 7 distinct points:
- * Point 0: Entrance doorway
- * Point 1 (Scroll 1): Enter through doors into the middle of the hall
- * Point 2 (Scroll 2): Look right at the house tables
- * Point 3 (Scroll 3): Rotate left across to the left house tables
- * Point 4 (Scroll 4): Rise up above the feast towards the vault
- * Point 5 (Scroll 5): High among the rafters and enchanted sky
- * Point 6 (Scroll 6): Descending down to the Main Head Table
- * Point 7 (Scroll 7): Back to the top for the grand panoramic wide view
+ * The camera rig:
+ * - Start to Point 1 ("The Long Tables"): Users can freely scroll natively.
+ * - Point 1 to Point 7: Discrete point-to-point scroll snaps ("the rest all keep it same").
  */
 function CameraRig({
   path,
@@ -59,7 +53,7 @@ function CameraRig({
   const smoothTarget = useMemo(() => new THREE.Vector3(), [])
   const smoothMouseOffset = useRef(new THREE.Vector3())
 
-  // Step 0 to 7 (7 total scrolls complete the animation)
+  // Step 0 to 7
   const currentStep = useRef(0)
   const targetU = useRef(0)
   const currentU = useRef(0)
@@ -80,17 +74,38 @@ function CameraRig({
   }
 
   useEffect(() => {
-    // Determine initial step if page is already scrolled
+    const point1U = path.keyframeFractions[1] ?? 0.193
+
+    // Determine initial step if page is loaded already scrolled
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight
     if (maxScroll > 0 && window.scrollY > 50) {
-      const initialStep = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
-      currentStep.current = initialStep
-      targetU.current = path.keyframeFractions[initialStep] ?? (initialStep / 7)
-      currentU.current = targetU.current
-      onChapter?.(initialStep)
+      const point1ScrollY = (1 / 7) * maxScroll
+      if (window.scrollY < point1ScrollY) {
+        currentStep.current = 0
+        targetU.current = (window.scrollY / point1ScrollY) * point1U
+        currentU.current = targetU.current
+        onChapter?.(0)
+      } else {
+        const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
+        currentStep.current = step
+        targetU.current = path.keyframeFractions[step] ?? (step / 7)
+        currentU.current = targetU.current
+        onChapter?.(step)
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const point1ScrollY = max > 0 ? (1 / 7) * max : 500
+
+      // 1. Before Point 1 ("The Long Tables"):
+      // Users can FREELY scroll natively! Do not intercept or block!
+      if (currentStep.current === 0 || window.scrollY < point1ScrollY - 20) {
+        return
+      }
+
+      // 2. Beyond Point 1 (Point 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7):
+      // Discrete step points as requested ("the rest all keep it same")
       const now = performance.now()
       if (now - lastScrollTime.current < 650) return
       if (Math.abs(e.deltaY) < 15) return
@@ -98,9 +113,15 @@ function CameraRig({
       if (e.deltaY > 0 && currentStep.current < 7) {
         lastScrollTime.current = now
         goToStep(currentStep.current + 1)
-      } else if (e.deltaY < 0 && currentStep.current > 0) {
+      } else if (e.deltaY < 0) {
         lastScrollTime.current = now
-        goToStep(currentStep.current - 1)
+        if (currentStep.current > 1) {
+          goToStep(currentStep.current - 1)
+        } else {
+          // Returning back into the free scroll zone before Point 1
+          currentStep.current = 0
+          goToStep(0)
+        }
       }
     }
 
@@ -109,45 +130,88 @@ function CameraRig({
       touchStartY = e.touches[0].clientY
     }
     const onTouchEnd = (e: TouchEvent) => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const point1ScrollY = max > 0 ? (1 / 7) * max : 500
+
+      // Free scroll on touch before Point 1
+      if (currentStep.current === 0 || window.scrollY < point1ScrollY - 20) {
+        return
+      }
+
+      const diff = touchStartY - e.changedTouches[0].clientY
+      if (Math.abs(diff) < 25) return
+
       const now = performance.now()
       if (now - lastScrollTime.current < 650) return
-      const diff = touchStartY - e.changedTouches[0].clientY
-      if (Math.abs(diff) < 35) return
 
       if (diff > 0 && currentStep.current < 7) {
         lastScrollTime.current = now
         goToStep(currentStep.current + 1)
-      } else if (diff < 0 && currentStep.current > 0) {
+      } else if (diff < 0) {
         lastScrollTime.current = now
-        goToStep(currentStep.current - 1)
+        if (currentStep.current > 1) {
+          goToStep(currentStep.current - 1)
+        } else {
+          currentStep.current = 0
+          goToStep(0)
+        }
       }
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      const now = performance.now()
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const point1ScrollY = max > 0 ? (1 / 7) * max : 500
+
       if (['ArrowDown', 'PageDown', 'Space'].includes(e.code)) {
+        if (currentStep.current === 0 && window.scrollY < point1ScrollY - 20) {
+          // Free keyboard scroll
+          return
+        }
         e.preventDefault()
+        const now = performance.now()
         if (now - lastScrollTime.current < 450) return
         if (currentStep.current < 7) {
           lastScrollTime.current = now
           goToStep(currentStep.current + 1)
         }
       } else if (['ArrowUp', 'PageUp'].includes(e.code)) {
+        if (currentStep.current === 0 && window.scrollY < point1ScrollY - 20) {
+          // Free keyboard scroll
+          return
+        }
         e.preventDefault()
+        const now = performance.now()
         if (now - lastScrollTime.current < 450) return
-        if (currentStep.current > 0) {
+        if (currentStep.current > 1) {
           lastScrollTime.current = now
           goToStep(currentStep.current - 1)
+        } else if (currentStep.current === 1) {
+          currentStep.current = 0
+          goToStep(0)
         }
       }
     }
 
+    // Native scroll event handles the free scroll zone
     const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      if (max <= 0) return
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+      if (maxScroll <= 0) return
+      const point1ScrollY = (1 / 7) * maxScroll
+
+      // While scrolling freely before Point 1 ("The Long Tables"):
+      if (window.scrollY <= point1ScrollY) {
+        const isAtOrPastPoint1 = window.scrollY >= point1ScrollY * 0.96
+        currentStep.current = isAtOrPastPoint1 ? 1 : 0
+        const progress = Math.min(1, Math.max(0, window.scrollY / point1ScrollY))
+        targetU.current = progress * point1U
+        onChapter?.(currentStep.current)
+        return
+      }
+
+      // Beyond Point 1, if user dragged scrollbar thumb
       const now = performance.now()
       if (now - lastScrollTime.current > 850) {
-        const step = Math.min(7, Math.round((window.scrollY / max) * 7))
+        const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
         if (step !== currentStep.current) {
           currentStep.current = step
           targetU.current = path.keyframeFractions[step] ?? (step / 7)
@@ -188,8 +252,14 @@ function CameraRig({
   const primed = useRef(false)
 
   useFrame((_, delta) => {
-    // Smoothly glide currentU towards targetU (point by point)
-    const uLerp = 1 - Math.pow(0.0008, delta)
+    const point1U = path.keyframeFractions[1] ?? 0.193
+    const isFreeScroll = currentStep.current === 0 && currentU.current < point1U
+
+    // In free-scroll zone, follow native scroll directly; for discrete points, glide smoothly
+    const uLerp = isFreeScroll
+      ? 1 - Math.pow(0.00002, delta)
+      : 1 - Math.pow(0.0008, delta)
+
     currentU.current += (targetU.current - currentU.current) * uLerp
 
     const { position, target } = path.sample(currentU.current)
@@ -239,10 +309,10 @@ function CameraRig({
     camera.lookAt(smoothTarget.clone().add(smoothMouseOffset.current))
 
     // Door animation:
-    // On Scroll 1 (step >= 1), doors swing open wide so the camera enters.
-    // If returning to step 0, doors close.
+    // As the user freely scrolls from the start to Point 1, the doors open smoothly in real-time.
+    // Beyond Point 1, doors stay open.
     if (doorRef.current) {
-      const targetDoorT = currentStep.current >= 1 ? 1 : Math.min(1, currentU.current * 18)
+      const targetDoorT = currentStep.current >= 1 ? 1 : Math.min(1, currentU.current / (point1U * 0.4))
       const doorK = 1 - Math.pow(0.01, delta)
       const doorState = doorRef.current as any
       const currT = doorState.currentT ?? 0
