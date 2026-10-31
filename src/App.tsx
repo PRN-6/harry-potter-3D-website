@@ -11,6 +11,7 @@ import { GlobalStyles } from './components/GlobalStyles'
 import { HouseCard } from './components/HouseCard'
 import { Header } from './components/Header'
 import { TeamOverlay } from './components/TeamOverlay'
+import { MaraudersMapPage } from './components/marauders-map/MaraudersMapPage'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 /**
@@ -33,6 +34,13 @@ export default function App() {
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
   const [isTeamOpen, setIsTeamOpen] = useState(false)
+  const [view, setView] = useState<'home' | 'map'>(window.location.hash === '#/map' ? 'map' : 'home')
+
+  useEffect(() => {
+    const onHash = () => setView(window.location.hash === '#/map' ? 'map' : 'home')
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
 
   const houseData = HOUSE_BY_ID[house]
@@ -69,6 +77,8 @@ export default function App() {
   // chapter it is at, and the caption changes with it. The two can
   // never drift apart, because there is only one source of truth.
   // const current = CHAPTERS[chapter]
+
+  if (view === 'map') return <MaraudersMapPage />
 
   return (
     <>

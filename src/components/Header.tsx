@@ -14,6 +14,9 @@ export function Header({ onTeamClick }: { onTeamClick?: () => void }) {
           >
             Team
           </a>
+          <a href="#/map" className="font-cinzel text-xs uppercase tracking-widest text-stone-300 hover:text-amber-400 transition-colors pointer-events-auto">
+            Map
+          </a>
           <a href="#about" className="font-cinzel text-xs uppercase tracking-widest text-stone-300 hover:text-amber-400 transition-colors pointer-events-auto">
             About
           </a>

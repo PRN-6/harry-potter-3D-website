@@ -4,7 +4,7 @@ import React from 'react'
  * Overlay to handle the mid-animation screen fade.
  * This must be outside the Canvas because it's a 2D HTML element.
  */
-export function FadeOverlay({ ref }: { ref: React.RefObject<HTMLDivElement> }) {
+export function FadeOverlay({ ref }: { ref: React.RefObject<HTMLDivElement | null> }) {
   return (
     <div
       ref={ref}
