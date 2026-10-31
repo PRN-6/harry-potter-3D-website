@@ -31,17 +31,15 @@ export function detectQualityTier(): QualityTier {
 }
 
 /**
- * The scroll-driven camera rig.
- *
- * Choreography:
- * 1. Doors start closed.
- * 2. On the first scroll, doors immediately part open and the camera glides
- *    straight through the doorway into the middle of the hall.
- * 3. Rotates right to admire the right house tables.
- * 4. Rotates left across the hall to admire the left house tables.
- * 5. Rises up above the feast into the rafters and enchanted sky.
- * 6. Descends down to the Main Head Table.
- * 7. Returns back to the top for the grand panoramic wide view.
+ * The scroll-driven camera rig with 7 distinct points:
+ * Point 0: Entrance doorway
+ * Point 1 (Scroll 1): Enter through doors into the middle of the hall
+ * Point 2 (Scroll 2): Look right at the house tables
+ * Point 3 (Scroll 3): Rotate left across to the left house tables
+ * Point 4 (Scroll 4): Rise up above the feast towards the vault
+ * Point 5 (Scroll 5): High among the rafters and enchanted sky
+ * Point 6 (Scroll 6): Descending down to the Main Head Table
+ * Point 7 (Scroll 7): Back to the top for the grand panoramic wide view
  */
 function CameraRig({
   path,
@@ -61,17 +59,102 @@ function CameraRig({
   const smoothTarget = useMemo(() => new THREE.Vector3(), [])
   const smoothMouseOffset = useRef(new THREE.Vector3())
 
-  const scrollRef = useRef(0)
+  // Step 0 to 7 (7 total scrolls complete the animation)
+  const currentStep = useRef(0)
+  const targetU = useRef(0)
+  const currentU = useRef(0)
+  const lastScrollTime = useRef(0)
+
   const look = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
 
+  const goToStep = (step: number) => {
+    const clamped = Math.max(0, Math.min(7, step))
+    currentStep.current = clamped
+    targetU.current = path.keyframeFractions[clamped] ?? (clamped / 7)
+    onChapter?.(clamped)
+
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+    if (maxScroll > 0) {
+      window.scrollTo({ top: (clamped / 7) * maxScroll, behavior: 'smooth' })
+    }
+  }
+
   useEffect(() => {
+    // Determine initial step if page is already scrolled
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+    if (maxScroll > 0 && window.scrollY > 50) {
+      const initialStep = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
+      currentStep.current = initialStep
+      targetU.current = path.keyframeFractions[initialStep] ?? (initialStep / 7)
+      currentU.current = targetU.current
+      onChapter?.(initialStep)
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      const now = performance.now()
+      if (now - lastScrollTime.current < 650) return
+      if (Math.abs(e.deltaY) < 15) return
+
+      if (e.deltaY > 0 && currentStep.current < 7) {
+        lastScrollTime.current = now
+        goToStep(currentStep.current + 1)
+      } else if (e.deltaY < 0 && currentStep.current > 0) {
+        lastScrollTime.current = now
+        goToStep(currentStep.current - 1)
+      }
+    }
+
+    let touchStartY = 0
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      const now = performance.now()
+      if (now - lastScrollTime.current < 650) return
+      const diff = touchStartY - e.changedTouches[0].clientY
+      if (Math.abs(diff) < 35) return
+
+      if (diff > 0 && currentStep.current < 7) {
+        lastScrollTime.current = now
+        goToStep(currentStep.current + 1)
+      } else if (diff < 0 && currentStep.current > 0) {
+        lastScrollTime.current = now
+        goToStep(currentStep.current - 1)
+      }
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const now = performance.now()
+      if (['ArrowDown', 'PageDown', 'Space'].includes(e.code)) {
+        e.preventDefault()
+        if (now - lastScrollTime.current < 450) return
+        if (currentStep.current < 7) {
+          lastScrollTime.current = now
+          goToStep(currentStep.current + 1)
+        }
+      } else if (['ArrowUp', 'PageUp'].includes(e.code)) {
+        e.preventDefault()
+        if (now - lastScrollTime.current < 450) return
+        if (currentStep.current > 0) {
+          lastScrollTime.current = now
+          goToStep(currentStep.current - 1)
+        }
+      }
+    }
+
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
-      scrollRef.current = max > 0 ? window.scrollY / max : 0
+      if (max <= 0) return
+      const now = performance.now()
+      if (now - lastScrollTime.current > 850) {
+        const step = Math.min(7, Math.round((window.scrollY / max) * 7))
+        if (step !== currentStep.current) {
+          currentStep.current = step
+          targetU.current = path.keyframeFractions[step] ?? (step / 7)
+          onChapter?.(step)
+        }
+      }
     }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
 
     const onMove = (event: PointerEvent) => {
       const target = look.current
@@ -82,22 +165,34 @@ function CameraRig({
       look.current.targetX = 0
       look.current.targetY = 0
     }
+
+    window.addEventListener('wheel', onWheel, { passive: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchend', onTouchEnd, { passive: true })
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('pointerleave', onLeave)
 
     return () => {
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchend', onTouchEnd)
+      window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerleave', onLeave)
     }
-  }, [])
+  }, [path])
 
   const primed = useRef(false)
-  const chapter = useRef(-1)
 
   useFrame((_, delta) => {
-    const { position, target } = path.sample(scrollRef.current)
+    // Smoothly glide currentU towards targetU (point by point)
+    const uLerp = 1 - Math.pow(0.0008, delta)
+    currentU.current += (targetU.current - currentU.current) * uLerp
+
+    const { position, target } = path.sample(currentU.current)
 
     desired.set(position[0], position[1], position[2])
     desiredTarget.set(target[0], target[1], target[2])
@@ -124,13 +219,13 @@ function CameraRig({
     smoothTarget.lerp(desiredTarget, k)
 
     // Smooth mouse-look:
-    // Kept at 0 at the entrance (scroll < 0.035) so the shot is perfectly aligned
+    // Kept at 0 at the entrance (currentU < 0.05) so the shot is perfectly aligned
     // and doesn't shift sideways. Once inside the hall, smoothly blends in.
     const forward = new THREE.Vector3().subVectors(smoothTarget, camera.position).normalize()
     const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
     const up = new THREE.Vector3().crossVectors(right, forward).normalize()
 
-    const mouseWeight = scrollRef.current < 0.035 ? 0 : Math.min(1, (scrollRef.current - 0.035) / 0.045)
+    const mouseWeight = currentU.current < 0.05 ? 0 : Math.min(1, (currentU.current - 0.05) / 0.06)
 
     const targetMouseOffset = new THREE.Vector3()
     if (mouseWeight > 0) {
@@ -143,32 +238,23 @@ function CameraRig({
 
     camera.lookAt(smoothTarget.clone().add(smoothMouseOffset.current))
 
-    // Chapter reporting
-    const active = path.chapterAt(scrollRef.current)
-    if (active !== chapter.current) {
-      chapter.current = active
-      onChapter?.(active)
-    }
-
     // Door animation:
-    // As soon as the visitor scrolls, the doors swing open immediately so
-    // the camera enters seamlessly on that first scroll.
+    // On Scroll 1 (step >= 1), doors swing open wide so the camera enters.
+    // If returning to step 0, doors close.
     if (doorRef.current) {
-      const targetT = Math.min(1, scrollRef.current * 30)
+      const targetDoorT = currentStep.current >= 1 ? 1 : Math.min(1, currentU.current * 18)
       const doorK = 1 - Math.pow(0.01, delta)
       const doorState = doorRef.current as any
-      const currentT = doorState.currentT ?? 0
-      const smoothedT = currentT + (targetT - currentT) * doorK
+      const currT = doorState.currentT ?? 0
+      const smoothedT = currT + (targetDoorT - currT) * doorK
       doorState.currentT = smoothedT
       animateDoors(doorRef.current, smoothedT)
     }
 
-    // Seamless doorway passage title glow:
-    // Gently introduces "Welcome to the Great Hall" as the visitor passes through the doorway
-    // without stalling or interrupting the journey.
+    // Subtle door passage glow
     if (fadeRef?.current) {
-      if (scrollRef.current >= 0.012 && scrollRef.current <= 0.045) {
-        const tFade = Math.sin(((scrollRef.current - 0.012) / 0.033) * Math.PI)
+      if (currentU.current >= 0.015 && currentU.current <= 0.08) {
+        const tFade = Math.sin(((currentU.current - 0.015) / 0.065) * Math.PI)
         fadeRef.current.style.opacity = Math.max(0, tFade).toFixed(2)
       } else {
         fadeRef.current.style.opacity = '0'
