@@ -31,7 +31,7 @@ export interface House {
 export const HOUSES: House[] = [
   {
     id: 'gryffindor',
-    name: '',
+    name: 'Gryffindor',
     crest: '🦁',
     color: '#ae1c28',
     accent: '#d4a017',

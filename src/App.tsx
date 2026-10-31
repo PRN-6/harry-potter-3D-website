@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useHouse } from './context/HouseContext'
-import { HOUSE_BY_ID, HOUSES } from './data/houses'
+import { HOUSE_BY_ID, HOUSES, type HouseId } from './data/houses'
 import { CHAPTERS } from './data/chapters'
 import HallScene from './three/HallScene'
 import SceneErrorBoundary from './components/SceneErrorBoundary'
@@ -11,6 +11,7 @@ import { GlobalStyles } from './components/GlobalStyles'
 import { HouseCard } from './components/HouseCard'
 import { Header } from './components/Header'
 import { TeamOverlay } from './components/TeamOverlay'
+import { HouseEventsOverlay } from './components/HouseEventsOverlay'
 import { MaraudersMapPage } from './components/marauders-map/MaraudersMapPage'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
@@ -30,6 +31,7 @@ export default function App() {
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
   const [isTeamOpen, setIsTeamOpen] = useState(false)
+  const [eventsHouse, setEventsHouse] = useState<HouseId | null>(null)
   const [view, setView] = useState<'home' | 'map'>(window.location.hash === '#/map' ? 'map' : 'home')
 
   useEffect(() => {
@@ -54,8 +56,8 @@ export default function App() {
         setIsFadingOut(true)
         setTimeout(() => {
           setShowLoading(false)
-        }, 1500)
-      }, 500)
+        }, 1200)
+      }, 650)
       return () => clearTimeout(timer)
     }
   }, [modelReady])
@@ -107,15 +109,16 @@ export default function App() {
         </div>
 
         {/* House Cards Grid: Appears at the final step (Chapter 7) */}
-        <div className={`pointer-events-none fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-1000 ${
-          chapter >= 7 ? 'opacity-100' : 'opacity-0'
+        <div className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-1000 p-4 sm:p-6 ${
+          chapter >= 7 ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}>
-          <div className="flex flex-row gap-12 p-6 w-full max-w-7xl mx-auto justify-center">
-            {HOUSES.map((house) => (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:flex md:flex-row md:gap-8 lg:gap-12 w-full max-w-xs sm:max-w-md md:max-w-7xl mx-auto justify-center items-center">
+            {HOUSES.map((h) => (
               <HouseCard
-                key={house.id}
-                house={house}
+                key={h.id}
+                house={h}
                 isVisible={chapter >= 7}
+                onClick={() => setEventsHouse(h.id)}
               />
             ))}
           </div>
@@ -124,12 +127,17 @@ export default function App() {
         {/* Loading overlay, until the model is in the scene. */}
         {showLoading && (
           <FadeOutWrapper isFadingOut={isFadingOut}>
-            <LoadingScreen progress={progress} />
+            <LoadingScreen progress={progress} modelReady={modelReady} />
           </FadeOutWrapper>
         )}
       </div>
 
       <TeamOverlay isOpen={isTeamOpen} onClose={() => setIsTeamOpen(false)} />
+      <HouseEventsOverlay
+        initialHouseId={eventsHouse}
+        isOpen={Boolean(eventsHouse)}
+        onClose={() => setEventsHouse(null)}
+      />
 
       {/* The rest of the UI is hidden until the model is ready and loading screen is gone */}
       {!showLoading && (

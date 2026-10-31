@@ -74,6 +74,7 @@ interface ModelProps {
   onBounds?: (bounds: HallBounds) => void
   /** Called with the transform that maps the model's space to the scene. */
   onFit?: (fit: ModelFit) => void
+  skipNormalMaps?: boolean
 }
 
 /**
@@ -330,7 +331,7 @@ const BUMP_STRENGTH: Record<string, number> = {
   auto_9: 0.5,
 }
 
-function Model({ onReady, onProgress, onBounds, onFit }: ModelProps) {
+function Model({ onReady, onProgress, onBounds, onFit, skipNormalMaps }: ModelProps) {
   const group = useRef<Group>(null)
   const { progress } = useProgress()
 
@@ -421,7 +422,7 @@ function Model({ onReady, onProgress, onBounds, onFit }: ModelProps) {
       // The map is built ONCE per source texture and shared by every
       // material that uses it, because a normal map is 4 bytes per texel
       // and there is no point making the same one twice.
-      if (material.map && !material.normalMap) {
+      if (material.map && !material.normalMap && !skipNormalMaps) {
         const strength = BUMP_STRENGTH[material.name]
         if (strength) {
           const existing = normalMaps.get(material.map)
