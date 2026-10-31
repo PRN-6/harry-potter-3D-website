@@ -89,9 +89,9 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
       caption: 'Above the rafters there is no sky at all. There is a spell, and it is moving.',
     },
     {
-      // 6 — Point 6 (Scroll 6): Descending to the Main Head Table
-      position: [aisleX, 2.3, highTableZ - 6.5],
-      target: [aisleX, 1.85, highTableZ],
+      // 6 — Point 6 (Scroll 6): Descending to the Main Head Table (pulled back for a comfortable framing)
+      position: [aisleX, 2.6, highTableZ - 11.0],
+      target: [aisleX, 2.1, highTableZ],
       label: 'Head of the Hall',
       caption: 'Where the professors watch, and where the House Cup is decided.',
     },
