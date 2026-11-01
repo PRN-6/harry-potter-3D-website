@@ -25,10 +25,20 @@
 }
 
 @theme {
-  --font-cinzel: 'HarryP', cursive;
-  --font-outfit: 'HarryP', cursive;
+  --font-cinzel: 'Cinzel', serif;
+  --font-cinzel-decorative: 'Cinzel Decorative', cursive;
+  --font-medieval: 'MedievalSharp', cursive;
+  --font-outfit: 'Outfit', sans-serif;
   --font-harry: 'HarryP', cursive;
   --font-parry: 'ParryHotter', cursive;
+}
+
+/* Explicit Harry Potter font utilities */
+.font-harry {
+  font-family: 'HarryP', 'ParryHotter', cursive, serif !important;
+}
+.font-parry {
+  font-family: 'ParryHotter', 'HarryP', cursive, serif !important;
 }
 
 :root {
@@ -41,15 +51,14 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--bg);
-  /* Larger base size so all rem-based text scales up. */
-  font-size: 22px;
+  font-size: 16px;
 }
 
 body {
   margin: 0;
   background-color: var(--bg);
   color: #e7e5e4;
-  font-family: var(--font-outfit);
+  font-family: var(--font-cinzel);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Prevents the rubber-band scroll on iOS revealing a white background. */
@@ -66,9 +75,6 @@ body {
 
 /**
  * The chapter caption fades in as the camera reaches each part of the hall.
- *
- * The animation is attached with a `key` on the element, so React remounts
- * the caption on every chapter change and the animation replays.
  */
 @keyframes chapter-in {
   from {
@@ -108,5 +114,32 @@ body {
   100% {
     transform: translateY(12px);
     opacity: 0;
+  }
+}
+
+/* Hogwarts enchanted atmospheric animations */
+@keyframes magical-ember {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-240px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes living-photo-glow {
+  0%, 100% {
+    filter: brightness(1) contrast(1.05);
+  }
+  50% {
+    filter: brightness(1.08) contrast(1.1) drop-shadow(0 0 15px rgba(255, 215, 0, 0.25));
   }
 }

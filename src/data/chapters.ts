@@ -17,7 +17,7 @@ export interface Chapter {
 export const CHAPTERS: Chapter[] = [
   {
     // Point 0 — Entrance
-    kicker: 'Enchanthia',
+    kicker: 'AJ-ASTRIX2K27',
     title: 'The Great Hall',
     caption: 'Welcome to the heart of Hogwarts. A place of magic, feasts, and the four great houses.',
   },
@@ -59,8 +59,8 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     // Point 7 (Scroll 7) — Grand Finale
-    kicker: 'Enchanthia 2026',
-    title: '12–14 September',
+    kicker: 'AJ-ASTRIX2K27',
+    title: 'Grand Fest Finale',
     caption: 'Hogwarts College of Wizardry · Three days of Quidditch, Potions and the Yule Ball.',
   },
 ]

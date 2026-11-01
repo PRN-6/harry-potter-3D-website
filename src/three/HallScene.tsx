@@ -25,6 +25,15 @@ export function isMobileDevice(): boolean {
   )
 }
 
+export function isMobileViewport(): boolean {
+  if (typeof window === 'undefined') return false
+  return (
+    window.innerWidth < 768 ||
+    isMobileDevice() ||
+    (window.innerWidth < 1024 && window.innerHeight > window.innerWidth)
+  )
+}
+
 export function detectQualityTier(): QualityTier {
   if (typeof window === 'undefined') return 'medium'
 
@@ -44,20 +53,24 @@ export function detectQualityTier(): QualityTier {
 }
 
 /**
- * The camera rig — 7 discrete scroll-snaps (Point 0 → Point 7):
- * - Scroll 1 (Point 0 → 1): Slow cinematic entrance through the doors.
- * - Scrolls 2–7 (Point 1 → 7): Normal animation speed.
+ * The cinematic camera rig — 7 discrete scroll-snaps (Point 0 → Point 7):
+ * - Cinematic lens breathing (dynamic focal length / FOV).
+ * - Dutch tilt roll banking into turns and mouse sway.
+ * - Organic steadicam micro-float.
+ * - Slow cinematic entrance through the doors.
  */
 function CameraRig({
   path,
   onChapter,
   doorRef,
   fadeRef,
+  isActive = true,
 }: {
   path: CameraPath
   onChapter?: (index: number) => void
   doorRef: React.MutableRefObject<DoorHinges | null>
   fadeRef?: React.RefObject<HTMLDivElement | null>
+  isActive?: boolean
 }) {
   const { camera } = useThree()
 
@@ -80,6 +93,7 @@ function CameraRig({
   const lastScrollTime = useRef(0)
   // True while the slow door-opening entrance is playing — blocks further scrolls
   const entrancePlaying = useRef(false)
+  const currentRoll = useRef(0)
 
   const look = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
 
@@ -100,14 +114,20 @@ function CameraRig({
   }
 
   useEffect(() => {
-    // Determine initial step if page is loaded already scrolled
+    if (!isActive) return
+
+    // Determine initial step or restore scroll when returning to home view
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-    if (maxScroll > 0 && window.scrollY > 50) {
-      const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
-      currentStep.current = step
-      targetU.current = path.keyframeFractions[step] ?? (step / 7)
-      currentU.current = targetU.current
-      onChapter?.(step)
+    if (maxScroll > 0) {
+      if (currentStep.current > 0) {
+        window.scrollTo({ top: (currentStep.current / 7) * maxScroll, behavior: 'instant' })
+      } else if (window.scrollY > 50) {
+        const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
+        currentStep.current = step
+        targetU.current = path.keyframeFractions[step] ?? (step / 7)
+        currentU.current = targetU.current
+        onChapter?.(step)
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -221,18 +241,38 @@ function CameraRig({
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerleave', onLeave)
     }
-  }, [path])
+  }, [path, isActive])
+
+  // When path updates while at Point 0 (e.g. GLTF model finishes loading and reports bounds),
+  // immediately snap camera to Point 0 so it aligns cleanly without drift or lag.
+  useEffect(() => {
+    if (!isActive) return
+    if (currentStep.current === 0 && currentU.current === 0) {
+      const sample = path.sample(0)
+      camera.position.set(sample.position[0], sample.position[1], sample.position[2])
+      desired.set(sample.position[0], sample.position[1], sample.position[2])
+      smoothTarget.set(sample.target[0], sample.target[1], sample.target[2])
+      desiredTarget.set(sample.target[0], sample.target[1], sample.target[2])
+      camera.lookAt(smoothTarget)
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.fov = 50
+        camera.updateProjectionMatrix()
+      }
+    }
+  }, [path, camera, desired, desiredTarget, smoothTarget, isActive])
 
   const primed = useRef(false)
 
   useFrame((_, delta) => {
+    if (!isActive) return
+
     const point1U = path.keyframeFractions[1] ?? 0.193
 
-    // Slow cinematic glide for the first scroll (0 → 1), normal speed for the rest
+    // Slow cinematic glide for the first scroll (0 → 1), smooth weighted dolly for the rest
     const isFirstSegment = entrancePlaying.current
     const uLerp = isFirstSegment
-      ? 1 - Math.pow(0.35, delta)   // Slow entrance (~3s cinematic glide)
-      : 1 - Math.pow(0.0008, delta) // Normal speed
+      ? 1 - Math.pow(0.32, delta)   // Slow entrance (~3.2s cinematic glide)
+      : 1 - Math.pow(0.003, delta)  // Smooth cinematic inertia dolly motion
 
     currentU.current += (targetU.current - currentU.current) * uLerp
 
@@ -241,10 +281,19 @@ function CameraRig({
       entrancePlaying.current = false
     }
 
-    const { position, target } = path.sample(currentU.current)
+    const { position, target, roll } = path.sample(currentU.current)
 
     desired.set(position[0], position[1], position[2])
     desiredTarget.set(target[0], target[1], target[2])
+
+    // Subtle organic steadicam micro-drift (gives photographic life to the floating camera)
+    const time = performance.now() * 0.0005
+    // At Point 0 on mobile, avoid horizontal drift so the door remains rock-solid centered
+    const isMobilePoint0 = currentU.current < 0.01 && isMobileViewport()
+    const driftX = isMobilePoint0 ? 0 : Math.sin(time * 0.8) * 0.02
+    const driftY = Math.cos(time * 0.6) * 0.015
+    desired.x += driftX
+    desired.y += driftY
 
     // Eased mouse target
     const l = look.current
@@ -256,12 +305,18 @@ function CameraRig({
       primed.current = true
       smoothTarget.copy(desiredTarget)
       camera.position.copy(desired)
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.fov = 50
+        camera.updateProjectionMatrix()
+      }
       camera.lookAt(smoothTarget)
       return
     }
 
     // Smooth position and target interpolation
-    const posK = 1 - Math.pow(0.001, delta)
+    const posK = isFirstSegment
+      ? 1 - Math.pow(0.001, delta)
+      : 1 - Math.pow(0.002, delta)
     camera.position.lerp(desired, posK)
 
     const k = 1 - Math.pow(0.002, delta)
@@ -282,6 +337,18 @@ function CameraRig({
 
     const offsetK = 1 - Math.pow(0.005, delta)
     smoothMouseOffset.current.lerp(targetMouseOffsetVec, offsetK)
+
+    // Cinematic Dutch tilt banking into movement and mouse yaw
+    const mouseRoll = -l.x * 0.012 * mouseWeight
+    const targetRoll = roll + mouseRoll
+    const rollK = 1 - Math.pow(0.004, delta)
+    currentRoll.current += (targetRoll - currentRoll.current) * rollK
+
+    camera.up.set(
+      Math.sin(currentRoll.current),
+      Math.cos(currentRoll.current),
+      0
+    ).normalize()
 
     finalLookAt.copy(smoothTarget).add(smoothMouseOffset.current)
     camera.lookAt(finalLookAt)
@@ -365,6 +432,7 @@ export interface HallSceneProps {
   onModelReady?: () => void
   onChapter?: (index: number) => void
   fadeRef?: React.RefObject<HTMLDivElement | null>
+  isActive?: boolean
 }
 
 export default function HallScene({
@@ -373,9 +441,20 @@ export default function HallScene({
   onModelReady,
   onChapter,
   fadeRef,
+  isActive = true,
 }: HallSceneProps) {
   const [tier] = useState<QualityTier>(() => detectQualityTier())
-  const isMobile = useMemo(() => isMobileDevice(), [])
+  const [isMobile, setIsMobile] = useState(() => isMobileViewport())
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = isMobileViewport()
+      setIsMobile((prev) => (prev !== mobile ? mobile : prev))
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const [modelFailed, setModelFailed] = useState(false)
 
   const [bounds, setBounds] = useState<HallBounds>(PROCEDURAL_HALL)
@@ -384,7 +463,7 @@ export default function HallScene({
 
   const isModel = !modelFailed
   const features = useMemo(() => hallFeatures(bounds, isModel), [bounds, isModel])
-  const path = useMemo(() => buildCameraPath(features), [features])
+  const path = useMemo(() => buildCameraPath(features, isMobile), [features, isMobile])
 
   // Capped DPR: mobile uses [1, 1.25] max; desktop caps at 1.5 to prevent 4K/retina fillrate stalls
   const dpr = useMemo<[number, number]>(() => {
@@ -423,7 +502,7 @@ export default function HallScene({
         depth: true,
       }}
       camera={{
-        fov: 58,
+        fov: isMobile ? 58 : 50,
         near: 0.1,
         far: 300,
         position: path.keyframes[0].position,
@@ -470,7 +549,13 @@ export default function HallScene({
       <Entrance features={features} />
 
       <HouseSpotlight house={house} features={features} castShadow={!isMobile && tier === 'high'} />
-      <CameraRig path={path} onChapter={onChapter} doorRef={doorRef} fadeRef={fadeRef} />
+      <CameraRig
+        path={path}
+        onChapter={onChapter}
+        doorRef={doorRef}
+        fadeRef={fadeRef}
+        isActive={isActive}
+      />
 
       <HallBloom enabled={!isMobile && tier !== 'low'} strength={0.25} radius={0.55} threshold={0.6} />
 

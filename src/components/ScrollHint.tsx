@@ -1,14 +1,21 @@
 interface ScrollHintProps {
-  className?: string;
+  className?: string
+  isVisible?: boolean
 }
 
 /**
  * A cinematic scroll indicator that encourages users to explore the hall.
  * Features a pulsing caption and a custom animated mouse-wheel icon.
+ * Fades out smoothly when isVisible is false (e.g. when reaching the house cards).
  */
-export function ScrollHint({ className }: ScrollHintProps) {
+export function ScrollHint({ className = '', isVisible = true }: ScrollHintProps) {
   return (
-    <div className={`pointer-events-none fixed bottom-10 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-3 ${className}`}>
+    <div
+      className={`pointer-events-none fixed bottom-10 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-3 transition-all duration-700 ease-in-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+      } ${className}`}
+      aria-hidden={!isVisible}
+    >
       <span className="font-cinzel text-[10px] tracking-[0.2em] text-amber-200/40 uppercase animate-pulse">
         Scroll to explore
       </span>

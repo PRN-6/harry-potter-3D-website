@@ -20,6 +20,10 @@ export interface CameraKeyframe {
   position: [number, number, number]
   /** What the camera looks at. */
   target: [number, number, number]
+  /** Lens field of view in degrees (cinematic breathing). */
+  fov?: number
+  /** Dutch tilt roll angle in radians (cinematic banking into turns). */
+  roll?: number
   /** The on-screen chapter title. */
   label?: string
   /** The one-line caption under the title. */
@@ -28,28 +32,45 @@ export interface CameraKeyframe {
 
 export const SCROLL_LENGTH = 3500
 
+export interface CameraPathSample {
+  position: [number, number, number]
+  target: [number, number, number]
+  fov: number
+  roll: number
+}
+
 export interface CameraPath {
   keyframes: CameraKeyframe[]
   keyframeFractions: number[]
-  sample(t: number): { position: [number, number, number]; target: [number, number, number] }
+  sample(t: number): CameraPathSample
   chapterAt(t: number): number
 }
 
 /**
- * Builds the 8 keyframe points for the 7-scroll journey.
+ * Builds the 8 keyframe points for the 7-scroll journey with cinematic
+ * lens field-of-view breathing and dynamic Dutch tilt banking.
  */
-export function buildCameraPath(features: HallFeatures): CameraPath {
+export function buildCameraPath(features: HallFeatures, isMobile: boolean = false): CameraPath {
   const { bounds, aisleX, highTableZ } = features
   const { width, height, length } = bounds
   const half = length / 2
   const eyeY = 1.9
   const doorZ = features.entranceZ
 
+  // Exact doorway center in world coordinates:
+  // The Great Hall model doorway midpoint is at 0.093 in raw GLTF units,
+  // and DiningHallModel shifts the entire model group by +0.5 along X.
+  // Thus the exact doorway center / seam in world coordinates is:
+  // 0.09305 + 0.5 = 0.59305.
+  const doorCenterX = 0.593
+
   const keyframes: CameraKeyframe[] = [
     {
       // 0 — Point 0: At the doorway entrance
-      position: [aisleX, 2.2, doorZ - 1.2],
-      target: [aisleX, 2.3, doorZ + 14],
+      // Mobile: center the door in the screen at doorCenterX (0.593)
+      // Desktop: preserve original aisleX framing unchanged
+      position: isMobile ? [doorCenterX, 2.2, doorZ - 1.2] : [aisleX, 2.2, doorZ - 1.2],
+      target: isMobile ? [doorCenterX, 2.3, doorZ + 14] : [aisleX, 2.3, doorZ + 14],
       label: 'The Great Hall',
       caption: 'Four long tables, a thousand floating candles, and an enchanted ceiling.',
     },
@@ -89,7 +110,7 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
       caption: 'Above the rafters there is no sky at all. There is a spell, and it is moving.',
     },
     {
-      // 6 — Point 6 (Scroll 6): Descending to the Main Head Table (pulled back for a comfortable framing)
+      // 6 — Point 6 (Scroll 6): Descending to the Main Head Table
       position: [aisleX, 2.6, highTableZ - 11.0],
       target: [aisleX, 2.1, highTableZ],
       label: 'Head of the Hall',
@@ -99,8 +120,8 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
       // 7 — Point 7 (Scroll 7): Back to the top - grand panoramic wide view (complete)
       position: [-width * 0.28, height * 0.48, -half * 0.44],
       target: [aisleX, 1.8, half * 0.1],
-      label: 'Enchanthia 2026',
-      caption: '12–14 September 2026 · Hogwarts College of Wizardry',
+      label: 'AJ-ASTRIX2K27',
+      caption: 'Hogwarts College of Wizardry · Grand Fest Edition',
     },
   ]
 
@@ -108,7 +129,8 @@ export function buildCameraPath(features: HallFeatures): CameraPath {
 }
 
 /**
- * Turns keyframes into a smooth, constant-speed path.
+ * Turns keyframes into a smooth, constant-speed cinematic path with continuous
+ * lens breathing (FOV) and Dutch tilt (roll) interpolation.
  */
 function createPath(keyframes: CameraKeyframe[]): CameraPath {
   const points = keyframes.map((k) => new THREE.Vector3(...k.position))
@@ -134,17 +156,41 @@ function createPath(keyframes: CameraKeyframe[]): CameraPath {
     keyframes,
     keyframeFractions,
 
-    sample(t: number) {
+    sample(t: number): CameraPathSample {
       const clamped = Math.min(1, Math.max(0, t))
-      const u = clamped
-      const parameter = positionCurve.getUtoTmapping(u, 0)
+      const parameter = positionCurve.getUtoTmapping(clamped, 0)
 
       const p = positionCurve.getPoint(parameter)
       const q = targetCurve.getPoint(parameter)
 
+      // Smoothly interpolate lens FOV and roll between keyframes using cubic Hermite easing
+      let kLow = 0
+      for (let i = 0; i < keyframeFractions.length - 1; i++) {
+        if (clamped >= keyframeFractions[i]) {
+          kLow = i
+        }
+      }
+      const kHigh = Math.min(keyframes.length - 1, kLow + 1)
+      const u0 = keyframeFractions[kLow]
+      const u1 = keyframeFractions[kHigh]
+      const span = u1 - u0
+      const localT = span > 0.00001 ? Math.max(0, Math.min(1, (clamped - u0) / span)) : 0
+      // Smoothstep: 3t^2 - 2t^3
+      const easedT = localT * localT * (3 - 2 * localT)
+
+      const fov0 = keyframes[kLow].fov ?? 50
+      const fov1 = keyframes[kHigh].fov ?? 50
+      const fov = THREE.MathUtils.lerp(fov0, fov1, easedT)
+
+      const roll0 = keyframes[kLow].roll ?? 0
+      const roll1 = keyframes[kHigh].roll ?? 0
+      const roll = THREE.MathUtils.lerp(roll0, roll1, easedT)
+
       return {
         position: [p.x, p.y, p.z],
         target: [q.x, q.y, q.z],
+        fov,
+        roll,
       }
     },
 

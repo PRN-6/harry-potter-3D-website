@@ -1,274 +1,698 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { buildMapLocations } from '../../data/mapLocations'
-import type { FestEvent } from '../../data/events'
-import { TRACK_META } from '../../data/events'
-
-const LOCATIONS = buildMapLocations()
+import { useState, useMemo, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Header } from '../Header'
+import { MAP_LOCATIONS, FEST_SCHEDULE, type MapLocation } from '../../data/eventMapData'
 
 export function MaraudersMapPage() {
-  const [entered, setEntered] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [showFootprints, setShowFootprints] = useState(true)
-  const [showLabels, setShowLabels] = useState(true)
-  const [query, setQuery] = useState('')
-  const [detailEvent, setDetailEvent] = useState<FestEvent | null>(null)
+  const [activeTab, setActiveTab] = useState<'map' | 'schedule' | 'locations'>('map')
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('main-auditorium')
+  const [activeDay, setActiveDay] = useState<1 | 2>(1)
+  const [searchQuery, setSearchQuery] = useState('')
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showLocationDrawer, setShowLocationDrawer] = useState(false)
 
-  const locations = LOCATIONS
-  const selected = locations.find((l) => l.id === selectedId) ?? null
+  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
+  const selectedLocation = useMemo<MapLocation>(
+    () => MAP_LOCATIONS.find((loc) => loc.id === selectedLocationId) ?? MAP_LOCATIONS[0],
+    [selectedLocationId],
+  )
+
+  // Filtered locations and events based on search query
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
     if (!q) return null
-    return locations.flatMap((l) =>
-      l.events
-        .filter((e) => e.title.toLowerCase().includes(q))
-        .map((e) => ({ loc: l, event: e })),
+
+    const matchedLocations = MAP_LOCATIONS.filter(
+      (loc) =>
+        loc.name.toLowerCase().includes(q) ||
+        loc.subtitle.toLowerCase().includes(q) ||
+        loc.description.toLowerCase().includes(q),
     )
-  }, [query])
 
-  const searchResults = filtered ?? []
+    const matchedEvents = FEST_SCHEDULE.flatMap((day) =>
+      day.events.filter(
+        (ev) =>
+          ev.title.toLowerCase().includes(q) ||
+          ev.locationName.toLowerCase().includes(q) ||
+          ev.category.toLowerCase().includes(q) ||
+          ev.blurb.toLowerCase().includes(q),
+      ).map((ev) => ({ ...ev, dayNumber: day.dayNumber })),
+    )
 
-  useEffect(() => {
-    if (!filtered || filtered.length === 0) return
-    setSelectedId(filtered[0].loc.id)
-    setZoom(1.6)
+    return { locations: matchedLocations, events: matchedEvents }
+  }, [searchQuery])
+
+  // Center map around a target location
+  const focusLocation = (locId: string) => {
+    setSelectedLocationId(locId)
+    setShowLocationDrawer(true)
+    const loc = MAP_LOCATIONS.find((l) => l.id === locId)
+    if (!loc) return
+
+    if (mapContainerRef.current) {
+      const containerWidth = mapContainerRef.current.clientWidth
+      const containerHeight = mapContainerRef.current.clientHeight
+      const offsetX = (50 - loc.x) * (containerWidth / 100) * 0.85
+      const offsetY = (50 - loc.y) * (containerHeight / 100) * 0.85
+      setZoom(1.5)
+      setPan({ x: offsetX, y: offsetY })
+    }
+  }
+
+  // Zoom helpers
+  const clampZoom = (z: number) => Math.min(2.8, Math.max(0.85, z))
+
+  const handleZoomIn = () => setZoom((z) => clampZoom(z + 0.25))
+  const handleZoomOut = () => setZoom((z) => clampZoom(z - 0.25))
+  const handleResetView = () => {
+    setZoom(1)
     setPan({ x: 0, y: 0 })
-  }, [query])
+  }
 
-  const clampZoom = (z: number) => Math.min(2.5, Math.max(0.7, z))
+  // Pointer drag for panning with touch support
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    setIsDragging(true)
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      panX: pan.x,
+      panY: pan.y,
+    }
+    try {
+      ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+    } catch {
+      // Ignore
+    }
+  }
 
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !dragStartRef.current) return
+    const dx = e.clientX - dragStartRef.current.x
+    const dy = e.clientY - dragStartRef.current.y
+    setPan({
+      x: dragStartRef.current.panX + dx,
+      y: dragStartRef.current.panY + dy,
+    })
+  }
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    setIsDragging(false)
+    dragStartRef.current = null
+    try {
+      ;(e.target as HTMLElement).releasePointerCapture?.(e.pointerId)
+    } catch {
+      // Ignore
+    }
+  }
+
+  // Mouse wheel zoom
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault()
-    setZoom((z) => clampZoom(z + (e.deltaY < 0 ? 0.15 : -0.15)))
-  }
-  const onPointerDown = (e: React.PointerEvent) => {
-    ;(e.target as Element).setPointerCapture?.(e.pointerId)
-    drag.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }
-  }
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!drag.current) return
-    setPan({ x: drag.current.px + (e.clientX - drag.current.x), y: drag.current.py + (e.clientY - drag.current.y) })
-  }
-  const onPointerUp = () => {
-    drag.current = null
-  }
-
-  if (!entered) {
-    return (
-      <div className="fixed inset-0 bg-[#24180F] flex flex-col items-center justify-center text-center p-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="max-w-xl">
-          <p className="text-[#D6BE91] font-serif italic text-2xl mb-8">“I solemnly swear that I am up to no good.”</p>
-          <button
-            onClick={() => setEntered(true)}
-            className="px-8 py-3 rounded border border-[#C9A44C] bg-[#33251C] text-[#E5C78C] font-cinzel tracking-widest hover:bg-[#C9A44C] hover:text-[#24180F] transition-colors"
-          >
-            REVEAL THE MAP
-          </button>
-          <button onClick={() => setEntered(true)} className="block mt-4 text-xs text-[#A98A60] underline">
-            Skip
-          </button>
-        </motion.div>
-      </div>
-    )
+    const delta = e.deltaY < 0 ? 0.15 : -0.15
+    setZoom((z) => clampZoom(z + delta))
   }
 
   return (
-    <div className="min-h-screen bg-[#24180F] text-[#33251C] font-serif overflow-hidden">
-      {/* Navigation */}
-      <header className="fixed top-0 left-0 w-full z-50 p-4 flex items-center justify-between pointer-events-none">
-        <div className="font-cinzel text-[#E5C78C] text-lg pointer-events-auto">✦ Marauder's Map <span className="text-xs opacity-70">2026</span></div>
-        <nav className="hidden md:flex gap-6 pointer-events-auto">
-          {['MAP', 'EVENTS', 'ABOUT', 'TEAM', 'REGISTER NOW'].map((n) => (
-            <a key={n} href="#" className="font-cinzel text-xs tracking-widest text-[#D6BE91] hover:text-[#C9A44C] transition-colors">
-              {n}
-            </a>
-          ))}
-        </nav>
-      </header>
-
-      <main className="pt-16 px-3 sm:px-6 pb-6 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 min-h-screen">
-        {/* Map */}
-        <div
-          className="relative rounded-xl overflow-hidden border border-[#68462D]/60 bg-[#A98A60]/30 touch-none"
-          style={{ minHeight: 420 }}
-          onWheel={onWheel}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-        >
-          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 30% 30%, #D6BE91 0%, transparent 60%)' }} />
-          <div
-            style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              transformOrigin: 'center center',
-              transition: drag.current ? 'none' : 'transform 120ms ease-out',
+    <div className="min-h-screen bg-[#0e0703] text-[#f2e2c4] font-serif selection:bg-[#c9a44c] selection:text-[#1c1107] overflow-x-hidden flex flex-col">
+      {/* ── Top Atmospheric Navigation Bar with Burger Menu ─────────────── */}
+      <Header
+        currentView="map"
+        leftSlot={
+          <button
+            onClick={() => {
+              window.location.hash = '#/'
             }}
-            className="w-full h-full"
+            className="group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-sm bg-gradient-to-b from-[#2c170b] via-[#1d1007] to-[#130903] border border-[#a87d3b] hover:border-[#ffd700] text-[#e8d2a6] hover:text-[#ffd700] transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.8)] cursor-pointer shrink-0"
           >
-            <svg viewBox="0 0 100 100" className="w-full h-full">
-              {/* Parchment-ish paths */}
-              <g stroke="#33251C" strokeWidth="0.4" fill="none" opacity="0.7">
-                <path d="M10 90 Q 30 70, 50 80 T 90 70" />
-                <path d="M20 20 Q 40 35, 50 42 T 80 30" />
-                <path d="M18 72 Q 30 60, 46 74" />
-                <path d="M50 42 Q 60 50, 54 52" />
-              </g>
-              {/* Castle blocks */}
-              <g opacity="0.18" fill="#33251C">
-                <rect x="42" y="36" width="16" height="12" rx="1" />
-                <rect x="24" y="18" width="12" height="8" rx="1" />
-              </g>
+            <span className="text-[#ffd700] text-xs sm:text-sm group-hover:-translate-x-1 transition-transform">⚡</span>
+            <span className="font-cinzel text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase font-bold">
+              <span className="hidden sm:inline">Return to </span>Hall
+            </span>
+          </button>
+        }
+        centerSlot={
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[#ffd700] text-xs select-none animate-pulse">✦</span>
+            <h1 className="font-harry text-sm sm:text-lg md:text-xl tracking-widest text-[#ffd700] drop-shadow-md truncate">
+              AJ-ASTRIX 2K27 · Event Map
+            </h1>
+            <span className="text-[#ffd700] text-xs select-none animate-pulse">✦</span>
+          </div>
+        }
+        showDesktopNav={false}
+      />
 
-              {locations.map((loc) => {
-                const isActive = selectedId === loc.id
-                const isMatched = searchResults.some((r) => r.loc.id === loc.id)
+      {/* ── Mobile View Switcher Tabs (Under Header on Mobile) ─────────── */}
+      <div className="lg:hidden fixed top-[49px] sm:top-[57px] left-0 w-full z-40 bg-[#160c05]/98 border-b border-[#5c3c1e] px-2 py-1.5 flex items-center justify-around shadow-lg backdrop-blur-md">
+        <button
+          onClick={() => setActiveTab('map')}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-sm font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+            activeTab === 'map'
+              ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] shadow-md border border-[#ffe082]'
+              : 'text-[#c2a272] hover:text-[#ffd700]'
+          }`}
+        >
+          <span>🗺️</span>
+          <span>Fest Map</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('schedule')}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-sm font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+            activeTab === 'schedule'
+              ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] shadow-md border border-[#ffe082]'
+              : 'text-[#c2a272] hover:text-[#ffd700]'
+          }`}
+        >
+          <span>📜</span>
+          <span>Schedule Scroll</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('locations')}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-sm font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+            activeTab === 'locations'
+              ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] shadow-md border border-[#ffe082]'
+              : 'text-[#c2a272] hover:text-[#ffd700]'
+          }`}
+        >
+          <span>📍</span>
+          <span>All Venues</span>
+        </button>
+      </div>
+
+      {/* ── Main Workspace ────────────────────────────────────────────── */}
+      <main className="flex-1 pt-24 sm:pt-20 pb-10 px-2 sm:px-6 max-w-[1700px] mx-auto w-full flex flex-col">
+        {/* ── 2-Column Responsive Layout: Map + Schedule Scroll ────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
+          {/* ════════════════════════════════════════════════════════════
+              LEFT: THE AUTHENTIC MARAUDER'S EVENT MAP STAGE
+          ════════════════════════════════════════════════════════════ */}
+          <div
+            className={`lg:col-span-8 flex flex-col gap-4 ${
+              activeTab === 'map' ? 'flex' : 'hidden lg:flex'
+            }`}
+          >
+            {/* Quick-Jump Venue Chips on Mobile & Tablet */}
+            <div className="overflow-x-auto py-1 scrollbar-none flex items-center gap-2 -mx-1 px-1">
+              {MAP_LOCATIONS.map((loc) => {
+                const isSelected = selectedLocationId === loc.id
                 return (
-                  <g key={loc.id} transform={`translate(${loc.mapPosition.x}, ${loc.mapPosition.y})`}>
-                    <circle
-                      r={isActive ? 3.2 : 2.2}
-                      fill={isMatched ? '#C9A44C' : '#33251C'}
-                      stroke="#E5C78C"
-                      strokeWidth="0.4"
-                      onClick={() => setSelectedId(loc.id)}
-                      className="cursor-pointer"
-                    />
-                    {showLabels && (
-                      <text x="0" y="-4" textAnchor="middle" fontSize="2.6" fill="#33251C" className="pointer-events-none select-none">
-                        {loc.name}
-                      </text>
-                    )}
-                  </g>
+                  <button
+                    key={loc.id}
+                    onClick={() => {
+                      focusLocation(loc.id)
+                    }}
+                    className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-sm border font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] border-[#ffe082] shadow-[0_0_12px_rgba(255,215,0,0.35)] scale-105'
+                        : 'bg-[#1e1107] text-[#e5c78c] border-[#6d4620] hover:border-[#ffd700]'
+                    }`}
+                  >
+                    <span>{loc.icon}</span>
+                    <span className="font-harry tracking-wide text-xs">{loc.name}</span>
+                  </button>
                 )
               })}
-            </svg>
-            {showFootprints && <Footprints />}
+            </div>
+
+            {/* Map Frame on Dark Oak Table with Brass Fleurons */}
+            <div className="relative rounded-lg overflow-hidden border-2 border-[#7a4e23] bg-[#1a1007] shadow-[0_20px_60px_rgba(0,0,0,0.95)]">
+              {/* Brass Corner Fleurons */}
+              <div className="absolute top-1.5 left-1.5 text-[#ffd700] text-xs z-30 select-none">⚜</div>
+              <div className="absolute top-1.5 right-1.5 text-[#ffd700] text-xs z-30 select-none">⚜</div>
+              <div className="absolute bottom-1.5 left-1.5 text-[#ffd700] text-xs z-30 select-none">⚜</div>
+              <div className="absolute bottom-1.5 right-1.5 text-[#ffd700] text-xs z-30 select-none">⚜</div>
+
+              {/* Map Interactive Canvas Container */}
+              <div
+                ref={mapContainerRef}
+                onWheel={onWheel}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                style={{ touchAction: 'none' }}
+                className="relative h-[48vh] sm:h-[54vh] lg:aspect-[16/10.5] lg:h-auto w-full select-none cursor-grab active:cursor-grabbing overflow-hidden bg-[#d8c097]"
+              >
+                {/* Transform Wrapper for Pan and Zoom */}
+                <div
+                  style={{
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+                  }}
+                  className="relative w-full h-full"
+                >
+                  {/* The Authentic Hand-Drawn Event Map Artwork */}
+                  <img
+                    src="/images/event-map.jpg"
+                    alt="AJ-ASTRIX2K27 Born From Fire Event Map"
+                    className="w-full h-full object-contain pointer-events-none select-none block"
+                    loading="lazy"
+                    decoding="async"
+                  />
+
+                  {/* ── Enchanted Hotspot Beacons Overlaid on Artwork ───────── */}
+                  {MAP_LOCATIONS.map((loc) => {
+                    const isSelected = selectedLocationId === loc.id
+                    return (
+                      <div
+                        key={loc.id}
+                        style={{
+                          left: `${loc.x}%`,
+                          top: `${loc.y}%`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          focusLocation(loc.id)
+                        }}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-25 group"
+                      >
+                        {/* Golden magical pulse aura */}
+                        {isSelected && (
+                          <div className="absolute -inset-3 rounded-full bg-[#ffd700]/40 animate-ping pointer-events-none" />
+                        )}
+
+                        {/* Magical Lumos Spark Beacon */}
+                        <div
+                          className={`relative flex items-center justify-center rounded-full transition-all duration-300 shadow-xl ${
+                            isSelected
+                              ? 'w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-[#ffd700] via-[#c9a44c] to-[#8c6721] border-2 border-white text-black scale-125 shadow-[0_0_20px_#ffd700]'
+                              : 'w-5 h-5 sm:w-6 sm:h-6 bg-[#1e1006]/85 border border-[#ffd700] text-[#ffd700] hover:scale-125 hover:bg-[#ffd700] hover:text-[#120802]'
+                          }`}
+                        >
+                          <span className="text-[10px] sm:text-xs">✦</span>
+                        </div>
+
+                        {/* Parchment Ribbon Label on Hover or Active */}
+                        <div
+                          className={`absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2.5 py-0.5 rounded-sm whitespace-nowrap font-harry text-xs tracking-wider transition-all duration-200 pointer-events-none shadow-lg ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-[#ffd700] to-[#c9a44c] text-[#120802] opacity-100 scale-105 border border-[#8c6738] font-bold'
+                              : 'bg-[#180e06]/95 text-[#f2e2c4] border border-[#6d4620] opacity-0 group-hover:opacity-100 group-hover:scale-100'
+                          }`}
+                        >
+                          <span>{loc.name}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Floating Map HUD Controls (Zoom In, Zoom Out, Reset) */}
+                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 z-30 pointer-events-auto bg-[#180e07]/90 p-1.5 rounded-md border border-[#8c6738] shadow-lg backdrop-blur-sm">
+                  <button
+                    onClick={handleZoomIn}
+                    title="Zoom In"
+                    className="w-8 h-8 rounded-sm bg-[#29170c] hover:bg-[#ffd700] text-[#f2e2c4] hover:text-[#120802] font-black text-sm border border-[#6d4620] transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={handleZoomOut}
+                    title="Zoom Out"
+                    className="w-8 h-8 rounded-sm bg-[#29170c] hover:bg-[#ffd700] text-[#f2e2c4] hover:text-[#120802] font-black text-sm border border-[#6d4620] transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+                  >
+                    −
+                  </button>
+                  <button
+                    onClick={handleResetView}
+                    title="Reset View"
+                    className="w-8 h-8 rounded-sm bg-[#29170c] hover:bg-[#ffd700] text-[#f2e2c4] hover:text-[#120802] font-cinzel text-xs border border-[#6d4620] transition-colors cursor-pointer flex items-center justify-center shadow-sm"
+                  >
+                    ⊙
+                  </button>
+                </div>
+
+                {/* Map Legend Overlay at Top Left */}
+                <div className="absolute top-3 left-3 z-30 pointer-events-none hidden sm:flex items-center gap-2 bg-[#180e07]/90 px-3 py-1.5 rounded-md border border-[#8c6738]/80 text-[#e5c78c] shadow-md backdrop-blur-sm">
+                  <span className="text-[#ffd700] text-xs">✦</span>
+                  <span className="font-harry text-sm tracking-wider">
+                    Interactive Fest Map · Tap Any Building
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Location Feature Spotlight Bar */}
+            <div className="rounded-md border border-[#7a4e23] bg-gradient-to-b from-[#1c1109] via-[#140b05] to-[#0c0602] p-4 sm:p-5 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#4a2e14] pb-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-2 rounded-md bg-[#2a170b] border border-[#8c6738] shadow-sm">
+                    {selectedLocation.icon}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-harry text-xl sm:text-2xl text-[#ffd700] tracking-wider">
+                        {selectedLocation.name}
+                      </h2>
+                      <span className="text-[10px] font-cinzel uppercase px-2 py-0.5 rounded-sm bg-[#2a170b] border border-[#a87d3b] text-[#e5c78c]">
+                        {selectedLocation.category}
+                      </span>
+                    </div>
+                    <p className="font-serif italic text-xs text-[#bda075]">
+                      {selectedLocation.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-cinzel">
+                  <button
+                    onClick={() => focusLocation(selectedLocation.id)}
+                    className="px-3.5 py-1.5 rounded-sm bg-gradient-to-b from-[#ffd700] to-[#c9a44c] hover:brightness-110 text-[#120802] font-bold transition-all cursor-pointer shadow-md"
+                  >
+                    Focus On Map ⊙
+                  </button>
+                </div>
+              </div>
+
+              <p className="font-serif text-xs sm:text-sm text-[#d4be9b] leading-relaxed mb-4">
+                {selectedLocation.description}
+              </p>
+
+              {/* Day 1 & Day 2 Events Grid for Selected Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {/* Day 1 */}
+                <div className="rounded-sm bg-[#170e06] border border-[#5c3c1e] p-3">
+                  <span className="font-harry text-sm tracking-wider text-[#ffd700] block mb-2 border-b border-[#4a2e14] pb-1">
+                    Day 1 — The Beginning
+                  </span>
+                  {selectedLocation.day1Events.length === 0 ? (
+                    <p className="text-xs text-[#8c6f4b] italic font-serif">Open venue / general fest activities.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {selectedLocation.day1Events.map((ev) => (
+                        <li key={ev.id} className="text-xs">
+                          <div className="flex items-center justify-between text-[#e5c78c] font-bold font-cinzel">
+                            <span>{ev.title}</span>
+                            <span className="text-[#ffd700] text-[10px] font-mono">{ev.time}</span>
+                          </div>
+                          <p className="text-[11px] text-[#bda075] font-serif italic mt-0.5">{ev.blurb}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Day 2 */}
+                <div className="rounded-sm bg-[#170e06] border border-[#5c3c1e] p-3">
+                  <span className="font-harry text-sm tracking-wider text-[#ffd700] block mb-2 border-b border-[#4a2e14] pb-1">
+                    Day 2 — The Grand Finale
+                  </span>
+                  {selectedLocation.day2Events.length === 0 ? (
+                    <p className="text-xs text-[#8c6f4b] italic font-serif">Open venue / general fest activities.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {selectedLocation.day2Events.map((ev) => (
+                        <li key={ev.id} className="text-xs">
+                          <div className="flex items-center justify-between text-[#e5c78c] font-bold font-cinzel">
+                            <span>{ev.title}</span>
+                            <span className="text-[#ffd700] text-[10px] font-mono">{ev.time}</span>
+                          </div>
+                          <p className="text-[11px] text-[#bda075] font-serif italic mt-0.5">{ev.blurb}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="absolute bottom-3 right-3 flex flex-col gap-2 pointer-events-auto">
-            <button onClick={() => setZoom((z) => clampZoom(z + 0.15))} className="w-9 h-9 rounded bg-[#33251C]/80 text-[#E5C78C] border border-[#C9A44C]/40">+</button>
-            <button onClick={() => setZoom((z) => clampZoom(z - 0.15))} className="w-9 h-9 rounded bg-[#33251C]/80 text-[#E5C78C] border border-[#C9A44C]/40">−</button>
-            <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }) }} className="w-9 h-9 rounded bg-[#33251C]/80 text-[#E5C78C] border border-[#C9A44C]/40 text-xs">⟳</button>
-          </div>
-        </div>
+          {/* ════════════════════════════════════════════════════════════
+              RIGHT: THE TWO-DAY SCHEDULE SCROLL (MATCHES UPLOADED ARTWORK)
+          ════════════════════════════════════════════════════════════ */}
+          <div
+            className={`lg:col-span-4 flex flex-col gap-4 ${
+              activeTab === 'schedule' ? 'flex' : 'hidden lg:flex'
+            }`}
+          >
+            {/* Search Box */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events, venues, gaming, talks..."
+                className="w-full px-3.5 py-2.5 rounded-md bg-[#180e07] border-2 border-[#6d4620] focus:border-[#ffd700] text-[#f2e2c4] placeholder:text-[#8c6f4b] font-serif text-xs sm:text-sm outline-none transition-colors shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#c9a44c] hover:text-[#ffd700]"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-        {/* Side panel */}
-        <aside className="rounded-xl border border-[#68462D]/60 bg-[#D6BE91]/90 p-4 overflow-y-auto max-h-[70vh] lg:max-h-none">
-          <h2 className="font-cinzel text-xl text-[#33251C] mb-2">{selected ? selected.name : 'Explore the Map'}</h2>
-          {selected && <p className="text-sm mb-3 opacity-80">{selected.description}</p>}
-          {!selected && <p className="text-sm opacity-70 mb-3">Select a location to reveal its events.</p>}
-
-          {/* Search */}
-          <div className="mb-3">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search events..."
-              className="w-full px-3 py-2 rounded border border-[#68462D]/60 bg-[#F4E8C1] text-[#33251C] placeholder:text-[#68462D]/60"
-            />
-            {searchResults.length > 0 && (
-              <ul className="mt-2 text-sm space-y-1">
-                {searchResults.map((r) => (
-                  <li key={r.event.id}>
-                    <button onClick={() => { setSelectedId(r.loc.id); setDetailEvent(r.event) }} className="text-left underline text-[#68462D] hover:text-[#33251C]">
-                      {r.event.title} — {r.loc.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            {/* Search Results Dropdown / Panel if searching */}
+            {searchResults && (
+              <div className="rounded-md border-2 border-[#ffd700]/70 bg-[#160c05] p-3 shadow-xl">
+                <span className="font-harry text-sm text-[#ffd700] tracking-wider block mb-2">
+                  Search Results ({searchResults.events.length + searchResults.locations.length})
+                </span>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {searchResults.locations.map((loc) => (
+                    <div
+                      key={loc.id}
+                      onClick={() => {
+                        focusLocation(loc.id)
+                        setActiveTab('map')
+                      }}
+                      className="p-2 rounded-sm bg-[#221308] hover:bg-[#331c0b] border border-[#6d4620] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 text-xs font-cinzel font-bold text-[#ffd700]">
+                        <span>{loc.icon}</span>
+                        <span className="font-harry text-sm">{loc.name}</span>
+                      </div>
+                      <p className="text-[11px] text-[#bda075] font-serif">{loc.subtitle}</p>
+                    </div>
+                  ))}
+                  {searchResults.events.map((ev) => (
+                    <div
+                      key={ev.id}
+                      onClick={() => {
+                        focusLocation(ev.locationId)
+                        setActiveTab('map')
+                      }}
+                      className="p-2 rounded-sm bg-[#221308] hover:bg-[#331c0b] border border-[#6d4620] cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-xs font-cinzel font-bold text-[#e5c78c]">
+                        <span>{ev.title}</span>
+                        <span className="text-[#ffd700] text-[10px]">Day {ev.dayNumber}</span>
+                      </div>
+                      <p className="text-[11px] text-[#bda075] font-serif">📍 {ev.locationName}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
+
+            {/* Authentic Parchment Scroll Schedule Card */}
+            <div className="rounded-lg border-2 border-[#7a4e23] bg-gradient-to-b from-[#1a1007] via-[#140b05] to-[#0c0602] shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden">
+              {/* Parchment Scroll Header with Fleurons */}
+              <div className="p-4 bg-[#201309] border-b-2 border-[#5c3c1e] text-center relative">
+                <div className="flex items-center justify-center gap-2 text-[#ffd700] text-xs mb-1">
+                  <span>✦</span>
+                  <span className="font-cinzel uppercase tracking-[0.25em] font-bold text-[#e5c78c]">
+                    Hogwarts Fest Schedule
+                  </span>
+                  <span>✦</span>
+                </div>
+                <h3 className="font-harry text-2xl sm:text-3xl text-[#ffd700] tracking-wide">
+                  Two-Day Programme
+                </h3>
+
+                {/* Day 1 & Day 2 Switcher Tabs (Matches Uploaded Artwork) */}
+                <div className="mt-3 inline-flex p-1 rounded-sm bg-[#120803] border border-[#6d4620]">
+                  <button
+                    onClick={() => setActiveDay(1)}
+                    className={`px-3.5 sm:px-4 py-1.5 rounded-sm font-harry text-xs sm:text-sm tracking-wider transition-all cursor-pointer ${
+                      activeDay === 1
+                        ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] shadow-md font-bold'
+                        : 'text-[#c2a272] hover:text-[#ffd700]'
+                    }`}
+                  >
+                    Day 1 — The Beginning
+                  </button>
+                  <button
+                    onClick={() => setActiveDay(2)}
+                    className={`px-3.5 sm:px-4 py-1.5 rounded-sm font-harry text-xs sm:text-sm tracking-wider transition-all cursor-pointer ${
+                      activeDay === 2
+                        ? 'bg-gradient-to-b from-[#ffd700] to-[#c9a44c] text-[#120802] shadow-md font-bold'
+                        : 'text-[#c2a272] hover:text-[#ffd700]'
+                    }`}
+                  >
+                    Day 2 — The Grand Finale
+                  </button>
+                </div>
+              </div>
+
+              {/* Events List on Scroll Parchment */}
+              <div className="p-4 sm:p-5 space-y-3 max-h-[560px] overflow-y-auto">
+                {FEST_SCHEDULE.find((s) => s.dayNumber === activeDay)?.events.map((ev) => (
+                  <motion.div
+                    key={ev.id}
+                    whileHover={{ scale: 1.015 }}
+                    onClick={() => {
+                      focusLocation(ev.locationId)
+                      setActiveTab('map')
+                    }}
+                    className={`p-3 rounded-sm border transition-all duration-200 cursor-pointer ${
+                      selectedLocationId === ev.locationId
+                        ? 'bg-[#2b170a] border-[#ffd700] shadow-[0_0_15px_rgba(255,215,0,0.2)]'
+                        : 'bg-[#180e06] border-[#5c3c1e] hover:border-[#a87d3b]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[#ffd700] text-xs">✦</span>
+                        <h4 className="font-cinzel text-xs sm:text-sm font-bold text-[#f2e2c4]">
+                          {ev.title}
+                        </h4>
+                      </div>
+                      <span className="font-mono text-[10px] text-[#ffd700] shrink-0 font-bold">
+                        {ev.time}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-[#bda075] font-serif pt-1">
+                      <span>📍 {ev.locationName}</span>
+                      <span className="text-[#c9a44c] font-cinzel uppercase text-[9px] font-bold">
+                        Locate on Map →
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Bottom Quote Banner (Matches Uploaded Artwork) */}
+              <div className="p-4 bg-[#180e07] border-t border-[#4a2e14] text-center">
+                <p className="font-harry text-sm sm:text-base text-[#ffd700] tracking-[0.15em] mb-0.5">
+                  Explore ✦ Participate ✦ Celebrate
+                </p>
+                <p className="font-serif italic text-xs text-[#bda075]">
+                  Two Days. Countless Memories.
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Toggles */}
-          <div className="flex gap-3 text-xs mb-3">
-            <button onClick={() => setShowFootprints((v) => !v)} className="underline">{showFootprints ? 'Hide' : 'Show'} footprints</button>
-            <button onClick={() => setShowLabels((v) => !v)} className="underline">{showLabels ? 'Hide' : 'Show'} labels</button>
-          </div>
+          {/* ════════════════════════════════════════════════════════════
+              TAB 3 (MOBILE ONLY): ALL VENUES & LANDMARKS DIRECTORY
+          ════════════════════════════════════════════════════════════ */}
+          {activeTab === 'locations' && (
+            <div className="lg:hidden col-span-1 flex flex-col gap-3">
+              <div className="text-center pb-2">
+                <h3 className="font-harry text-xl text-[#ffd700] tracking-wider">
+                  Campus Landmarks & Venues
+                </h3>
+                <p className="font-serif italic text-xs text-[#bda075]">
+                  Tap any venue to jump directly to its location on the parchment map.
+                </p>
+              </div>
 
-          {/* Events */}
-          <div className="space-y-3">
-            {(selected ? selected.events : locations.flatMap((l) => l.events)).map((ev) => (
-              <EventCard key={ev.id} event={ev} onView={() => setDetailEvent(ev)} />
-            ))}
-          </div>
-        </aside>
+              <div className="space-y-3">
+                {MAP_LOCATIONS.map((loc) => (
+                  <div
+                    key={loc.id}
+                    onClick={() => {
+                      focusLocation(loc.id)
+                      setActiveTab('map')
+                    }}
+                    className={`p-3.5 rounded-md border transition-all cursor-pointer ${
+                      selectedLocationId === loc.id
+                        ? 'bg-[#2a170b] border-[#ffd700] shadow-md'
+                        : 'bg-[#180e06] border-[#6d4620] hover:border-[#ffd700]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{loc.icon}</span>
+                        <h4 className="font-harry text-base text-[#ffd700]">{loc.name}</h4>
+                      </div>
+                      <span className="text-[10px] font-cinzel uppercase px-2 py-0.5 rounded-sm bg-[#221308] border border-[#8c6738] text-[#e5c78c]">
+                        {loc.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#bda075] font-serif italic mb-2">
+                      {loc.subtitle}
+                    </p>
+                    <p className="text-xs text-[#d4be9b] font-serif line-clamp-2 mb-2">
+                      {loc.description}
+                    </p>
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[#4a2e14]">
+                      <span className="text-[#a87d3b] font-cinzel text-[10px]">
+                        {loc.day1Events.length + loc.day2Events.length} Events Scheduled
+                      </span>
+                      <span className="text-[#ffd700] font-cinzel font-bold text-[10px] uppercase">
+                        View on Map →
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
+      {/* ── Mobile Slide-Up Location Bottom Sheet ──────────────────────── */}
       <AnimatePresence>
-        {detailEvent && <EventDetailsModal event={detailEvent} onClose={() => setDetailEvent(null)} />}
+        {showLocationDrawer && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="lg:hidden fixed bottom-0 left-0 w-full z-50 bg-[#160c05] border-t-2 border-[#ffd700] p-4 max-h-[75vh] overflow-y-auto shadow-2xl rounded-t-xl"
+          >
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#5c3c1e]">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{selectedLocation.icon}</span>
+                <div>
+                  <h3 className="font-harry text-lg text-[#ffd700] tracking-wider">
+                    {selectedLocation.name}
+                  </h3>
+                  <span className="font-serif italic text-xs text-[#bda075]">
+                    {selectedLocation.subtitle}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLocationDrawer(false)}
+                className="w-7 h-7 rounded-full bg-[#24150b] border border-[#8c6738] text-[#ffd700] flex items-center justify-center font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-[#d4be9b] font-serif mb-3 leading-relaxed">
+              {selectedLocation.description}
+            </p>
+
+            {/* Quick Events in Drawer */}
+            <div className="space-y-2">
+              <span className="font-harry text-sm tracking-wider text-[#ffd700] block">
+                Events at this Venue:
+              </span>
+              {[...selectedLocation.day1Events, ...selectedLocation.day2Events].map((ev) => (
+                <div key={ev.id} className="p-2 rounded-sm bg-[#1e1107] border border-[#5c3c1e] text-xs">
+                  <div className="flex justify-between font-cinzel font-bold text-[#e5c78c]">
+                    <span>{ev.title}</span>
+                    <span className="text-[#ffd700] text-[10px]">{ev.time}</span>
+                  </div>
+                  <p className="text-[10px] text-[#bda075] font-serif italic mt-0.5">{ev.blurb}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
-  )
-}
-
-function EventCard({ event, onView }: { event: FestEvent; onView: () => void }) {
-  const meta = TRACK_META[event.track]
-  return (
-    <div className="rounded-lg border border-[#68462D]/40 bg-[#F4E8C1] p-3 shadow-sm">
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-sm">{meta.icon}</span>
-        <h3 className="font-cinzel text-sm text-[#33251C] font-semibold">{event.title}</h3>
-      </div>
-      <p className="text-xs opacity-80 mb-2">{event.blurb}</p>
-      <div className="text-xs opacity-70 mb-2">
-        {event.start}–{event.end} · {event.venue} · Day {event.day}
-      </div>
-      <button onClick={onView} className="text-xs underline text-[#68462D] hover:text-[#33251C]">
-        View details
-      </button>
-    </div>
-  )
-}
-
-function EventDetailsModal({ event, onClose }: { event: FestEvent; onClose: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-xl bg-[#D6BE91] border border-[#68462D] p-5 text-[#33251C]"
-      >
-        <h3 className="font-cinzel text-xl mb-2">{event.title}</h3>
-        <p className="text-sm mb-3">{event.blurb}</p>
-        <div className="text-sm space-y-1">
-          <div><strong>Category:</strong> {TRACK_META[event.track].label}</div>
-          <div><strong>Date:</strong> Day {event.day}</div>
-          <div><strong>Time:</strong> {event.start}–{event.end}</div>
-          <div><strong>Venue:</strong> {event.venue}</div>
-          <div><strong>Points:</strong> {event.points}</div>
-        </div>
-        <div className="mt-4 flex gap-3">
-          <button className="px-4 py-2 rounded bg-[#33251C] text-[#E5C78C] text-sm">Register Now</button>
-          <button onClick={onClose} className="px-4 py-2 rounded border border-[#68462D] text-sm">Close</button>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
-
-function Footprints() {
-  const paths = ['M20 70 Q 32 60, 46 74', 'M50 42 Q 60 50, 54 52', 'M20 20 Q 40 35, 50 42']
-  return (
-    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
-      {paths.map((p, i) => (
-        <g key={i} opacity="0.35">
-          <circle r="0.6" fill="#33251C">
-            <animateMotion dur={`${4 + i}s`} repeatCount="indefinite" path={p} />
-          </circle>
-        </g>
-      ))}
-    </svg>
   )
 }
