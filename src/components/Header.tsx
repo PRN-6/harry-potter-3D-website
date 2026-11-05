@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 export interface HeaderProps {
   onTeamClick?: () => void
+  onRegisterClick?: () => void
   currentView?: string
   leftSlot?: React.ReactNode
   centerSlot?: React.ReactNode
@@ -13,6 +14,7 @@ export interface HeaderProps {
 
 export function Header({
   onTeamClick,
+  onRegisterClick,
   currentView = 'home',
   leftSlot,
   centerSlot,
@@ -50,9 +52,19 @@ export function Header({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const handleRegister = () => {
+    if (onRegisterClick) {
+      onRegisterClick()
+    } else {
+      window.open('https://google.com', '_blank')
+    }
+    setIsOpen(false)
+  }
+
   const navLinks = [
     {
-      title: 'The Great Hall',
+      title: 'Great Hall',
+      fullTitle: 'The Great Hall',
       subtitle: 'Atmospheric 3D Entrance & Floating Candles',
       href: '#/',
       icon: '🏰',
@@ -63,7 +75,8 @@ export function Header({
       },
     },
     {
-      title: 'The Team & Gazette',
+      title: 'The Team',
+      fullTitle: 'The Team & Gazette',
       subtitle: 'The Daily Prophet, Faculty & Student Council',
       href: '#/team',
       icon: '🗞️',
@@ -75,7 +88,8 @@ export function Header({
       },
     },
     {
-      title: "Marauder's Event Map",
+      title: 'Event Map',
+      fullTitle: "Marauder's Event Map",
       subtitle: 'Interactive Castle Grounds & 2-Day Schedule',
       href: '#/map',
       icon: '🗺️',
@@ -88,132 +102,153 @@ export function Header({
   ]
 
   const houseLinks = [
-    { name: 'Gryffindor', id: 'gryffindor', crest: '🦁', color: '#ae0001', glow: '#d3a625' },
-    { name: 'Slytherin', id: 'slytherin', crest: '🐍', color: '#1a472a', glow: '#5d5d5d' },
-    { name: 'Ravenclaw', id: 'ravenclaw', crest: '🦅', color: '#0e1a40', glow: '#946b2d' },
-    { name: 'Hufflepuff', id: 'hufflepuff', crest: '🦡', color: '#ecb939', glow: '#372e29' },
+    { name: 'Gryffindor', id: 'gryffindor', crest: '🦁', motto: 'Bravery & Chivalry', color: '#ae0001', glow: '#d3a625' },
+    { name: 'Slytherin', id: 'slytherin', crest: '🐍', motto: 'Ambition & Cunning', color: '#1a472a', glow: '#5d5d5d' },
+    { name: 'Ravenclaw', id: 'ravenclaw', crest: '🦅', motto: 'Wisdom & Intellect', color: '#0e1a40', glow: '#946b2d' },
+    { name: 'Hufflepuff', id: 'hufflepuff', crest: '🦡', motto: 'Dedication & Loyalty', color: '#ecb939', glow: '#372e29' },
   ]
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 px-3 sm:px-6 md:px-8 py-2.5 sm:py-3.5 flex justify-between items-center bg-[#0d0703]/90 sm:bg-[#0d0703]/80 border-b border-[#6d4620]/60 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.8)] transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isVisible ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-full opacity-0 pointer-events-none'
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none ${
+          isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         } ${className}`}
       >
-        {/* Left Section (Custom slot or wordmark) */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {leftSlot ? (
-            leftSlot
-          ) : (
-            <a
-              href="#/"
-              onClick={(e) => {
-                e.preventDefault()
-                window.location.hash = '#/'
-              }}
-              className="flex items-center gap-1.5 sm:gap-2 group cursor-pointer"
-            >
-              <span className="text-[#ffd700] text-sm animate-pulse">✦</span>
-              <span className="font-harry text-lg sm:text-xl md:text-2xl tracking-widest text-[#f2e2c4] group-hover:text-[#ffd700] transition-colors drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
-                AJ-ASTRIX <span className="text-[#ffd700]">2K27</span>
-              </span>
-            </a>
-          )}
-        </div>
-
-        {/* Center Section (Custom slot if provided, e.g. section tabs or house pills) */}
-        {centerSlot && (
-          <div className="flex-1 flex justify-center items-center px-1 sm:px-4 max-w-full overflow-hidden">
-            {centerSlot}
-          </div>
-        )}
-
-        {/* Right Section (Nav links + CTA + Burger Button) */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {/* Desktop Navigation Links (when showDesktopNav is enabled) */}
-          {showDesktopNav && (
-            <nav className="hidden lg:flex items-center gap-5 sm:gap-6">
-              <a
-                href="#/"
-                className={`group flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                  currentView === 'home' ? 'text-[#ffd700] font-bold' : 'text-[#d4be9b] hover:text-[#ffd700]'
-                }`}
-              >
-                <span className="text-[#c9a44c] group-hover:rotate-45 transition-transform text-[10px]">✦</span>
-                <span>Great Hall</span>
-              </a>
-              <a
-                href="#/team"
-                onClick={(e) => {
-                  if (onTeamClick) {
+        {/* Transparent Header Shell with Soft Top Gradient Vignette */}
+        <div className="relative w-full bg-gradient-to-b from-black/60 via-black/20 to-transparent">
+          {/* Main Content Bar */}
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4 pointer-events-auto">
+            {/* ── Left Section: Wordmark Brand or Custom Page Slot ── */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {leftSlot ? (
+                leftSlot
+              ) : (
+                <a
+                  href="#/"
+                  onClick={(e) => {
                     e.preventDefault()
-                    onTeamClick()
-                  }
-                }}
-                className={`group flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                  currentView === 'team' ? 'text-[#ffd700] font-bold' : 'text-[#d4be9b] hover:text-[#ffd700]'
-                }`}
-              >
-                <span className="text-[#c9a44c] group-hover:rotate-45 transition-transform text-[10px]">✦</span>
-                <span>The Team</span>
-              </a>
-              <a
-                href="#/map"
-                className={`group flex items-center gap-1.5 font-cinzel text-xs uppercase tracking-widest transition-colors cursor-pointer ${
-                  currentView === 'map' ? 'text-[#ffd700] font-bold' : 'text-[#d4be9b] hover:text-[#ffd700]'
-                }`}
-              >
-                <span className="text-[#c9a44c] group-hover:rotate-45 transition-transform text-[10px]">✦</span>
-                <span>Event Map</span>
-              </a>
-            </nav>
-          )}
+                    window.location.hash = '#/'
+                  }}
+                  className="flex items-center gap-2 sm:gap-3 group cursor-pointer select-none"
+                >
+                  {/* Hogwarts Crest Shield Icon */}
+                  <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-amber-300/80 via-amber-500/60 to-amber-800/40 p-[1.5px] shadow-[0_0_15px_rgba(245,158,11,0.35)] group-hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0">
+                    <div className="w-full h-full rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.3)_0%,transparent_70%)]" />
+                      <span className="font-cinzel font-black text-amber-300 text-xs sm:text-sm drop-shadow-[0_0_6px_rgba(255,215,0,0.8)]">
+                        ⚡
+                      </span>
+                    </div>
+                  </div>
 
-          {/* Desktop Register Button */}
-          <button
-            className="hidden md:inline-flex items-center gap-1.5 font-cinzel text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-sm border border-[#ffd700]/70 text-[#ffd700] bg-gradient-to-b from-[#2a170b] via-[#1c0f06] to-[#120803] hover:from-[#d4af37] hover:via-[#b8860b] hover:to-[#8c6516] hover:text-[#120802] transition-all duration-300 shadow-[0_0_15px_rgba(201,164,76,0.25)] hover:shadow-[0_0_22px_rgba(255,215,0,0.5)] cursor-pointer"
-            onClick={() => window.open('https://google.com', '_blank')}
-          >
-            <span>⚡ Register</span>
-          </button>
-
-          {/* Enchanted Harry Potter Burger Button (Responsive for all screen sizes) */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label={isOpen ? 'Close Magical Menu' : 'Open Magical Menu'}
-            className="group relative flex flex-col justify-center items-center w-9 h-9 sm:w-10 sm:h-10 rounded-sm border border-[#a87d3b] hover:border-[#ffd700] bg-gradient-to-b from-[#241308] via-[#180d05] to-[#0e0703] text-[#ffd700] shadow-[0_0_12px_rgba(201,164,76,0.25)] transition-all cursor-pointer backdrop-blur-md"
-          >
-            <div className="w-4 sm:w-5 h-3.5 sm:h-4 flex flex-col justify-between items-center relative">
-              <span
-                className={`w-full h-[2px] bg-[#ffd700] rounded-full transition-all duration-300 transform origin-center ${
-                  isOpen ? 'rotate-45 translate-y-[6px] sm:translate-y-[7px]' : ''
-                }`}
-              />
-              <span
-                className={`w-full h-[2px] bg-[#e5c78c] rounded-full transition-all duration-300 ${
-                  isOpen ? 'opacity-0 scale-0' : 'opacity-100'
-                }`}
-              />
-              <span
-                className={`w-full h-[2px] bg-[#ffd700] rounded-full transition-all duration-300 transform origin-center ${
-                  isOpen ? '-rotate-45 -translate-y-[6px] sm:-translate-y-[7px]' : ''
-                }`}
-              />
+                  {/* Brand Typography */}
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="font-cinzel font-black text-sm sm:text-base md:text-lg tracking-[0.2em] bg-gradient-to-r from-[#fff3b0] via-[#ffd700] to-[#d4af37] bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] uppercase leading-none">
+                        AJ-ASTRIX
+                      </span>
+                      <span className="px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold text-[9px] sm:text-[10px] tracking-wider text-amber-300 bg-black/40 backdrop-blur-sm border border-amber-400/40 shadow-[0_0_8px_rgba(245,158,11,0.25)] leading-none">
+                        2K27
+                      </span>
+                    </div>
+                    <span className="font-outfit uppercase tracking-[0.28em] text-[8px] text-amber-200/80 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] font-semibold mt-0.5 hidden xs:block">
+                      COLLEGE FESTIVAL
+                    </span>
+                  </div>
+                </a>
+              )}
             </div>
-            {/* Ambient hover aura */}
-            <span className="absolute inset-0 rounded-sm bg-[#ffd700]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
+
+            {/* ── Center Section: Center Slot or Transparent Desktop Pill Navigation ── */}
+            <div className="flex-1 min-w-0 flex justify-center items-center px-1 sm:px-4">
+              {centerSlot ? (
+                <div className="max-w-full overflow-x-auto scrollbar-none py-0.5">
+                  {centerSlot}
+                </div>
+              ) : showDesktopNav ? (
+                <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-black/35 backdrop-blur-md border border-white/15 hover:border-amber-400/35 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+                  {navLinks.map((item) => (
+                    <a
+                      key={item.title}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        item.onClick()
+                      }}
+                      className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-cinzel text-xs uppercase tracking-[0.16em] font-bold transition-all duration-300 cursor-pointer ${
+                        item.active
+                          ? 'text-amber-200 bg-amber-400/20 border border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                          : 'text-stone-300 hover:text-amber-200 hover:bg-white/10 border border-transparent hover:border-white/10'
+                      }`}
+                    >
+                      <span className="text-sm">{item.icon}</span>
+                      <span>{item.title}</span>
+                      {item.active && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]" />
+                      )}
+                    </a>
+                  ))}
+                </nav>
+              ) : null}
+            </div>
+
+            {/* ── Right Section: Register CTA + Transparent Circular Burger Button ── */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* College Fest Register CTA Button */}
+              <button
+                onClick={handleRegister}
+                className="relative group overflow-hidden rounded-full p-[1px] bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-600 shadow-[0_0_18px_rgba(245,158,11,0.4)] hover:shadow-[0_0_28px_rgba(245,158,11,0.75)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+              >
+                <div className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-cinzel font-black text-[10px] sm:text-xs tracking-[0.16em] uppercase">
+                  <span className="text-xs">⚡</span>
+                  <span>Register</span>
+                  <span className="hidden xl:inline text-[9px] font-mono font-bold bg-stone-950/20 px-1.5 py-0.2 rounded-full">
+                    LIVE
+                  </span>
+                </div>
+                {/* Shimmer sweep */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+              </button>
+
+              {/* Transparent Circular Glass Burger Menu Button */}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                aria-label={isOpen ? 'Close Magical Menu' : 'Open Magical Menu'}
+                className="group relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/20 hover:border-amber-400/60 bg-black/40 hover:bg-black/60 text-amber-300 shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] transition-all duration-300 cursor-pointer backdrop-blur-md"
+              >
+                <div className="w-4 sm:w-4.5 h-3.5 flex flex-col justify-between items-center relative">
+                  <span
+                    className={`w-full h-[2px] bg-amber-300 rounded-full transition-all duration-300 transform origin-center ${
+                      isOpen ? 'rotate-45 translate-y-[6px]' : ''
+                    }`}
+                  />
+                  <span
+                    className={`w-full h-[2px] bg-amber-400/80 rounded-full transition-all duration-300 ${
+                      isOpen ? 'opacity-0 scale-0' : 'opacity-100'
+                    }`}
+                  />
+                  <span
+                    className={`w-full h-[2px] bg-amber-300 rounded-full transition-all duration-300 transform origin-center ${
+                      isOpen ? '-rotate-45 -translate-y-[6px]' : ''
+                    }`}
+                  />
+                </div>
+                {/* Ambient glow on hover */}
+                <span className="absolute inset-0 rounded-full bg-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* ════════════════════════════════════════════════════════════════════
-          FULL-SCREEN / SLIDE-IN ENCHANTED MOBILE BURGER DRAWER
+          FULL-SCREEN / SLIDE-IN ENCHANTED COLLEGE FESTIVAL DRAWER
       ════════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-[200] overflow-hidden">
-            {/* Dark Backdrop */}
+            {/* Dark Frosted Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -223,41 +258,68 @@ export function Header({
               className="absolute inset-0 bg-black/80 backdrop-blur-xl"
             />
 
-            {/* Slide-over Parchment Drawer */}
+            {/* Slide-over Enchanted Festival Drawer */}
             <motion.div
               initial={{ x: '100%', opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-              className="absolute top-0 right-0 h-full w-full max-w-sm sm:max-w-md bg-gradient-to-b from-[#1c1007] via-[#120803] to-[#0a0502] border-l-2 border-[#8c6738] shadow-[0_0_60px_rgba(0,0,0,0.95)] flex flex-col overflow-y-auto"
+              className="absolute top-0 right-0 h-full w-full max-w-sm sm:max-w-md bg-gradient-to-b from-[#140b05] via-[#0d0703] to-[#050201] border-l border-amber-500/35 shadow-[0_0_60px_rgba(0,0,0,0.95)] flex flex-col overflow-y-auto"
             >
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 border-b border-[#5c3c1e] bg-[#140b05]/95 sticky top-0 z-10 backdrop-blur-md">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#ffd700] text-sm animate-pulse">✦</span>
-                  <span className="font-harry text-xl sm:text-2xl tracking-widest text-[#f2e2c4]">
-                    AJ-ASTRIX <span className="text-[#ffd700]">2K27</span>
-                  </span>
+              {/* Drawer Top Header */}
+              <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-amber-500/20 bg-[#120904]/95 sticky top-0 z-10 backdrop-blur-md">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-800 p-[1px] shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-[#120a05] flex items-center justify-center">
+                      <span className="text-amber-300 text-xs">⚡</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-cinzel font-black text-base sm:text-lg tracking-[0.2em] bg-gradient-to-r from-[#fff3b0] via-[#ffd700] to-[#d4af37] bg-clip-text text-transparent uppercase">
+                      AJ-ASTRIX
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded-full font-mono font-bold text-[9px] text-amber-300 bg-amber-500/20 border border-amber-400/40">
+                      2K27
+                    </span>
+                  </div>
                 </div>
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-sm border border-[#8c6738] hover:border-[#ffd700] bg-[#221308] text-[#e5c78c] hover:text-[#ffd700] flex items-center justify-center font-cinzel text-xs font-bold transition-colors cursor-pointer"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-amber-500/30 hover:border-amber-400 bg-amber-950/40 text-amber-300 hover:text-white flex items-center justify-center font-bold text-xs transition-all shadow-[0_0_10px_rgba(245,158,11,0.15)] cursor-pointer"
                   aria-label="Close menu"
                 >
                   ✕
                 </button>
               </div>
 
+              {/* Live Fest Banner */}
+              <div className="px-5 sm:px-6 pt-4">
+                <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border border-amber-400/30 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span className="font-cinzel text-[10px] uppercase tracking-wider text-amber-200 font-bold">
+                      Registrations Live
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-amber-300/80 uppercase tracking-widest bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/30">
+                    EDITION 2027
+                  </span>
+                </div>
+              </div>
+
               {/* Drawer Content */}
-              <div className="flex-1 p-4 sm:p-6 space-y-5 sm:space-y-6">
+              <div className="flex-1 p-5 sm:p-6 space-y-6">
                 {/* Main Navigation Links */}
                 <div>
-                  <h3 className="font-cinzel text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#a8824f] font-bold mb-2.5 sm:mb-3 flex items-center gap-2">
+                  <h3 className="font-cinzel text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-amber-400/80 font-bold mb-3 flex items-center gap-2">
                     <span>✦</span>
-                    <span>Hogwarts Fest Directory</span>
+                    <span>Festival Directory</span>
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {navLinks.map((item, i) => (
                       <motion.button
                         key={item.href}
@@ -265,34 +327,38 @@ export function Header({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 * i, duration: 0.3 }}
                         onClick={item.onClick}
-                        className={`w-full flex items-start gap-3 p-3 sm:p-3.5 rounded-sm border transition-all text-left cursor-pointer ${
+                        className={`w-full flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl border transition-all text-left cursor-pointer group ${
                           item.active
-                            ? 'bg-[#2f1c0d] border-[#ffd700] shadow-[0_0_15px_rgba(255,215,0,0.2)]'
-                            : 'bg-[#180e06]/80 hover:bg-[#25150a] border-[#5c3c1e] hover:border-[#a87d3b]'
+                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-950/40 border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]'
+                            : 'bg-[#180e07]/80 hover:bg-[#25150a] border-amber-900/40 hover:border-amber-500/40'
                         }`}
                       >
-                        <span className="text-xl sm:text-2xl mt-0.5">{item.icon}</span>
+                        <div className="w-10 h-10 rounded-lg bg-[#241308] border border-amber-500/30 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 group-hover:border-amber-400 transition-transform">
+                          {item.icon}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <span className="font-harry text-lg sm:text-xl tracking-wide text-[#ffd700] block mb-0.5 truncate">
+                          <span className="font-cinzel font-bold text-sm sm:text-base tracking-wider text-amber-200 group-hover:text-amber-300 block mb-0.5 truncate uppercase">
                             {item.title}
                           </span>
-                          <span className="font-serif italic text-[11px] sm:text-xs text-[#c2a272] block leading-tight truncate">
+                          <span className="font-outfit text-xs text-stone-400 group-hover:text-stone-300 block leading-tight truncate">
                             {item.subtitle}
                           </span>
                         </div>
-                        <span className="text-[#c9a44c] font-cinzel text-xs mt-1">→</span>
+                        <span className="text-amber-400 font-cinzel text-sm group-hover:translate-x-1 transition-transform">
+                          →
+                        </span>
                       </motion.button>
                     ))}
                   </div>
                 </div>
 
-                {/* The Four Houses Grid */}
+                {/* The Four Houses Collector Cards Grid */}
                 <div>
-                  <h3 className="font-cinzel text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#a8824f] font-bold mb-2.5 sm:mb-3 flex items-center gap-2">
+                  <h3 className="font-cinzel text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-amber-400/80 font-bold mb-3 flex items-center gap-2">
                     <span>✦</span>
-                    <span>The Four Houses & Collector Cards</span>
+                    <span>The Four Houses & 3D Collector Cards</span>
                   </h3>
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {houseLinks.map((h, i) => (
                       <motion.button
                         key={h.id}
@@ -303,44 +369,51 @@ export function Header({
                           window.location.hash = `#/house/${h.id}`
                           setIsOpen(false)
                         }}
-                        className="flex items-center gap-2 p-2 sm:p-2.5 rounded-sm border border-[#5c3c1e] hover:border-[#ffd700] bg-[#160d05] hover:bg-[#221307] transition-all text-left cursor-pointer group"
+                        className="relative overflow-hidden flex flex-col p-3 rounded-xl border border-amber-900/40 hover:border-amber-400/70 bg-[#160d05]/90 hover:bg-[#201207] transition-all text-left cursor-pointer group"
                       >
-                        <span className="text-lg sm:text-xl group-hover:scale-110 transition-transform">{h.crest}</span>
-                        <div className="min-w-0">
-                          <span className="font-harry text-base sm:text-lg font-bold text-[#e5c78c] group-hover:text-[#ffd700] block truncate">
-                            {h.name}
+                        {/* House color top accent */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-[2px] opacity-80"
+                          style={{ backgroundColor: h.color }}
+                        />
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">
+                            {h.crest}
                           </span>
-                          <span className="text-[9px] sm:text-[10px] text-[#8c6738] block font-cinzel uppercase tracking-wider">
-                            Explore →
+                          <span className="text-amber-400 font-cinzel text-xs group-hover:translate-x-0.5 transition-transform">
+                            →
                           </span>
                         </div>
+                        <span className="font-cinzel font-bold text-xs sm:text-sm text-stone-200 group-hover:text-amber-300 block truncate uppercase tracking-wider">
+                          {h.name}
+                        </span>
+                        <span className="text-[10px] text-stone-400 block font-outfit truncate mt-0.5">
+                          {h.motto}
+                        </span>
                       </motion.button>
                     ))}
                   </div>
                 </div>
 
-                {/* Register CTA Button */}
-                <div className="pt-1">
+                {/* Register CTA Button in Drawer */}
+                <div className="pt-2">
                   <button
-                    onClick={() => {
-                      window.open('https://google.com', '_blank')
-                      setIsOpen(false)
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 px-4 rounded-sm font-harry text-lg sm:text-xl tracking-widest bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#8c6516] hover:from-[#f3cf65] hover:to-[#a37822] text-[#120802] border border-[#ffe082] shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all cursor-pointer"
+                    onClick={handleRegister}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-cinzel font-black text-xs sm:text-sm tracking-[0.18em] uppercase bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 border border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer group"
                   >
-                    <span>⚡</span>
-                    <span>Register for Events & Competitions</span>
+                    <span className="text-sm group-hover:animate-bounce">⚡</span>
+                    <span>Register for Events & Contests</span>
                   </button>
                 </div>
               </div>
 
-              {/* Drawer Footer Parchment Inscription */}
-              <div className="p-4 sm:p-5 border-t border-[#4a2e14] bg-[#0c0602] text-center">
-                <p className="font-serif italic text-xs text-[#a37f4e] mb-1">
+              {/* Drawer Footer Inscription */}
+              <div className="p-4 sm:p-5 border-t border-amber-500/20 bg-[#080402] text-center">
+                <p className="font-serif italic text-xs text-amber-300/70 mb-1">
                   "I solemnly swear that I am up to no good."
                 </p>
-                <span className="font-cinzel text-[10px] tracking-[0.2em] uppercase text-[#ffd700]/70">
-                  ✦ Hogwarts Fest Edition ✦
+                <span className="font-cinzel text-[10px] tracking-[0.25em] uppercase text-amber-400/60 font-bold">
+                  ✦ Hogwarts Fest Edition · 2K27 ✦
                 </span>
               </div>
             </motion.div>

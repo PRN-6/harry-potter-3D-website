@@ -29,16 +29,20 @@
   --font-cinzel-decorative: 'Cinzel Decorative', cursive;
   --font-medieval: 'MedievalSharp', cursive;
   --font-outfit: 'Outfit', sans-serif;
-  --font-harry: 'HarryP', cursive;
-  --font-parry: 'ParryHotter', cursive;
+  --font-syne: 'Syne', sans-serif;
+  --font-fest: 'Cinzel Decorative', 'Cinzel', serif;
 }
 
-/* Explicit Harry Potter font utilities */
-.font-harry {
-  font-family: 'HarryP', 'ParryHotter', cursive, serif !important;
+/* College fest vibe display utilities */
+.font-cinzel-decorative,
+.font-fest {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif !important;
 }
+
+/* Aliased to majestic college fest typography */
+.font-harry,
 .font-parry {
-  font-family: 'ParryHotter', 'HarryP', cursive, serif !important;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif !important;
 }
 
 :root {

@@ -67,7 +67,7 @@ export function LoadingScreen({ progress: propProgress, modelReady }: LoadingScr
       {/* Loading Bar Card Container */}
       <div className="relative z-10 flex flex-col items-center max-w-sm sm:max-w-md w-full px-6 text-center">
         {/* Status text */}
-        <p className="font-harry text-lg sm:text-xl text-amber-200/90 tracking-wider mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-pulse">
+        <p className="font-cinzel text-xs sm:text-sm uppercase tracking-[0.25em] text-amber-200/90 font-bold mb-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-pulse">
           {statusText}
         </p>
 

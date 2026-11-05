@@ -144,23 +144,23 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
         leftSlot={
           <button
             onClick={onBack}
-            className="group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-sm bg-gradient-to-b from-[#2c170b] via-[#1d1007] to-[#130903] border border-[#a87d3b] hover:border-[#ffd700] text-[#e8d2a6] hover:text-[#ffd700] transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.8)] cursor-pointer shrink-0"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 hover:border-amber-400/50 text-amber-200 hover:text-amber-100 transition-all duration-300 shadow-[0_0_12px_rgba(0,0,0,0.5)] cursor-pointer shrink-0 backdrop-blur-md"
           >
-            <span className="text-[#ffd700] text-xs sm:text-sm group-hover:-translate-x-1 transition-transform">⚡</span>
-            <span className="font-cinzel text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase font-bold">
+            <span className="text-amber-400 text-xs sm:text-sm group-hover:-translate-x-1 transition-transform">←</span>
+            <span className="font-cinzel text-[10px] sm:text-xs tracking-[0.18em] uppercase font-bold">
               <span className="hidden sm:inline">Return to </span>Hall
             </span>
           </button>
         }
         centerSlot={
-          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto py-0.5 max-w-full">
+          <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 overflow-x-auto py-0.5 max-w-full">
             {HOUSES.map((h) => {
               const active = h.id === selectedHouseId
               return (
                 <button
                   key={h.id}
                   onClick={() => navigateHouse(h.id)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                     active
                       ? 'text-stone-900 font-bold shadow-lg scale-105'
                       : 'text-stone-400 hover:text-stone-200 bg-white/5 hover:bg-white/10'
@@ -226,7 +226,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
               <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col items-center text-center">
                 <span className="text-2xl mb-1">{house.crest}</span>
                 <span
-                  className="font-harry text-2xl sm:text-3xl tracking-widest uppercase drop-shadow-md"
+                  className="font-cinzel-decorative font-bold text-xl sm:text-2xl tracking-[0.2em] uppercase drop-shadow-md"
                   style={{ color: house.accent }}
                 >
                   {house.name}
@@ -256,7 +256,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
 
             {/* Monumental Title */}
             <h1
-              className="font-harry text-5xl sm:text-7xl md:text-8xl tracking-wider mb-2"
+              className="font-cinzel-decorative font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider uppercase mb-2"
               style={{
                 color: house.accent,
                 textShadow: `0 0 35px ${house.color}90`,
@@ -323,7 +323,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
               <span className="font-cinzel text-xs uppercase tracking-[0.25em] text-amber-300/80 block mb-1">
                 Festival Programme
               </span>
-              <h2 className="font-harry text-4xl sm:text-5xl text-[#ffd700] tracking-wider">
+              <h2 className="font-cinzel-decorative font-bold text-2xl sm:text-4xl text-[#ffd700] tracking-wide uppercase">
                 {house.name} Schedule & Events
               </h2>
             </div>
@@ -434,7 +434,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                     </div>
 
                     {/* Title & Venue */}
-                    <h3 className="font-harry text-xl sm:text-2xl text-[#ffd700] tracking-wide mb-1">
+                    <h3 className="font-cinzel font-bold text-lg sm:text-xl text-[#ffd700] tracking-wide mb-1">
                       {event.title}
                     </h3>
                     <p className="font-cinzel text-xs text-amber-300/80 uppercase tracking-widest mb-3">

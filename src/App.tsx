@@ -142,10 +142,10 @@ export default function App() {
                 filter: `blur(${(showLoading || chapter === undefined || chapter === null || chapter >= 7) ? '10px' : '0px'})`
               }}
             >
-              <p className="font-cinzel text-xs uppercase tracking-[0.3em] text-amber-200/60 mb-2">
+              <p className="font-cinzel text-xs sm:text-sm uppercase tracking-[0.35em] text-amber-200/70 mb-2 font-bold">
                 {CHAPTERS[chapter]?.kicker}
               </p>
-              <h1 className="font-harry text-5xl sm:text-7xl md:text-8xl font-normal text-stone-100 drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wider mb-4">
+              <h1 className="font-cinzel-decorative text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-stone-100 drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] tracking-wider uppercase mb-4">
                 {CHAPTERS[chapter]?.title}
               </h1>
               <p className="italic text-sm sm:text-lg text-stone-300/80 max-w-md mx-auto leading-relaxed" style={{ fontFamily: '"Crimson Pro", serif' }}>

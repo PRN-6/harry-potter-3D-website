@@ -18,7 +18,7 @@ export function DailyProphetSection({
       <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-[#5c3c1e] pb-3 mb-6 px-2 gap-2 text-center sm:text-left">
         <div className="flex items-center gap-2">
           <span className="text-[#ffd700] text-sm animate-pulse">✦</span>
-          <h2 className="font-harry text-lg sm:text-xl text-[#ffd700] tracking-wider drop-shadow-sm">
+          <h2 className="font-cinzel font-bold text-xs sm:text-sm md:text-base text-[#ffd700] tracking-[0.25em] uppercase drop-shadow-sm">
             The Daily Prophet · Special Fest Edition
           </h2>
           <span className="text-[#ffd700] text-sm animate-pulse">✦</span>
@@ -86,7 +86,7 @@ export function DailyProphetSection({
           <div className="text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[#ffd700] text-xs mb-0.5">
               <span>✦</span>
-              <span className="font-harry text-sm tracking-wider text-[#ffd700]">
+              <span className="font-cinzel font-bold text-xs uppercase tracking-wider text-[#ffd700]">
                 Official AJ-ASTRIX2K27 Broadsheet
               </span>
               <span>✦</span>

@@ -190,7 +190,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0e0703] via-[#0e0703]/25 to-transparent flex flex-col justify-end p-5 text-center">
-                      <span className="font-harry text-2xl sm:text-3xl text-[#ffd700] tracking-wider block drop-shadow-md">
+                      <span className="font-cinzel font-bold text-lg sm:text-xl text-[#ffd700] tracking-wider block drop-shadow-md uppercase">
                         {'title' in selectedCard ? selectedCard.title : selectedCard.name}
                       </span>
                       <span className="font-cinzel text-xs text-[#e5c78c] uppercase tracking-widest block font-bold">
@@ -207,7 +207,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                     <span>{isCouncilMember(selectedCard) ? `${selectedCard.title} Domain` : selectedCard.role}</span>
                   </div>
 
-                  <h1 className="font-harry text-4xl sm:text-6xl text-[#ffd700] tracking-wide mb-1 drop-shadow-sm">
+                  <h1 className="font-cinzel font-black text-2xl sm:text-4xl text-[#ffd700] tracking-wide mb-1 drop-shadow-sm">
                     {isCouncilMember(selectedCard) ? selectedCard.member.name : selectedCard.name}
                   </h1>
 
@@ -264,22 +264,22 @@ export function TeamPage({ onBack }: TeamPageProps) {
         leftSlot={
           <button
             onClick={onBack}
-            className="group flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-sm bg-gradient-to-b from-[#2c170b] via-[#1d1007] to-[#130903] border border-[#a87d3b] hover:border-[#ffd700] text-[#e8d2a6] hover:text-[#ffd700] transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.8)] cursor-pointer shrink-0"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 hover:border-amber-400/50 text-amber-200 hover:text-amber-100 transition-all duration-300 shadow-[0_0_12px_rgba(0,0,0,0.5)] cursor-pointer shrink-0 backdrop-blur-md"
           >
-            <span className="text-[#ffd700] text-xs sm:text-sm group-hover:-translate-x-1 transition-transform">⚡</span>
-            <span className="font-cinzel text-[10px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase font-bold">
+            <span className="text-amber-400 text-xs sm:text-sm group-hover:-translate-x-1 transition-transform">←</span>
+            <span className="font-cinzel text-[10px] sm:text-xs tracking-[0.18em] uppercase font-bold">
               <span className="hidden sm:inline">Return to </span>Hall
             </span>
           </button>
         }
         centerSlot={
-          <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-sm bg-[#180e07] border border-[#6d4620] shadow-inner overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-inner overflow-x-auto max-w-full">
             <button
               onClick={() => scrollTo('prophet')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-sm font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'prophet'
-                  ? 'bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#8c6516] text-[#120802] font-black shadow-[0_0_12px_rgba(212,175,55,0.45)] border border-[#ffe082]'
-                  : 'text-[#c2a272] hover:text-[#ffd700] hover:bg-[#28160a] border border-transparent'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
+                  : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
               <span className="text-xs">🗞️</span>
@@ -287,10 +287,10 @@ export function TeamPage({ onBack }: TeamPageProps) {
             </button>
             <button
               onClick={() => scrollTo('faculty')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-sm font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'faculty'
-                  ? 'bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#8c6516] text-[#120802] font-black shadow-[0_0_12px_rgba(212,175,55,0.45)] border border-[#ffe082]'
-                  : 'text-[#c2a272] hover:text-[#ffd700] hover:bg-[#28160a] border border-transparent'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
+                  : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
               <span className="text-xs">📜</span>
@@ -298,10 +298,10 @@ export function TeamPage({ onBack }: TeamPageProps) {
             </button>
             <button
               onClick={() => scrollTo('council')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-sm font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'council'
-                  ? 'bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#8c6516] text-[#120802] font-black shadow-[0_0_12px_rgba(212,175,55,0.45)] border border-[#ffe082]'
-                  : 'text-[#c2a272] hover:text-[#ffd700] hover:bg-[#28160a] border border-transparent'
+                  ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
+                  : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
               <span className="text-xs">🪄</span>
@@ -345,7 +345,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                 <span>Ministry & Academic Patrons</span>
                 <span>✦</span>
               </div>
-              <h2 className="font-harry text-4xl sm:text-6xl text-[#ffd700] tracking-wider mb-3 drop-shadow-md">
+              <h2 className="font-cinzel-decorative font-bold text-2xl sm:text-4xl md:text-5xl text-[#ffd700] tracking-wider mb-3 drop-shadow-md uppercase">
                 Head of Department & Faculty
               </h2>
               <p className="font-serif italic text-sm sm:text-base text-[#bda075] max-w-2xl mx-auto leading-relaxed">
@@ -397,7 +397,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                       <span>{HOD_DATA.role} · Chief Patron</span>
                     </div>
 
-                    <h3 className="font-harry text-3xl sm:text-5xl text-[#ffd700] tracking-wide mb-1 group-hover:text-[#ffe082] transition-colors">
+                    <h3 className="font-cinzel font-bold text-xl sm:text-3xl text-[#ffd700] tracking-wide mb-1 group-hover:text-[#ffe082] transition-colors">
                       {HOD_DATA.name}
                     </h3>
 
@@ -461,7 +461,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                       </span>
 
                       {/* Name */}
-                      <h4 className="font-harry text-xl text-[#f2e2c4] group-hover:text-[#ffd700] transition-colors mb-0.5 tracking-wide">
+                      <h4 className="font-cinzel font-bold text-sm sm:text-base text-[#f2e2c4] group-hover:text-[#ffd700] transition-colors mb-0.5 tracking-wide">
                         {faculty.name}
                       </h4>
 
@@ -519,7 +519,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
               <span>Student Core Committee</span>
               <span>✦</span>
             </div>
-            <h2 className="font-harry text-4xl sm:text-6xl text-[#ffd700] tracking-wider mb-2 drop-shadow-md">
+            <h2 className="font-cinzel-decorative font-bold text-2xl sm:text-4xl md:text-5xl text-[#ffd700] tracking-wider mb-2 drop-shadow-md uppercase">
               The Grand Council & Domain Leads
             </h2>
             <p className="font-serif italic text-sm text-[#bda075] max-w-xl mx-auto">
@@ -583,7 +583,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
 
                   {/* Collapsed / Expanded Text Overlay */}
                   <div className="relative z-10 h-full w-full flex flex-col justify-end items-center p-3 pb-8 text-center bg-gradient-to-t from-[#0e0703] via-[#0e0703]/60 to-transparent pointer-events-none">
-                    <span className="font-harry text-sm lg:text-base tracking-wider text-[#ffd700] drop-shadow-md whitespace-nowrap mb-0.5">
+                    <span className="font-cinzel font-bold text-xs lg:text-sm tracking-wider uppercase text-[#ffd700] drop-shadow-md whitespace-nowrap mb-0.5">
                       {section.title}
                     </span>
 
@@ -628,7 +628,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                   className="w-full h-full object-cover filter sepia-[0.25] group-hover:sepia-0 group-hover:scale-105 transition-all duration-500"
                 />
                 <div className="absolute inset-x-0 bottom-0 p-2.5 pt-6 bg-gradient-to-t from-[#0e0703] via-[#0e0703]/85 to-transparent text-center flex flex-col items-center">
-                  <span className="font-harry text-base text-[#ffd700] tracking-wider block">
+                  <span className="font-cinzel font-bold text-xs sm:text-sm text-[#ffd700] tracking-wider uppercase block">
                     {section.title}
                   </span>
                   <span className="font-cinzel text-[10px] text-[#f2e2c4] uppercase tracking-wider block font-bold">
