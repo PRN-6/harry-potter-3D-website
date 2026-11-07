@@ -11,6 +11,7 @@ import { GlobalStyles } from './components/GlobalStyles'
 import { HouseCard } from './components/HouseCard'
 import { Header } from './components/Header'
 import { FestCountdown } from './components/FestCountdown'
+import { IntroVideo } from './components/IntroVideo'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 // Lazy-loaded routes & 3D canvas (on-demand code-splitting)
@@ -56,6 +57,8 @@ export default function App() {
   const { house } = useHouse()
   const [modelReady, setModelReady] = useState(false)
   const [showLoading, setShowLoading] = useState(true)
+  const [showIntro, setShowIntro] = useState(false)
+  const [hasWatchedIntro, setHasWatchedIntro] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
@@ -76,18 +79,22 @@ export default function App() {
     root.style.setProperty('--house-accent', houseData.accent)
   }, [houseData])
 
-  // Handle the transition from loading screen to actual app
+  // Handle the transition from loading screen to intro video, then to actual 3D hall
   useEffect(() => {
     if (modelReady) {
       const timer = setTimeout(() => {
         setIsFadingOut(true)
         setTimeout(() => {
           setShowLoading(false)
-        }, 1200)
-      }, 650)
+          // Start the intro video when complete loading of the 3D model is complete
+          if (!hasWatchedIntro && route.view === 'home') {
+            setShowIntro(true)
+          }
+        }, 800)
+      }, 500)
       return () => clearTimeout(timer)
     }
-  }, [modelReady])
+  }, [modelReady, hasWatchedIntro, route.view])
 
   return (
     <>
@@ -102,7 +109,7 @@ export default function App() {
               onLoadProgress={setProgress}
               onModelReady={() => setModelReady(true)}
               onChapter={setChapter}
-              isActive={route.view === 'home'}
+              isActive={route.view === 'home' && !showIntro}
             />
           </Suspense>
         </SceneErrorBoundary>
@@ -119,6 +126,18 @@ export default function App() {
             <LoadingScreen progress={progress} modelReady={modelReady} />
           </FadeOutWrapper>
         )}
+
+        {/* ── Cinematic Intro Video: starts when complete loading of 3D model is complete ── */}
+        <AnimatePresence>
+          {showIntro && (
+            <IntroVideo
+              onComplete={() => {
+                setShowIntro(false)
+                setHasWatchedIntro(true)
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── When on home view (Great Hall experience) ──────────────────────── */}
@@ -130,7 +149,7 @@ export default function App() {
               window.location.hash = '#/team'
             }}
             currentView="home"
-            isVisible={!showLoading && chapter >= 7}
+            isVisible={!showLoading && !showIntro && chapter >= 7}
           />
 
           {/* Chapter Overlay: Centered captions that fade in/out as you scroll */}
@@ -138,9 +157,9 @@ export default function App() {
             <div
               className="transition-all duration-[2000ms] ease-in-out max-w-4xl w-full flex flex-col items-center"
               style={{
-                opacity: (showLoading || chapter === undefined || chapter === null || chapter >= 7) ? 0 : 1,
-                transform: `scale(${(showLoading || chapter === undefined || chapter === null || chapter >= 7) ? 0.95 : 1})`,
-                filter: `blur(${(showLoading || chapter === undefined || chapter === null || chapter >= 7) ? '10px' : '0px'})`
+                opacity: (showLoading || showIntro || chapter === undefined || chapter === null || chapter >= 7) ? 0 : 1,
+                transform: `scale(${(showLoading || showIntro || chapter === undefined || chapter === null || chapter >= 7) ? 0.95 : 1})`,
+                filter: `blur(${(showLoading || showIntro || chapter === undefined || chapter === null || chapter >= 7) ? '10px' : '0px'})`
               }}
             >
               <p className="font-cinzel text-xs sm:text-sm uppercase tracking-[0.35em] text-amber-200/70 mb-2 font-bold">
@@ -191,8 +210,8 @@ export default function App() {
               {/* ── The scroll track: pointer-events-none so it doesn't block card clicks ─── */}
               <div className="relative z-10 pointer-events-none" style={{ height: SCROLL_LENGTH }} />
 
-              {/* ── Scroll hint: hidden once user reaches the cards page (Chapter 7+) ────── */}
-              <ScrollHint isVisible={chapter < 7} />
+              {/* ── Scroll hint: hidden once user reaches the cards page (Chapter 7+) or during intro ── */}
+              <ScrollHint isVisible={!showIntro && chapter < 7} />
             </>
           )}
         </>

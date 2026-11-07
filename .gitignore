@@ -15,4 +15,5 @@ dist-ssr
 blender/out/
 .aider*
 *.mp4
+!public/intro.mp4
 *.webm
