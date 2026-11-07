@@ -40,10 +40,10 @@ export const CHAPTERS: Chapter[] = [
     caption: 'Department of Business Administration · Management conclave of strategy, leadership, and vision.',
   },
   {
-    // Point 4 (Scroll 4) — The Vault
-    kicker: 'Looking Up',
-    title: 'The Vault',
-    caption: 'Ribbed vaults arc away overhead, hung with baskets of fire.',
+    // Point 4 (Scroll 4) — AJ-ASTRIX
+    kicker: 'The Grand Fest',
+    title: 'AJ-ASTRIX',
+    caption: 'The flagship intercollegiate festival uniting INOVEX and NEXORA under one enchanted roof.',
   },
   {
     // Point 5 (Scroll 5) — Enchanted Sky
