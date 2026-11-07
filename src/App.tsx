@@ -157,9 +157,11 @@ export default function App() {
                 </div>
               )}
 
-              <p className="italic text-sm sm:text-lg text-stone-300/80 max-w-md mx-auto leading-relaxed" style={{ fontFamily: '"Crimson Pro", serif' }}>
-                {CHAPTERS[chapter]?.caption}
-              </p>
+              {CHAPTERS[chapter]?.caption ? (
+                <p className="italic text-sm sm:text-lg text-stone-300/80 max-w-md mx-auto leading-relaxed" style={{ fontFamily: '"Crimson Pro", serif' }}>
+                  {CHAPTERS[chapter]?.caption}
+                </p>
+              ) : null}
             </div>
           </div>
 

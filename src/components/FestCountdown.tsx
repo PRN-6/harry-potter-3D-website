@@ -57,21 +57,6 @@ export function FestCountdown({
 
   return (
     <div className={`relative flex flex-col items-center select-none ${className}`}>
-      {/* ── Magical Time-Turner Header Inscription ── */}
-      <div className="flex items-center gap-2 mb-3 sm:mb-4">
-        {/* Animated Rotating Time-Turner Icon */}
-        <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border border-amber-400/60 animate-spin [animation-duration:8s]" />
-          <div className="absolute inset-1 rounded-full border border-amber-300/40 animate-spin [animation-duration:5s] [animation-direction:reverse]" />
-          <span className="text-amber-300 text-xs sm:text-sm drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
-            ⏳
-          </span>
-        </div>
-        <span className="font-cinzel text-[10px] sm:text-xs uppercase tracking-[0.3em] text-amber-300/90 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
-          Time-Turner Countdown
-        </span>
-      </div>
-
       {/* ── 4 Enchanted Countdown Digit Boxes ── */}
       <div className="flex items-center justify-center gap-1.5 sm:gap-3 md:gap-4 max-w-full">
         {timeUnits.map((unit, idx) => (
