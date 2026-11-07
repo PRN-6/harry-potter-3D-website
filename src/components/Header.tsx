@@ -132,16 +132,6 @@ export function Header({
                   }}
                   className="flex items-center gap-2 sm:gap-3 group cursor-pointer select-none"
                 >
-                  {/* Hogwarts Crest Shield Icon */}
-                  <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-amber-300/80 via-amber-500/60 to-amber-800/40 p-[1.5px] shadow-[0_0_15px_rgba(245,158,11,0.35)] group-hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center shrink-0">
-                    <div className="w-full h-full rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.3)_0%,transparent_70%)]" />
-                      <span className="font-cinzel font-black text-amber-300 text-xs sm:text-sm drop-shadow-[0_0_6px_rgba(255,215,0,0.8)]">
-                        ⚡
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Brand Typography */}
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1.5 sm:gap-2">
@@ -269,11 +259,6 @@ export function Header({
               {/* Drawer Top Header */}
               <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-amber-500/20 bg-[#120904]/95 sticky top-0 z-10 backdrop-blur-md">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-800 p-[1px] shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center">
-                    <div className="w-full h-full rounded-full bg-[#120a05] flex items-center justify-center">
-                      <span className="text-amber-300 text-xs">⚡</span>
-                    </div>
-                  </div>
                   <div className="flex items-center gap-2">
                     <span className="font-cinzel font-black text-base sm:text-lg tracking-[0.2em] bg-gradient-to-r from-[#fff3b0] via-[#ffd700] to-[#d4af37] bg-clip-text text-transparent uppercase">
                       AJ-ASTRIX
