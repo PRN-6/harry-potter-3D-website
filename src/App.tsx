@@ -10,6 +10,7 @@ import { ScrollHint } from './components/ScrollHint'
 import { GlobalStyles } from './components/GlobalStyles'
 import { HouseCard } from './components/HouseCard'
 import { Header } from './components/Header'
+import { FestCountdown } from './components/FestCountdown'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 // Lazy-loaded routes & 3D canvas (on-demand code-splitting)
@@ -133,9 +134,9 @@ export default function App() {
           />
 
           {/* Chapter Overlay: Centered captions that fade in/out as you scroll */}
-          <div className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center text-center p-6">
+          <div className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center text-center p-4 sm:p-6">
             <div
-              className="transition-all duration-[2000ms] ease-in-out"
+              className="transition-all duration-[2000ms] ease-in-out max-w-4xl w-full flex flex-col items-center"
               style={{
                 opacity: (showLoading || chapter === undefined || chapter === null || chapter >= 7) ? 0 : 1,
                 transform: `scale(${(showLoading || chapter === undefined || chapter === null || chapter >= 7) ? 0.95 : 1})`,
@@ -145,9 +146,17 @@ export default function App() {
               <p className="font-cinzel text-xs sm:text-sm uppercase tracking-[0.35em] text-amber-200/70 mb-2 font-bold">
                 {CHAPTERS[chapter]?.kicker}
               </p>
-              <h1 className="font-cinzel-decorative text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-stone-100 drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] tracking-wider uppercase mb-4">
+              <h1 className="font-cinzel-decorative text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-stone-100 drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] tracking-wider uppercase mb-3 sm:mb-4">
                 {CHAPTERS[chapter]?.title}
               </h1>
+
+              {/* Harry Potter Themed Countdown Timer at Chapter 5 */}
+              {chapter === 5 && (
+                <div className="my-3 sm:my-5 pointer-events-auto">
+                  <FestCountdown targetDate="2027-10-25T09:00:00" />
+                </div>
+              )}
+
               <p className="italic text-sm sm:text-lg text-stone-300/80 max-w-md mx-auto leading-relaxed" style={{ fontFamily: '"Crimson Pro", serif' }}>
                 {CHAPTERS[chapter]?.caption}
               </p>

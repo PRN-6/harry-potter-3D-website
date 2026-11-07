@@ -46,10 +46,10 @@ export const CHAPTERS: Chapter[] = [
     caption: 'The flagship intercollegiate festival uniting INOVEX and NEXORA under one enchanted roof.',
   },
   {
-    // Point 5 (Scroll 5) — Enchanted Sky
-    kicker: 'The Ceiling',
+    // Point 5 (Scroll 5) — Enchanted Sky & Fest Countdown
+    kicker: 'Festival Commences In',
     title: 'The Enchanted Sky',
-    caption: 'Above the rafters there is no sky at all. There is a spell, and it is moving.',
+    caption: 'Above the rafters, the Time-Turner spins — counting down every second until the Great Hall awakens.',
   },
   {
     // Point 6 (Scroll 6) — Main Head Table
