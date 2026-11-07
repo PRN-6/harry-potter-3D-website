@@ -8,6 +8,9 @@ export default defineConfig({
   server: {
     host: true, // expose on the LAN so a phone on the same Wi-Fi can open it
     port: 5173,
+    watch: {
+      ignored: ['**/*.mp4', '**/*.glb', '**/blender/**'],
+    },
   },
   preview: {
     host: true,
