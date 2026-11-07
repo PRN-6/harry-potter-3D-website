@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 
 export interface FestCountdownProps {
   /** Target date string or Date object. Defaults to 25 October 2027 09:00:00 IST */
@@ -21,7 +22,6 @@ export function FestCountdown({
   const [timeLeft, setTimeLeft] = useState<TimeRemaining>(() => calculateTimeLeft(targetDate))
 
   useEffect(() => {
-    // Initial calculation
     setTimeLeft(calculateTimeLeft(targetDate))
 
     const interval = setInterval(() => {
@@ -61,8 +61,14 @@ export function FestCountdown({
       <div className="flex items-center justify-center gap-1.5 sm:gap-3 md:gap-4 max-w-full">
         {timeUnits.map((unit, idx) => (
           <div key={unit.label} className="flex items-center gap-1.5 sm:gap-3 md:gap-4">
-            {/* The Digit Card */}
-            <div className="relative group min-w-[62px] xs:min-w-[70px] sm:min-w-[85px] md:min-w-[100px] px-2 sm:px-4 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#180e07]/90 via-[#0e0703]/90 to-[#050201]/95 border border-amber-500/40 shadow-[0_0_20px_rgba(212,175,55,0.25)] hover:border-amber-400/80 hover:shadow-[0_0_30px_rgba(255,215,0,0.45)] backdrop-blur-xl transition-all duration-300 flex flex-col items-center justify-center overflow-hidden">
+            {/* The Digit Card with interactive spring hover and staggered entrance */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: idx * 0.08, type: 'spring', damping: 16 }}
+              whileHover={{ scale: 1.08, y: -4, transition: { duration: 0.2 } }}
+              className="relative group min-w-[62px] xs:min-w-[70px] sm:min-w-[85px] md:min-w-[100px] px-2 sm:px-4 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#180e07]/90 via-[#0e0703]/90 to-[#050201]/95 border border-amber-500/40 shadow-[0_0_20px_rgba(212,175,55,0.25)] hover:border-amber-400/80 hover:shadow-[0_0_30px_rgba(255,215,0,0.5)] backdrop-blur-xl transition-colors duration-300 flex flex-col items-center justify-center overflow-hidden cursor-default"
+            >
               {/* Corner Runic Flourishes */}
               <span className="absolute top-1 left-1.5 text-[8px] text-amber-500/40">✦</span>
               <span className="absolute top-1 right-1.5 text-[8px] text-amber-500/40">✦</span>
@@ -70,7 +76,10 @@ export function FestCountdown({
               <span className="absolute bottom-1 right-1.5 text-[8px] text-amber-500/40">✦</span>
 
               {/* Ambient radial candle glow */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.15)_0%,transparent_75%)] pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.18)_0%,transparent_75%)] pointer-events-none" />
+
+              {/* Shimmer sweep on hover */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
 
               {/* Number Value */}
               <span className="relative font-cinzel-decorative font-black text-2xl xs:text-3xl sm:text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-[#fff6be] via-[#ffd700] to-[#b8860b] drop-shadow-[0_2px_12px_rgba(255,215,0,0.5)] tracking-wider">
@@ -81,13 +90,21 @@ export function FestCountdown({
               <span className="relative font-cinzel text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.25em] text-amber-300/80 font-bold mt-0.5 sm:mt-1">
                 {unit.label}
               </span>
-            </div>
+            </motion.div>
 
             {/* Separator Colon (omitted after last item) */}
             {idx < timeUnits.length - 1 && (
               <div className="flex flex-col gap-1 sm:gap-1.5 items-center justify-center">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700] animate-pulse" />
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700] animate-pulse [animation-delay:500ms]" />
+                <motion.span
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]"
+                />
+                <motion.span
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.75 }}
+                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]"
+                />
               </div>
             )}
           </div>
@@ -95,7 +112,12 @@ export function FestCountdown({
       </div>
 
       {/* ── Sub-pill: Inauguration Status ── */}
-      <div className="mt-3 sm:mt-4 flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full bg-black/50 backdrop-blur-md border border-amber-500/30 shadow-[0_0_12px_rgba(212,175,55,0.2)]">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.5 }}
+        className="mt-3 sm:mt-4 flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full bg-black/50 backdrop-blur-md border border-amber-500/30 shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+      >
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
@@ -103,8 +125,7 @@ export function FestCountdown({
         <span className="font-cinzel text-[9px] sm:text-[10px] tracking-[0.22em] uppercase text-amber-200/90 font-bold">
           Grand Fest Inauguration · 25 Oct 2027
         </span>
-      </div>
+      </motion.div>
     </div>
   )
 }
-
