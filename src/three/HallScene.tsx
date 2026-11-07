@@ -90,26 +90,38 @@ function CameraRig({
   const currentStep = useRef(0)
   const targetU = useRef(0)
   const currentU = useRef(0)
-  const lastScrollTime = useRef(0)
-  // True while the slow door-opening entrance is playing — blocks further scrolls
+  const lastStepTime = useRef(0)
+  // True while any step transition is animating — blocks all further scroll inputs
+  const isAnimating = useRef(false)
+  // True while the slow door-opening entrance is playing (Step 0 -> 1)
   const entrancePlaying = useRef(false)
+  const isSyncingScroll = useRef(false)
   const currentRoll = useRef(0)
 
   const look = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
 
   const goToStep = (step: number) => {
     const clamped = Math.max(0, Math.min(7, step))
+    if (clamped === currentStep.current) return
+
     // Trigger slow entrance animation when going from 0 → 1
     if (currentStep.current === 0 && clamped === 1) {
       entrancePlaying.current = true
     }
+
     currentStep.current = clamped
     targetU.current = path.keyframeFractions[clamped] ?? (clamped / 7)
+    isAnimating.current = true
+    lastStepTime.current = performance.now()
     onChapter?.(clamped)
 
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight
     if (maxScroll > 0) {
-      window.scrollTo({ top: (clamped / 7) * maxScroll, behavior: 'smooth' })
+      isSyncingScroll.current = true
+      window.scrollTo({ top: (clamped / 7) * maxScroll, behavior: 'instant' })
+      setTimeout(() => {
+        isSyncingScroll.current = false
+      }, 80)
     }
   }
 
@@ -120,7 +132,11 @@ function CameraRig({
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight
     if (maxScroll > 0) {
       if (currentStep.current > 0) {
+        isSyncingScroll.current = true
         window.scrollTo({ top: (currentStep.current / 7) * maxScroll, behavior: 'instant' })
+        setTimeout(() => {
+          isSyncingScroll.current = false
+        }, 80)
       } else if (window.scrollY > 50) {
         const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
         currentStep.current = step
@@ -131,85 +147,94 @@ function CameraRig({
     }
 
     const onWheel = (e: WheelEvent) => {
-      // Block scrolling while the slow door-opening entrance is playing
-      if (entrancePlaying.current) return
+      // Prevent browser from doing default native page scroll on the 3D home view
+      e.preventDefault()
+
+      // Block all scroll inputs while the current animation is playing and camera is moving
+      if (isAnimating.current) return
 
       const now = performance.now()
-      if (now - lastScrollTime.current < 650) return
-      if (Math.abs(e.deltaY) < 15) return
+      // Enforce cooldown so trackpad momentum / inertia cannot double-trigger steps
+      if (now - lastStepTime.current < 850) return
+      // Ignore tiny jitter movements
+      if (Math.abs(e.deltaY) < 18) return
 
       if (e.deltaY > 0 && currentStep.current < 7) {
-        lastScrollTime.current = now
         goToStep(currentStep.current + 1)
       } else if (e.deltaY < 0 && currentStep.current > 0) {
-        lastScrollTime.current = now
         goToStep(currentStep.current - 1)
       }
     }
 
     let touchStartY = 0
+    let touchStartX = 0
+
     const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY
+      touchStartX = e.touches[0].clientX
     }
+
+    const onTouchMove = (e: TouchEvent) => {
+      // Prevent browser rubber-banding and pull-to-refresh on 3D view
+      if (e.cancelable) {
+        e.preventDefault()
+      }
+    }
+
     const onTouchEnd = (e: TouchEvent) => {
-      // Block touch while the slow door-opening entrance is playing
-      if (entrancePlaying.current) return
-
-      const diff = touchStartY - e.changedTouches[0].clientY
-      if (Math.abs(diff) < 25) return
-
+      if (isAnimating.current) return
       const now = performance.now()
-      if (now - lastScrollTime.current < 650) return
+      if (now - lastStepTime.current < 850) return
 
-      if (diff > 0 && currentStep.current < 7) {
-        lastScrollTime.current = now
-        goToStep(currentStep.current + 1)
-      } else if (diff < 0 && currentStep.current > 0) {
-        lastScrollTime.current = now
-        goToStep(currentStep.current - 1)
+      const diffY = touchStartY - e.changedTouches[0].clientY
+      const diffX = touchStartX - e.changedTouches[0].clientX
+
+      // Check if vertical swipe is prominent and exceeds threshold
+      if (Math.abs(diffY) > 30 && Math.abs(diffY) > Math.abs(diffX)) {
+        if (diffY > 0 && currentStep.current < 7) {
+          goToStep(currentStep.current + 1)
+        } else if (diffY < 0 && currentStep.current > 0) {
+          goToStep(currentStep.current - 1)
+        }
       }
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      // Block keyboard while the slow door-opening entrance is playing
-      if (entrancePlaying.current) {
+      if (isAnimating.current) {
         if (['ArrowDown', 'PageDown', 'Space', 'ArrowUp', 'PageUp'].includes(e.code)) {
           e.preventDefault()
         }
         return
       }
 
+      const now = performance.now()
+      if (now - lastStepTime.current < 850) return
+
       if (['ArrowDown', 'PageDown', 'Space'].includes(e.code)) {
         e.preventDefault()
-        const now = performance.now()
-        if (now - lastScrollTime.current < 450) return
         if (currentStep.current < 7) {
-          lastScrollTime.current = now
           goToStep(currentStep.current + 1)
         }
       } else if (['ArrowUp', 'PageUp'].includes(e.code)) {
         e.preventDefault()
-        const now = performance.now()
-        if (now - lastScrollTime.current < 450) return
         if (currentStep.current > 0) {
-          lastScrollTime.current = now
           goToStep(currentStep.current - 1)
         }
       }
     }
 
-    // Scrollbar thumb drag fallback
+    // Scrollbar thumb drag fallback (only when user manually drags scrollbar, not from code)
     const onScroll = () => {
+      if (isSyncingScroll.current) return
+      if (isAnimating.current) return
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight
       if (maxScroll <= 0) return
 
       const now = performance.now()
-      if (now - lastScrollTime.current > 850) {
+      if (now - lastStepTime.current > 900) {
         const step = Math.min(7, Math.round((window.scrollY / maxScroll) * 7))
         if (step !== currentStep.current) {
-          currentStep.current = step
-          targetU.current = path.keyframeFractions[step] ?? (step / 7)
-          onChapter?.(step)
+          goToStep(step)
         }
       }
     }
@@ -224,8 +249,9 @@ function CameraRig({
       look.current.targetY = 0
     }
 
-    window.addEventListener('wheel', onWheel, { passive: true })
+    window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -235,6 +261,7 @@ function CameraRig({
     return () => {
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('scroll', onScroll)
@@ -276,9 +303,21 @@ function CameraRig({
 
     currentU.current += (targetU.current - currentU.current) * uLerp
 
-    // Once entrance animation reaches Point 1, unlock scrolling
-    if (entrancePlaying.current && currentU.current >= point1U * 0.95) {
-      entrancePlaying.current = false
+    // Release animation lock once camera has reached its destination and settled
+    if (isAnimating.current) {
+      const now = performance.now()
+      const timeSinceStep = now - lastStepTime.current
+      if (entrancePlaying.current) {
+        if (currentU.current >= point1U * 0.96 && timeSinceStep > 2200) {
+          entrancePlaying.current = false
+          isAnimating.current = false
+        }
+      } else {
+        const dist = Math.abs(targetU.current - currentU.current)
+        if (dist < 0.0012 && timeSinceStep > 750) {
+          isAnimating.current = false
+        }
+      }
     }
 
     const { position, target, roll } = path.sample(currentU.current)
