@@ -52,10 +52,10 @@ export const CHAPTERS: Chapter[] = [
     caption: 'Above the rafters, the Time-Turner spins — counting down every second until the Great Hall awakens.',
   },
   {
-    // Point 6 (Scroll 6) — Main Head Table
-    kicker: 'The High Table',
-    title: 'Head of the Hall',
-    caption: 'Where the professors watch, and where the House Cup is decided.',
+    // Point 6 (Scroll 6) — Four Houses Championship
+    kicker: 'Inter-House Championship',
+    title: 'The Four Houses',
+    caption: 'Four noble houses participate in the grand festival — choose your house, compete for points, and claim the House Cup.',
   },
   {
     // Point 7 (Scroll 7) — Grand Finale
