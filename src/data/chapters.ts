@@ -17,7 +17,7 @@ export interface Chapter {
 export const CHAPTERS: Chapter[] = [
   {
     // Point 0 — Entrance
-    kicker: 'AJ-ASTRIX2K27',
+    kicker: 'AJ-ASTRIX 2K27',
     title: 'The Great Hall',
     caption: 'Welcome to the heart of Hogwarts. A place of magic, feasts, and the four great houses.',
   },
@@ -29,15 +29,15 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     // Point 2 (Scroll 2) — Look right
-    kicker: 'To The Right',
-    title: 'House Tables',
-    caption: 'Hufflepuff and Slytherin banners gleaming with golden warmth.',
+    kicker: 'The MCA',
+    title: 'INOVEX',
+    caption: 'Department of Computer Applications · Technical symposium of IT wizardry and innovation.',
   },
   {
     // Point 3 (Scroll 3) — Rotate left
-    kicker: 'Across The Hall',
-    title: 'The Four Houses',
-    caption: 'Gryffindor and Ravenclaw awaiting the start of the grand festival.',
+    kicker: 'The MBA',
+    title: 'NEXORA',
+    caption: 'Department of Business Administration · Management conclave of strategy, leadership, and vision.',
   },
   {
     // Point 4 (Scroll 4) — The Vault
@@ -59,7 +59,7 @@ export const CHAPTERS: Chapter[] = [
   },
   {
     // Point 7 (Scroll 7) — Grand Finale
-    kicker: 'AJ-ASTRIX2K27',
+    kicker: 'AJ-ASTRIX 2K27',
     title: 'Grand Fest Finale',
     caption: 'Hogwarts College of Wizardry · Three days of Quidditch, Potions and the Yule Ball.',
   },
