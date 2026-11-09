@@ -17,7 +17,7 @@ Featuring a photorealistic 3D Great Hall with continuous scroll-driven camera ch
   - **Chapter 1 (The Aisle):** Gliding through the doorway down the central stone runner.
   - **Chapter 2 (INOVEX MCA):** Camera pans right toward the tech wizardry symposium tables.
   - **Chapter 3 (NEXORA MBA):** Sweeping rotation left to the management conclave tables.
-  - **Chapter 4 (AJ-ASTRIX):** Rising high above the feast toward the vaulted ceilings.
+  - **Chapter 4 (AJ-ASTRIX):** Rising high above the feast toward the vaulted ceilisngs.
   - **Chapter 5 (Time Remaining):** Hovering among the floating candles with the **Time-Turner Countdown**.
   - **Chapter 6 (Inter-House Championship):** Descending to the High Table where professors watch.
   - **Chapter 7 (The Grand Finale):** Panoramic wide shot revealing the **Four House Collector Cards**.
@@ -251,6 +251,17 @@ Run the backend production server:
 ```bash
 npm run start    # runs: node backend/dist/index.js
 ```
+
+---
+
+## 📋 Ready-to-Add GitHub Issues & Roadmap
+
+A comprehensive backlog of **15 ready-to-copy GitHub Issues** has been prepared in [`.github/ISSUES_READY_TO_PASTE.md`](.github/ISSUES_READY_TO_PASTE.md), categorized into:
+- 🟢 **Beginner Tasks (Good First Issues):** Ambient audio toggle, social sharing, sorting quiz, accessibility reduced motion, house confetti.
+- 🟡 **Medium Tasks:** SQLite database persistence, live House Cup hourglass, category filter tags in Marauder's Map, Hogwarts email dispatch, digital entry ticket pass generator.
+- 🔴 **Hard / Advanced Tasks:** 3D Great Hall dynamic LOD, real-time WebSocket point broadcasts, 3D Golden Snitch mini-game, protected admin dashboard with JWT auth, automated Playwright & Vitest testing suite.
+
+Standard GitHub issue templates are also pre-configured in [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/).
 
 ---
 
