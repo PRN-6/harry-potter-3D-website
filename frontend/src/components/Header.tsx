@@ -56,7 +56,7 @@ export function Header({
     if (onRegisterClick) {
       onRegisterClick()
     } else {
-      window.open('https://google.com', '_blank')
+      window.dispatchEvent(new CustomEvent('open-register-modal'))
     }
     setIsOpen(false)
   }

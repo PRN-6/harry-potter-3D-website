@@ -8,6 +8,12 @@ export default defineConfig({
   server: {
     host: true, // expose on the LAN so a phone on the same Wi-Fi can open it
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
     watch: {
       ignored: ['**/*.mp4', '**/*.glb', '**/blender/**'],
     },

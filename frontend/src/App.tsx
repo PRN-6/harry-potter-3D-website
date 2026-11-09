@@ -11,6 +11,7 @@ import { GlobalStyles } from './components/GlobalStyles'
 import { HouseCard } from './components/HouseCard'
 import { Header } from './components/Header'
 import { FestCountdown } from './components/FestCountdown'
+import { RegistrationModal } from './components/RegistrationModal'
 import { SCROLL_LENGTH } from './three/cameraPath'
 
 // Lazy-loaded routes & 3D canvas (on-demand code-splitting)
@@ -60,11 +61,19 @@ export default function App() {
   const [progress, setProgress] = useState(0)
   const [chapter, setChapter] = useState(0)
   const [route, setRoute] = useState(parseRoute)
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
 
   useEffect(() => {
     const onHash = () => setRoute(parseRoute())
+    const onOpenRegister = () => setIsRegisterOpen(true)
+
     window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    window.addEventListener('open-register-modal', onOpenRegister)
+
+    return () => {
+      window.removeEventListener('hashchange', onHash)
+      window.removeEventListener('open-register-modal', onOpenRegister)
+    }
   }, [])
 
   const houseData = HOUSE_BY_ID[house]
@@ -129,6 +138,7 @@ export default function App() {
             onTeamClick={() => {
               window.location.hash = '#/team'
             }}
+            onRegisterClick={() => setIsRegisterOpen(true)}
             currentView="home"
             isVisible={!showLoading && chapter >= 7}
           />
@@ -306,6 +316,13 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Global Interactive Wizarding Registration Modal */}
+      <RegistrationModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        defaultHouseId={house}
+      />
     </>
   )
 }
