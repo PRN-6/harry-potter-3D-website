@@ -12,3 +12,4 @@ router.get('/', getRegistrations)
 router.get('/:id', getRegistrationById)
 
 export default router
+

@@ -53,3 +53,4 @@ export function voteForHouse(houseId: string, deltaPoints = 10): HouseStanding |
   target.points += deltaPoints
   return target
 }
+

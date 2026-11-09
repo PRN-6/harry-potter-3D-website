@@ -74,3 +74,4 @@ export const FEST_EVENTS: FestEvent[] = [
     rules: ['Formal or wizarding attire encouraged', 'Open to all registered attendees'],
   },
 ]
+

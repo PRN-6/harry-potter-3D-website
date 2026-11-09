@@ -41,3 +41,4 @@ export const getSchedule = (_req: Request, res: Response): void => {
     ],
   })
 }
+

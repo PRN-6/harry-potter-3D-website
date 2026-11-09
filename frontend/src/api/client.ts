@@ -58,3 +58,4 @@ export async function registerWizard(payload: RegistrationPayload) {
   }
   return data
 }
+

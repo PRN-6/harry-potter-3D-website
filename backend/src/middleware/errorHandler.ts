@@ -13,3 +13,4 @@ export const errorHandler = (
     message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
   })
 }
+

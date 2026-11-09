@@ -35,3 +35,4 @@ export const getOwlMessages = (_req: Request, res: Response): void => {
     messages: owlMessages,
   })
 }
+

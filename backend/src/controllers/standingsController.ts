@@ -57,3 +57,4 @@ export const addHousePoints = (req: Request, res: Response): void => {
     standings: getRankedStandings(),
   })
 }
+

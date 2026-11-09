@@ -63,3 +63,4 @@ export const HOUSES_DATA: HouseInfo[] = [
     ghost: 'The Fat Friar',
   },
 ]
+

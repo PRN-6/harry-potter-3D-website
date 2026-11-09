@@ -8,3 +8,4 @@ router.post('/vote', castHouseVote)
 router.post('/points', addHousePoints)
 
 export default router
+

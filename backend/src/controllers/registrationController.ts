@@ -102,3 +102,4 @@ export const getRegistrationById = (req: Request, res: Response): void => {
   }
   res.json(found)
 }
+

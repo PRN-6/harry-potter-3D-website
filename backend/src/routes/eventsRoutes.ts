@@ -8,3 +8,4 @@ router.get('/schedule', getSchedule)
 router.get('/:id', getEventById)
 
 export default router
+
