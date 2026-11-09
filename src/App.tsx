@@ -170,7 +170,7 @@ export default function App() {
                       transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
                       className="my-3 sm:my-5 pointer-events-auto"
                     >
-                      <FestCountdown targetDate="2027-10-25T09:00:00" />
+                      <FestCountdown targetDate="2027-10-25T09:00:00+05:30" />
                     </motion.div>
                   )}
 
@@ -198,7 +198,7 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.7 }}
-                className="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6"
+                className="fixed inset-0 z-40 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto"
               >
                 {/* Floating Finale Heading */}
                 <motion.div

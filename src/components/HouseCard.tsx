@@ -85,8 +85,8 @@ export function HouseCard({ house, isVisible, index = 0, onClick }: HouseCardPro
       </div>
 
       {/* Hover action prompt */}
-      <div className="absolute inset-x-0 bottom-0 p-3.5 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        <span className="font-cinzel text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] flex items-center gap-1.5">
+      <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3.5 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col items-center opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <span className="font-cinzel text-[11px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] flex items-center gap-1.5">
           <span>Explore {house.name}</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>
         </span>

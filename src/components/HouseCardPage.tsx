@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Header } from './Header'
+import { useHouse } from '../context/HouseContext'
 import { HOUSES, HOUSE_BY_ID, type HouseId } from '../data/houses'
 import { EVENTS, DAYS, STANDINGS, TRACK_META, type EventTrack } from '../data/events'
 
@@ -52,6 +53,7 @@ interface HouseCardPageProps {
 }
 
 export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
+  const { setHouse } = useHouse()
   const [selectedHouseId, setSelectedHouseId] = useState<HouseId>(houseId)
   const [selectedDay, setSelectedDay] = useState<number | 'all'>('all')
   const [selectedTrack, setSelectedTrack] = useState<EventTrack | 'all'>('all')
@@ -61,10 +63,11 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, glareX: 50, glareY: 50 })
 
-  // Keep local state in sync if prop changes
+  // Keep local state in sync if prop changes and update global house context
   useEffect(() => {
     setSelectedHouseId(houseId)
-  }, [houseId])
+    setHouse(houseId)
+  }, [houseId, setHouse])
 
   // Scroll to top when switching houses
   useEffect(() => {
@@ -127,6 +130,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
 
   const navigateHouse = (id: HouseId) => {
     setSelectedHouseId(id)
+    setHouse(id)
     window.location.hash = `#/house/${id}`
   }
 

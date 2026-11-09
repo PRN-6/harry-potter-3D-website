@@ -16,7 +16,7 @@ interface TimeRemaining {
 }
 
 export function FestCountdown({
-  targetDate = '2027-10-25T09:00:00',
+  targetDate = '2027-10-25T09:00:00+05:30',
   className = '',
 }: FestCountdownProps) {
   const [timeLeft, setTimeLeft] = useState<TimeRemaining>(() => calculateTimeLeft(targetDate))
@@ -33,6 +33,9 @@ export function FestCountdown({
 
   function calculateTimeLeft(target: string | Date): TimeRemaining {
     const targetMs = typeof target === 'string' ? new Date(target).getTime() : target.getTime()
+    if (isNaN(targetMs)) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true }
+    }
     const nowMs = Date.now()
     const diff = targetMs - nowMs
 
@@ -119,11 +122,11 @@ export function FestCountdown({
         className="mt-3 sm:mt-4 flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full bg-black/50 backdrop-blur-md border border-amber-500/30 shadow-[0_0_12px_rgba(212,175,55,0.2)]"
       >
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${timeLeft.isExpired ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${timeLeft.isExpired ? 'bg-emerald-500' : 'bg-amber-500'}`} />
         </span>
         <span className="font-cinzel text-[9px] sm:text-[10px] tracking-[0.22em] uppercase text-amber-200/90 font-bold">
-          Grand Fest Inauguration · 25 Oct 2027
+          {timeLeft.isExpired ? 'Festival Commenced · Welcome Wizards!' : 'Grand Fest Inauguration · 25 Oct 2027'}
         </span>
       </motion.div>
     </div>

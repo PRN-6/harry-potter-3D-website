@@ -71,6 +71,7 @@ export function Header({
       active: currentView === 'home',
       onClick: () => {
         window.location.hash = '#/'
+        window.dispatchEvent(new CustomEvent('reset-hall-tour'))
         setIsOpen(false)
       },
     },
@@ -129,6 +130,7 @@ export function Header({
                   onClick={(e) => {
                     e.preventDefault()
                     window.location.hash = '#/'
+                    window.dispatchEvent(new CustomEvent('reset-hall-tour'))
                   }}
                   className="flex items-center gap-2 sm:gap-3 group cursor-pointer select-none"
                 >

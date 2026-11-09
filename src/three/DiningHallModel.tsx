@@ -482,10 +482,16 @@ function Model({ onReady, onProgress, onBounds, onFit, skipNormalMaps }: ModelPr
     if (hinges.right) hinges.right.rotation.y = 0
 
     // Offset the door hinges slightly back from the tables to prevent clipping.
-    // This moves the hinge anchors along the Z axis.
+    // This moves the hinge anchors along the Z axis (guarded against re-mount double-offset).
     const DOOR_Z_OFFSET = -1.2
-    if (hinges.left) hinges.left.position.z += DOOR_Z_OFFSET
-    if (hinges.right) hinges.right.position.z += DOOR_Z_OFFSET
+    if (hinges.left && !hinges.left.userData._offsetApplied) {
+      hinges.left.position.z += DOOR_Z_OFFSET
+      hinges.left.userData._offsetApplied = true
+    }
+    if (hinges.right && !hinges.right.userData._offsetApplied) {
+      hinges.right.position.z += DOOR_Z_OFFSET
+      hinges.right.userData._offsetApplied = true
+    }
 
     // Shift the entire model slightly to the left.
     // Since the model is centered at 0, we add a small value to the X position.

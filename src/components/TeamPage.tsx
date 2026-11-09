@@ -165,7 +165,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
 
               <div className="hidden sm:flex items-center gap-2 font-cinzel text-xs text-[#c9a44c] uppercase tracking-[0.25em]">
                 <span>✦</span>
-                <span>Ministry & Hogwarts Archives · AJ-ASTRIX2K27</span>
+                <span>Ministry & Hogwarts Archives · AJ-ASTRIX 2K27</span>
                 <span>✦</span>
               </div>
             </div>
@@ -349,7 +349,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
                 Head of Department & Faculty
               </h2>
               <p className="font-serif italic text-sm sm:text-base text-[#bda075] max-w-2xl mx-auto leading-relaxed">
-                The distinguished academic patrons guiding the vision, spirit, and mastery of AJ-ASTRIX2K27. Click any portrait to inspect their official dossier.
+                The distinguished academic patrons guiding the vision, spirit, and mastery of AJ-ASTRIX 2K27. Click any portrait to inspect their official dossier.
               </p>
               <div className="flex items-center justify-center gap-3 text-[#c9a44c] text-sm mt-3">
                 <span>✦</span>

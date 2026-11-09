@@ -37,7 +37,7 @@ export const HOD_DATA: FacultyMember = {
   image: '/characters/char1.jpg',
   icon: '⚡',
   quote: 'Magic is science refined by boundless imagination. May this festival ignite the spark of brilliance and courage in every aspiring wizard.',
-  bio: 'With over two decades of academic leadership and research in magical computing and arcane systems, Dr. Vance oversees the Department and serves as Chief Patron of AJ-ASTRIX2K27.',
+  bio: 'With over two decades of academic leadership and research in magical computing and arcane systems, Dr. Vance oversees the Department and serves as Chief Patron of AJ-ASTRIX 2K27.',
 }
 
 /**

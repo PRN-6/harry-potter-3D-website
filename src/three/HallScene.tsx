@@ -107,6 +107,8 @@ function CameraRig({
     // Trigger slow entrance animation when going from 0 → 1
     if (currentStep.current === 0 && clamped === 1) {
       entrancePlaying.current = true
+    } else {
+      entrancePlaying.current = false
     }
 
     currentStep.current = clamped
@@ -249,6 +251,10 @@ function CameraRig({
       look.current.targetY = 0
     }
 
+    const onResetTour = () => {
+      goToStep(0)
+    }
+
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
@@ -257,6 +263,7 @@ function CameraRig({
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('pointerleave', onLeave)
+    window.addEventListener('reset-hall-tour', onResetTour)
 
     return () => {
       window.removeEventListener('wheel', onWheel)
@@ -267,6 +274,7 @@ function CameraRig({
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('reset-hall-tour', onResetTour)
     }
   }, [path, isActive])
 
@@ -317,6 +325,12 @@ function CameraRig({
         if (dist < 0.0012 && timeSinceStep > 750) {
           isAnimating.current = false
         }
+      }
+
+      // Safety failsafe: never remain locked for longer than 3.5s under any circumstance
+      if (timeSinceStep > 3500) {
+        entrancePlaying.current = false
+        isAnimating.current = false
       }
     }
 

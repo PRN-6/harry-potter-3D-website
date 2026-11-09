@@ -55,7 +55,7 @@ export function DailyProphetSection({
           {/* The Authentic Newspaper Artwork */}
           <img
             src="/images/daily-prophet-team.jpg"
-            alt="The Daily Prophet - Meet The AJ-ASTRIX2K27 Team!"
+            alt="The Daily Prophet - Meet The AJ-ASTRIX 2K27 Team!"
             loading="lazy"
             decoding="async"
             className="w-full h-auto object-contain select-none block transition-transform duration-700 group-hover:scale-[1.01]"
@@ -87,7 +87,7 @@ export function DailyProphetSection({
             <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[#ffd700] text-xs mb-0.5">
               <span>✦</span>
               <span className="font-cinzel font-bold text-xs uppercase tracking-wider text-[#ffd700]">
-                Official AJ-ASTRIX2K27 Broadsheet
+                Official AJ-ASTRIX 2K27 Broadsheet
               </span>
               <span>✦</span>
             </div>

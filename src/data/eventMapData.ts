@@ -333,7 +333,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     x: 42.5,
     y: 89.5,
     description:
-      'The monumental stone archway marking the formal threshold into AJ-ASTRIX2K27. Adorned with house crests, photo-ops, security scan point, and welcoming heraldry.',
+      'The monumental stone archway marking the formal threshold into AJ-ASTRIX 2K27. Adorned with house crests, photo-ops, security scan point, and welcoming heraldry.',
     landmarks: ['Grand Gothic Stone Archway', 'House Crest Banners', 'Security & QR Scanning Point'],
     day1Events: [
       {
@@ -424,7 +424,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
         time: '10:00 AM – 05:00 PM',
         type: 'Fun',
         points: 5,
-        blurb: 'Collect limited edition AJ-ASTRIX2K27 postal stamps and parchment prints.',
+        blurb: 'Collect limited edition AJ-ASTRIX 2K27 postal stamps and parchment prints.',
       },
     ],
   },

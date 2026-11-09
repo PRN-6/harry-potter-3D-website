@@ -120,7 +120,7 @@ export function buildCameraPath(features: HallFeatures, isMobile: boolean = fals
       // 7 — Point 7 (Scroll 7): Back to the top - grand panoramic wide view (complete)
       position: [-width * 0.28, height * 0.48, -half * 0.44],
       target: [aisleX, 1.8, half * 0.1],
-      label: 'AJ-ASTRIX2K27',
+      label: 'AJ-ASTRIX 2K27',
       caption: 'Hogwarts College of Wizardry · Grand Fest Edition',
     },
   ]

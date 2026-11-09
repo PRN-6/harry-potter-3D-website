@@ -70,7 +70,7 @@ export const HOUSES: House[] = [
     accent: '#6b4a12',
     traits: ['Loyalty', 'Patience', 'Fairness'],
     motto: 'We are the best of what we are.',
-    image: '/cards/Hufflepuff Wallpaper.jpg',
+    image: '/cards/c4.jpg',
     glow: '#ffd75e',
   },
 ]

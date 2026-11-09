@@ -250,7 +250,7 @@ export function MaraudersMapPage() {
                   {/* The Authentic Hand-Drawn Event Map Artwork */}
                   <img
                     src="/images/event-map.jpg"
-                    alt="AJ-ASTRIX2K27 Born From Fire Event Map"
+                    alt="AJ-ASTRIX 2K27 Born From Fire Event Map"
                     className="w-full h-full object-contain pointer-events-none select-none block"
                     loading="lazy"
                     decoding="async"
