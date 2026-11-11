@@ -19,6 +19,7 @@ const HallScene = lazy(() => import('./three/HallScene'))
 const TeamPage = lazy(() => import('./components/TeamPage').then((m) => ({ default: m.TeamPage })))
 const HouseCardPage = lazy(() => import('./components/HouseCardPage').then((m) => ({ default: m.HouseCardPage })))
 const MaraudersMapPage = lazy(() => import('./components/marauders-map/MaraudersMapPage').then((m) => ({ default: m.MaraudersMapPage })))
+const AdminPanel = lazy(() => import('./components/admin/AdminPanel').then((m) => ({ default: m.AdminPanel })))
 
 function RouteLoadingFallback() {
   return (
@@ -39,9 +40,10 @@ function RouteLoadingFallback() {
  * (see `three/cameraPath.ts`).
  */
 
-function parseRoute(): { view: 'home' | 'map' | 'house' | 'team'; houseId: HouseId | null } {
+function parseRoute(): { view: 'home' | 'map' | 'house' | 'team' | 'admin'; houseId: HouseId | null } {
   if (typeof window === 'undefined') return { view: 'home', houseId: null }
   const hash = window.location.hash
+  if (hash === '#/admin') return { view: 'admin', houseId: null }
   if (hash === '#/map') return { view: 'map', houseId: null }
   if (hash === '#/team') return { view: 'team', houseId: null }
   if (hash.startsWith('#/house/')) {
@@ -312,6 +314,21 @@ export default function App() {
                   window.location.hash = '#/'
                 }}
               />
+            </Suspense>
+          </motion.div>
+        )}
+
+        {route.view === 'admin' && (
+          <motion.div
+            key="page-admin"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[150] overflow-y-auto bg-[#0a0502]"
+          >
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <AdminPanel />
             </Suspense>
           </motion.div>
         )}

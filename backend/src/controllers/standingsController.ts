@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
-import { getRankedStandings, voteForHouse, liveStandings } from '../data/standingsData.js'
+import { getRankedStandings, adjustHousePoints, getPointLogs } from '../db/store.js'
 import { HOUSES_DATA } from '../data/housesData.js'
+import { HouseId } from '../models/types.js'
 
 export const getStandings = (_req: Request, res: Response): void => {
   const standings = getRankedStandings()
@@ -21,16 +22,23 @@ export const castHouseVote = (req: Request, res: Response): void => {
     return
   }
 
-  const updated = voteForHouse(houseId.toLowerCase(), 10)
-  if (!updated) {
+  const result = adjustHousePoints(
+    houseId.toLowerCase() as HouseId,
+    10,
+    'Student Cheer / Public Vote',
+    'Great Hall Spectators',
+    6,
+  )
+
+  if (!result) {
     res.status(404).json({ error: `House '${houseId}' not found.` })
     return
   }
 
   res.json({
     success: true,
-    message: `10 points awarded to ${updated.name}! The hourglass fills with gems.`,
-    updatedHouse: updated,
+    message: `10 points awarded to ${result.standing.name}! The hourglass fills with gems.`,
+    updatedHouse: result.standing,
     standings: getRankedStandings(),
   })
 }
@@ -44,17 +52,28 @@ export const addHousePoints = (req: Request, res: Response): void => {
     return
   }
 
-  const updated = voteForHouse(houseId.toLowerCase(), pts)
-  if (!updated) {
+  const result = adjustHousePoints(
+    houseId.toLowerCase() as HouseId,
+    pts,
+    reason || 'Manual Adjustment',
+    'Hogwarts Faculty',
+    1,
+  )
+
+  if (!result) {
     res.status(404).json({ error: `House '${houseId}' not found.` })
     return
   }
 
   res.json({
     success: true,
-    message: `${pts > 0 ? '+' : ''}${pts} points awarded to ${updated.name} for: ${reason || 'Merit and Chivalry'}.`,
-    updatedHouse: updated,
+    message: `${pts >= 0 ? '+' : ''}${pts} points awarded to ${result.standing.name}!`,
+    updatedHouse: result.standing,
     standings: getRankedStandings(),
   })
 }
 
+export const getHousePointsLedger = (_req: Request, res: Response): void => {
+  const logs = getPointLogs(30)
+  res.json({ logs })
+}

@@ -100,6 +100,18 @@ export function Header({
         setIsOpen(false)
       },
     },
+    {
+      title: 'Staff Portal',
+      fullTitle: 'Staff & Admin Chamber',
+      subtitle: 'Super Admin, Faculty & Prefects Console',
+      href: '#/admin',
+      icon: '🏛️',
+      active: currentView === 'admin',
+      onClick: () => {
+        window.location.hash = '#/admin'
+        setIsOpen(false)
+      },
+    },
   ]
 
   const houseLinks = [
@@ -399,9 +411,18 @@ export function Header({
                 <p className="font-serif italic text-xs text-amber-300/70 mb-1">
                   "I solemnly swear that I am up to no good."
                 </p>
-                <span className="font-cinzel text-[10px] tracking-[0.25em] uppercase text-amber-400/60 font-bold">
-                  ✦ Hogwarts Fest Edition · 2K27 ✦
-                </span>
+                <div className="flex flex-col items-center gap-1.5 mt-2">
+                  <span className="font-cinzel text-[10px] tracking-[0.25em] uppercase text-amber-400/60 font-bold">
+                    ✦ Hogwarts Fest Edition · 2K27 ✦
+                  </span>
+                  <a
+                    href="#/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="font-cinzel text-[10px] tracking-wider text-amber-400/80 hover:text-amber-200 transition-colors uppercase font-bold flex items-center gap-1 cursor-pointer pt-1"
+                  >
+                    <span>🏛️</span> Enter Staff & Admin Chamber Portal
+                  </a>
+                </div>
               </div>
             </motion.div>
           </div>

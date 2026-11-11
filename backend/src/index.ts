@@ -8,6 +8,8 @@ import registrationRoutes from './routes/registrationRoutes.js'
 import standingsRoutes from './routes/standingsRoutes.js'
 import eventsRoutes from './routes/eventsRoutes.js'
 import contactRoutes from './routes/contactRoutes.js'
+import authRoutes from './routes/authRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
 
 dotenv.config()
 
@@ -28,6 +30,8 @@ app.use(requestLogger)
 
 // API Routes
 app.use('/api/health', healthRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/admin', adminRoutes)
 app.use('/api/register', registrationRoutes)
 app.use('/api/standings', standingsRoutes)
 app.use('/api/events', eventsRoutes)
@@ -37,11 +41,29 @@ app.use('/api/contact', contactRoutes)
 app.get('/api', (_req: Request, res: Response) => {
   res.json({
     festival: 'AJ-ASTRIX 2K27',
-    tagline: 'Hogwarts College Festival API Service',
+    tagline: 'Hogwarts College Festival API Service with Multi-Tier RBAC & Persistence',
+    adminHierarchy: {
+      0: 'Super Admin (Headmaster) — Full System & Staff Control',
+      1: 'Level 1 (Deputy Headmaster) — High-Level Management',
+      2: 'Level 2 (Head of House) — House Points & Roster',
+      3: 'Level 3 (Chief Event Coordinator) — Event Schedule & Venues',
+      4: 'Level 4 (Gatekeeper & Desk) — Attendee Check-In & Verification',
+      5: 'Level 5 (Scorekeeper) — House Cup Points Adjustment',
+      6: 'Level 6 (Prefect) — Read-Only Stats Observer',
+    },
     docs: {
       health: 'GET /api/health',
+      authLogin: 'POST /api/auth/login (body: { usernameOrEmail, password })',
+      authMe: 'GET /api/auth/me (Bearer token required)',
+      demoCredentials: 'GET /api/auth/demo-credentials',
+      adminStats: 'GET /api/admin/stats (Bearer token required)',
+      adminRegistrations: 'GET /api/admin/registrations (Bearer token required)',
+      adminCheckIn: 'PATCH /api/admin/registrations/:id/checkin (Bearer token required)',
+      adminUsers: 'GET/POST /api/admin/users (Bearer token required)',
+      adminPoints: 'POST /api/admin/standings/adjust (Bearer token required)',
+      adminEvents: 'POST/PUT/DELETE /api/admin/events (Bearer token required)',
+      adminAuditLogs: 'GET /api/admin/logs (Super Admin only)',
       register: 'POST /api/register (body: { fullName, email, phone, college, houseId, eventIds })',
-      registrations: 'GET /api/register',
       standings: 'GET /api/standings',
       vote: 'POST /api/standings/vote (body: { houseId })',
       events: 'GET /api/events',
@@ -65,7 +87,7 @@ app.use(errorHandler)
 app.listen(PORT, () => {
   console.log(`⚡ [AJ-ASTRIX 2K27 Backend] Magic awakens on http://localhost:${PORT}`)
   console.log(`📜 [API Endpoints] Health: http://localhost:${PORT}/api/health`)
+  console.log(`🗝️ [Admin Portal API] http://localhost:${PORT}/api/admin`)
 })
 
 export default app
-

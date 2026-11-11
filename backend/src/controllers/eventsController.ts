@@ -1,17 +1,18 @@
 import { Request, Response } from 'express'
-import { FEST_EVENTS } from '../data/eventsData.js'
+import { getAllEvents as dbGetAllEvents, getEventById as dbGetEventById } from '../db/store.js'
 
 export const getAllEvents = (_req: Request, res: Response): void => {
+  const events = dbGetAllEvents()
   res.json({
     festival: 'AJ-ASTRIX 2K27',
-    totalEvents: FEST_EVENTS.length,
-    events: FEST_EVENTS,
+    totalEvents: events.length,
+    events,
   })
 }
 
 export const getEventById = (req: Request, res: Response): void => {
   const { id } = req.params
-  const event = FEST_EVENTS.find((e) => e.id === id)
+  const event = dbGetEventById(id)
   if (!event) {
     res.status(404).json({ error: 'Event not found in the Hogwarts schedule.' })
     return
@@ -20,8 +21,9 @@ export const getEventById = (req: Request, res: Response): void => {
 }
 
 export const getSchedule = (_req: Request, res: Response): void => {
-  const day1 = FEST_EVENTS.filter((e) => e.day === 1)
-  const day2 = FEST_EVENTS.filter((e) => e.day === 2)
+  const events = dbGetAllEvents()
+  const day1 = events.filter((e) => e.day === 1)
+  const day2 = events.filter((e) => e.day === 2)
 
   res.json({
     festival: 'AJ-ASTRIX 2K27',
@@ -41,4 +43,3 @@ export const getSchedule = (_req: Request, res: Response): void => {
     ],
   })
 }
-

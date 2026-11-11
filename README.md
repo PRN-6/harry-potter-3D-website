@@ -216,6 +216,42 @@ All backend routes are prefixed with `/api`.
 
 ---
 
+## 🏛️ Staff & Admin Chamber Portal (`#/admin`)
+
+The website includes an authenticated **Staff & Ministry Portal** featuring a multi-tier **Role-Based Access Control (RBAC)** architecture with 7 distinct clearance levels:
+
+| Level | Title | Clearance / Powers | Demo Account | Demo Password |
+|---|---|---|---|---|
+| **0** | **Super Admin (Headmaster)** | Supreme dominion: Manage staff accounts (L1–L6), full House Cup point overrides, delete registrations, export CSV, access security audit logs. | `headmaster` | `AlbusDumbledore2027!` |
+| **1** | **Level 1 (Deputy Headmaster)** | High Council: Manage events, view registrations, award/deduct house points, toggle check-ins, export attendee CSV. | `mcgonagall` | `Transfiguration2027!` |
+| **2** | **Level 2 (Head of House)** | House Jurisdiction: View attendee rosters, award/deduct points strictly for their assigned house (e.g. Slytherin). | `snape` | `PotionsMaster2027!` |
+| **3** | **Level 3 (Event Coordinator)** | Festival Schedule Lead: Create, update, and delete events, adjust competition venues and timings. | `flitwick` | `CharmsMaster2027!` |
+| **4** | **Level 4 (Gatekeeper & Desk)** | Ground Verification: Search attendees by USN/name, verify entry tickets, toggle attendee check-in status. | `filch` | `Caretaker2027!` |
+| **5** | **Level 5 (House Cup Scorekeeper)** | Dedicated Points Usher: Award and deduct house points with mandatory reason tags and audit trail. | `hooch` | `Quidditch2027!` |
+| **6** | **Level 6 (Prefect Observer)** | Read-Only Observer: Access live attendee statistics, schedules, and standings (all mutations blocked). | `percy` | `PrefectBadge2027!` |
+
+> ⚡ **Interactive 1-Click Tester:** The login page at `#/admin` includes quick-login preset chips allowing you to test every admin level (0 through 6) with a single click.
+
+### Admin API Endpoints:
+- `POST /api/auth/login` — Authenticate credentials with bcrypt & JWT
+- `GET /api/auth/me` — Verify token and retrieve permissions map
+- `GET /api/auth/demo-credentials` — Fetch test accounts list
+- `GET /api/admin/stats` — Dashboard overview counts and house ratios
+- `GET /api/admin/registrations` — Search, filter by house & attendance, pagination
+- `PATCH /api/admin/registrations/:id/checkin` — Toggle check-in status (L0–L4)
+- `DELETE /api/admin/registrations/:id` — Delete registration (Super Admin L0)
+- `GET /api/admin/registrations/export/csv` — Download attendee list CSV (L0–L4)
+- `GET /api/admin/users` — List staff accounts (L0–L1)
+- `POST /api/admin/users` — Appoint new staff member with L1–L6 clearance (Super Admin L0)
+- `DELETE /api/admin/users/:id` — Banish staff member (Super Admin L0)
+- `POST /api/admin/standings/adjust` — Adjust points with reason (L0, L1, L2, L5)
+- `GET /api/admin/standings/logs` — Scoring history ledger
+- `POST /api/admin/events` — Create new event (L0, L1, L3)
+- `DELETE /api/admin/events/:id` — Delete event (L0, L1, L3)
+- `GET /api/admin/logs` — Security audit trail (Super Admin L0)
+
+---
+
 ## 🚀 Building & Production Deployment
 
 To build both services for production:
