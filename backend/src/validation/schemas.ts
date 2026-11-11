@@ -33,8 +33,40 @@ export const registrationSchema = z.object({
   houseId: z.enum(['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'], {
     errorMap: () => ({ message: 'House must be Gryffindor, Slytherin, Ravenclaw, or Hufflepuff' }),
   }),
-  eventIds: z.array(z.string()).default([]),
+  eventIds: z
+    .preprocess((val) => {
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val)
+          if (Array.isArray(parsed)) return parsed
+        } catch {
+          return val.split(',').map((s) => s.trim()).filter(Boolean)
+        }
+      }
+      return val
+    }, z.array(z.string()).default([])),
   notes: z.string().trim().max(500, 'Notes cannot exceed 500 characters').optional(),
+
+  // Payment Details
+  amount: z
+    .preprocess((val) => (val !== undefined ? Number(val) : 250), z.number().int().min(0).max(10000))
+    .default(250),
+  paymentStatus: z.enum(['pending', 'verified', 'rejected', 'exempt']).default('pending'),
+  paymentMethod: z.enum(['upi', 'cash_at_desk', 'free_pass']).default('upi'),
+  transactionId: z.string().trim().min(3).max(60).optional(),
+  receiptUrl: z.string().trim().optional(),
+  receiptPublicId: z.string().trim().optional(),
+
+  // Anti-Spam & Honeypot Fields
+  incantation_trap: z.string().max(200).optional(),
+  _formRenderTime: z.union([z.string(), z.number()]).optional(),
+})
+
+export const updatePaymentStatusSchema = z.object({
+  status: z.enum(['pending', 'verified', 'rejected', 'exempt'], {
+    errorMap: () => ({ message: 'Status must be pending, verified, rejected, or exempt' }),
+  }),
+  notes: z.string().trim().max(200).optional(),
 })
 
 export const loginSchema = z.object({

@@ -1,6 +1,7 @@
 /**
  * API client for communicating with the AJ-ASTRIX 2K27 backend.
- * Provides public visitor endpoints and authenticated administrative RBAC endpoints.
+ * Provides public visitor endpoints, payment scanner integration,
+ * Cloudinary receipt uploads, and authenticated administrative RBAC endpoints.
  */
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
@@ -15,7 +16,18 @@ export interface RegistrationPayload {
   houseId: string
   eventIds?: string[]
   notes?: string
+  // Payment Details
+  amount?: number
+  paymentMethod?: 'upi' | 'cash_at_desk' | 'free_pass'
+  transactionId?: string
+  receiptFile?: File
+  // Anti-Spam Honeypot & Timing Check
+  incantation_trap?: string
+  _formRenderTime?: number
 }
+
+export type PaymentStatus = 'pending' | 'verified' | 'rejected' | 'exempt'
+export type PaymentMethod = 'upi' | 'cash_at_desk' | 'free_pass'
 
 export interface RegistrationItem {
   id: string
@@ -30,6 +42,17 @@ export interface RegistrationItem {
   notes?: string
   checkedIn: boolean
   checkedInAt?: string
+  // Payment info
+  amount: number
+  paymentStatus: PaymentStatus
+  paymentMethod: PaymentMethod
+  transactionId?: string
+  receiptUrl?: string
+  receiptPublicId?: string
+  paymentVerifiedBy?: string
+  paymentVerifiedAt?: string
+  emailDispatched: boolean
+  emailDispatchedAt?: string
   createdAt: string
 }
 
@@ -60,6 +83,9 @@ export interface AdminStats {
   totalRegistrations: number
   checkedInCount: number
   attendanceRate: number
+  paidCount: number
+  pendingPaymentCount: number
+  totalRevenue: number
   totalEvents: number
   totalAdmins: number
   standings: Array<{
@@ -134,6 +160,16 @@ export interface DemoCredential {
   description: string
 }
 
+export interface PaymentGatewayInfo {
+  upiId: string
+  merchantName: string
+  amount: number
+  currency: string
+  upiIntentUri: string
+  acceptedMethods: string[]
+  instructions: string
+}
+
 // ==========================================
 // PUBLIC FESTIVAL ENDPOINTS
 // ==========================================
@@ -141,6 +177,12 @@ export interface DemoCredential {
 export async function checkBackendHealth() {
   const res = await fetch(`${API_BASE}/health`)
   if (!res.ok) throw new Error(`Health check failed: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchPaymentInfo(): Promise<PaymentGatewayInfo> {
+  const res = await fetch(`${API_BASE}/payment/info`)
+  if (!res.ok) throw new Error('Failed to load payment gateway information')
   return res.json()
 }
 
@@ -166,14 +208,47 @@ export async function fetchSchedule() {
   return res.json()
 }
 
+/**
+ * Registers a wizard.
+ * Handles both multipart/form-data (with receipt screenshot) and standard JSON.
+ */
 export async function registerWizard(payload: RegistrationPayload) {
-  const res = await fetch(`${API_BASE}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-  const data = await res.json()
-  if (!res.ok) {
+  let response: Response
+
+  if (payload.receiptFile) {
+    // Send as multipart FormData
+    const formData = new FormData()
+    formData.append('fullName', payload.fullName)
+    formData.append('email', payload.email)
+    formData.append('phone', payload.phone)
+    formData.append('college', payload.college)
+    if (payload.department) formData.append('department', payload.department)
+    if (payload.usnOrRollNo) formData.append('usnOrRollNo', payload.usnOrRollNo)
+    formData.append('houseId', payload.houseId)
+    formData.append('eventIds', JSON.stringify(payload.eventIds || []))
+    if (payload.notes) formData.append('notes', payload.notes)
+    if (payload.amount !== undefined) formData.append('amount', String(payload.amount))
+    if (payload.paymentMethod) formData.append('paymentMethod', payload.paymentMethod)
+    if (payload.transactionId) formData.append('transactionId', payload.transactionId)
+    if (payload.incantation_trap) formData.append('incantation_trap', payload.incantation_trap)
+    if (payload._formRenderTime) formData.append('_formRenderTime', String(payload._formRenderTime))
+    formData.append('receipt', payload.receiptFile)
+
+    response = await fetch(`${API_BASE}/register`, {
+      method: 'POST',
+      body: formData,
+    })
+  } else {
+    // Send as JSON
+    response = await fetch(`${API_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+  }
+
+  const data = await response.json()
+  if (!response.ok) {
     const errorMsg = data.details?.[0]?.message || data.message || data.error || 'Failed to submit registration'
     const error = new Error(errorMsg) as Error & { details?: any[] }
     error.details = data.details
@@ -235,7 +310,14 @@ export async function fetchAdminStatsApi(token: string): Promise<AdminStats> {
 
 export async function fetchAdminRegistrationsApi(
   token: string,
-  params?: { houseId?: string; checkedIn?: boolean; search?: string; page?: number; limit?: number },
+  params?: {
+    houseId?: string
+    checkedIn?: boolean
+    paymentStatus?: string
+    search?: string
+    page?: number
+    limit?: number
+  },
 ): Promise<{
   registrations: RegistrationItem[]
   totalCount: number
@@ -245,6 +327,7 @@ export async function fetchAdminRegistrationsApi(
   const query = new URLSearchParams()
   if (params?.houseId && params.houseId !== 'all') query.set('houseId', params.houseId)
   if (params?.checkedIn !== undefined) query.set('checkedIn', String(params.checkedIn))
+  if (params?.paymentStatus && params.paymentStatus !== 'all') query.set('paymentStatus', params.paymentStatus)
   if (params?.search) query.set('search', params.search)
   if (params?.page) query.set('page', String(params.page))
   if (params?.limit) query.set('limit', String(params.limit))
@@ -266,6 +349,35 @@ export async function toggleAdminCheckInApi(token: string, id: string) {
   return data as { success: boolean; message: string; registration: RegistrationItem }
 }
 
+export async function updateAdminPaymentStatusApi(
+  token: string,
+  id: string,
+  status: PaymentStatus,
+  notes?: string,
+) {
+  const res = await fetch(`${API_BASE}/admin/registrations/${id}/payment`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status, notes }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || data.error || 'Failed to update payment status')
+  return data as { success: boolean; message: string; registration: RegistrationItem }
+}
+
+export async function resendAdminRegistrationEmailApi(token: string, id: string) {
+  const res = await fetch(`${API_BASE}/admin/registrations/${id}/email`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || data.error || 'Failed to resend confirmation email')
+  return data
+}
+
 export async function deleteAdminRegistrationApi(token: string, id: string) {
   const res = await fetch(`${API_BASE}/admin/registrations/${id}`, {
     method: 'DELETE',
@@ -274,10 +386,6 @@ export async function deleteAdminRegistrationApi(token: string, id: string) {
   const data = await res.json()
   if (!res.ok) throw new Error(data.message || data.error || 'Failed to delete registration')
   return data
-}
-
-export function getExportRegistrationsUrl(token: string): string {
-  return `${API_BASE}/admin/registrations/export/csv?token=${encodeURIComponent(token)}`
 }
 
 export async function exportAdminRegistrationsCsvApi(token: string): Promise<Blob> {

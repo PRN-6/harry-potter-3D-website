@@ -6,10 +6,11 @@ import {
 } from '../controllers/authController.js'
 import { authenticateAdmin } from '../middleware/auth.js'
 import { validateBody, loginSchema } from '../validation/schemas.js'
+import { loginRateLimiter } from '../middleware/rateLimiter.js'
 
 const router = Router()
 
-router.post('/login', validateBody(loginSchema), loginAdmin)
+router.post('/login', loginRateLimiter, validateBody(loginSchema), loginAdmin)
 router.get('/me', authenticateAdmin, getCurrentAdmin)
 router.get('/demo-credentials', getDemoCredentials)
 

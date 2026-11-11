@@ -22,6 +22,9 @@ export const ADMIN_ROLE_NAMES: Record<AdminLevel, string> = {
   6: 'Level 6 · Prefect Observer',
 }
 
+export type PaymentStatus = 'pending' | 'verified' | 'rejected' | 'exempt'
+export type PaymentMethod = 'upi' | 'cash_at_desk' | 'free_pass'
+
 export interface AdminUser {
   id: string
   username: string
@@ -79,6 +82,19 @@ export interface Registration {
   notes?: string
   checkedIn: boolean
   checkedInAt?: string
+  // Payment Details
+  amount: number
+  paymentStatus: PaymentStatus
+  paymentMethod: PaymentMethod
+  transactionId?: string
+  receiptUrl?: string
+  receiptPublicId?: string
+  paymentVerifiedBy?: string
+  paymentVerifiedAt?: string
+  // Email Dispatch Tracking
+  emailDispatched: boolean
+  emailDispatchedAt?: string
+  ipAddress?: string
   createdAt: string
 }
 

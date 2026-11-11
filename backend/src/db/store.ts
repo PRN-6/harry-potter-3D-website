@@ -12,6 +12,7 @@ import {
   PointLog,
   AuditLog,
   HouseId,
+  PaymentStatus,
 } from '../models/types.js'
 import { INITIAL_STANDINGS } from '../data/standingsData.js'
 import { FEST_EVENTS } from '../data/eventsData.js'
@@ -132,6 +133,13 @@ function createInitialRegistrations(): Registration[] {
       notes: 'Team seeker for Quidditch tournament and MCA Hackathon hex.',
       checkedIn: true,
       checkedInAt: now,
+      amount: 250,
+      paymentStatus: 'verified',
+      paymentMethod: 'upi',
+      transactionId: 'UPI430981726543',
+      receiptUrl: '/api/uploads/receipts/demo_receipt_01.png',
+      emailDispatched: true,
+      emailDispatchedAt: now,
       createdAt: now,
     },
     {
@@ -146,6 +154,13 @@ function createInitialRegistrations(): Registration[] {
       eventIds: ['hackathon-hex', 'potions-mastery'],
       notes: 'Leading the algorithm team in the hackathon.',
       checkedIn: false,
+      amount: 250,
+      paymentStatus: 'verified',
+      paymentMethod: 'upi',
+      transactionId: 'UPI430981726544',
+      receiptUrl: '/api/uploads/receipts/demo_receipt_02.png',
+      emailDispatched: true,
+      emailDispatchedAt: now,
       createdAt: now,
     },
     {
@@ -161,6 +176,13 @@ function createInitialRegistrations(): Registration[] {
       notes: 'Representing Slytherin in the Business Conclave.',
       checkedIn: true,
       checkedInAt: now,
+      amount: 250,
+      paymentStatus: 'verified',
+      paymentMethod: 'upi',
+      transactionId: 'UPI430981726545',
+      receiptUrl: '/api/uploads/receipts/demo_receipt_03.png',
+      emailDispatched: true,
+      emailDispatchedAt: now,
       createdAt: now,
     },
     {
@@ -175,6 +197,13 @@ function createInitialRegistrations(): Registration[] {
       eventIds: ['potions-mastery', 'yule-ball'],
       notes: 'Spectrespecs equipped for quantum mixology.',
       checkedIn: false,
+      amount: 250,
+      paymentStatus: 'pending',
+      paymentMethod: 'upi',
+      transactionId: 'UPI430981726546',
+      receiptUrl: '/api/uploads/receipts/demo_receipt_04.png',
+      emailDispatched: true,
+      emailDispatchedAt: now,
       createdAt: now,
     },
     {
@@ -189,6 +218,13 @@ function createInitialRegistrations(): Registration[] {
       eventIds: ['quidditch-cup', 'dueling-club'],
       notes: 'Quidditch Captain & seeker.',
       checkedIn: false,
+      amount: 250,
+      paymentStatus: 'pending',
+      paymentMethod: 'upi',
+      transactionId: 'UPI430981726547',
+      receiptUrl: '/api/uploads/receipts/demo_receipt_05.png',
+      emailDispatched: true,
+      emailDispatchedAt: now,
       createdAt: now,
     },
   ]
@@ -226,7 +262,7 @@ function createInitialAuditLogs(): AuditLog[] {
       action: 'SYSTEM_BOOT',
       performedBy: 'System Core',
       adminLevel: 0,
-      details: 'AJ-ASTRIX 2K27 Great Hall Database archives initialized with multi-tier RBAC.',
+      details: 'AJ-ASTRIX 2K27 Great Hall Database archives initialized with multi-tier RBAC & high-concurrency storage.',
       timestamp: now,
     },
   ]
@@ -269,20 +305,59 @@ function ensureDbLoaded(): DatabaseSchema {
     auditLogs: createInitialAuditLogs(),
   }
 
-  saveDatabase()
+  forceSaveDatabaseSync()
   return dbMemory
 }
 
-export function saveDatabase(): void {
+// High-load serialized atomic debounce queue for concurrent write protection
+let saveTimeout: NodeJS.Timeout | null = null
+let isWriting = false
+let writeQueued = false
+
+function performAtomicSave(): void {
+  if (isWriting) {
+    writeQueued = true
+    return
+  }
+  isWriting = true
+
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true })
     }
     const serialized = JSON.stringify(dbMemory, null, 2)
-    fs.writeFileSync(DB_FILE, serialized, 'utf-8')
+    const tmpFile = `${DB_FILE}.tmp`
+    fs.writeFileSync(tmpFile, serialized, 'utf-8')
+    fs.renameSync(tmpFile, DB_FILE)
   } catch (err) {
     console.error('❌ [Database Save Error] Failed to write db.json:', err)
+  } finally {
+    isWriting = false
+    if (writeQueued) {
+      writeQueued = false
+      scheduleSave()
+    }
   }
+}
+
+function scheduleSave(): void {
+  if (saveTimeout) return
+  saveTimeout = setTimeout(() => {
+    saveTimeout = null
+    performAtomicSave()
+  }, 40) // 40ms coalesce window: handles 200+ concurrent registrations effortlessly
+}
+
+export function saveDatabase(): void {
+  scheduleSave()
+}
+
+export function forceSaveDatabaseSync(): void {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout)
+    saveTimeout = null
+  }
+  performAtomicSave()
 }
 
 // ==========================================
@@ -292,6 +367,7 @@ export function saveDatabase(): void {
 export function getRegistrationsList(filter?: {
   houseId?: string
   checkedIn?: boolean
+  paymentStatus?: string
   search?: string
 }): Registration[] {
   const db = ensureDbLoaded()
@@ -305,6 +381,10 @@ export function getRegistrationsList(filter?: {
     list = list.filter((r) => r.checkedIn === filter.checkedIn)
   }
 
+  if (filter?.paymentStatus && filter.paymentStatus !== 'all') {
+    list = list.filter((r) => r.paymentStatus === filter.paymentStatus)
+  }
+
   if (filter?.search) {
     const q = filter.search.toLowerCase().trim()
     list = list.filter(
@@ -313,6 +393,7 @@ export function getRegistrationsList(filter?: {
         r.email.toLowerCase().includes(q) ||
         r.college.toLowerCase().includes(q) ||
         (r.usnOrRollNo && r.usnOrRollNo.toLowerCase().includes(q)) ||
+        (r.transactionId && r.transactionId.toLowerCase().includes(q)) ||
         r.id.toLowerCase().includes(q),
     )
   }
@@ -332,13 +413,24 @@ export function findRegistrationByEmail(email: string): Registration | undefined
   return db.registrations.find((r) => r.email.toLowerCase() === clean)
 }
 
-export function insertRegistration(data: Omit<Registration, 'id' | 'createdAt' | 'checkedIn'>): Registration {
+export function findRegistrationByTransactionId(transactionId: string): Registration | undefined {
+  const db = ensureDbLoaded()
+  const clean = transactionId.trim().toLowerCase()
+  return db.registrations.find((r) => r.transactionId?.toLowerCase() === clean)
+}
+
+export function insertRegistration(
+  data: Omit<Registration, 'id' | 'createdAt' | 'checkedIn' | 'emailDispatched'> & {
+    emailDispatched?: boolean
+  },
+): Registration {
   const db = ensureDbLoaded()
   const now = new Date().toISOString()
   const newReg: Registration = {
     ...data,
     id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     checkedIn: false,
+    emailDispatched: Boolean(data.emailDispatched),
     createdAt: now,
   }
 
@@ -355,6 +447,54 @@ export function insertRegistration(data: Omit<Registration, 'id' | 'createdAt' |
 
   saveDatabase()
   return newReg
+}
+
+export function updatePaymentStatus(
+  id: string,
+  status: PaymentStatus,
+  adminName: string,
+  adminLevel: AdminLevel,
+  notes?: string,
+): { registration: Registration; previousStatus: PaymentStatus } | null {
+  const db = ensureDbLoaded()
+  const reg = db.registrations.find((r) => r.id === id)
+  if (!reg) return null
+
+  const prev = reg.paymentStatus
+  reg.paymentStatus = status
+
+  if (status === 'verified') {
+    reg.paymentVerifiedBy = adminName
+    reg.paymentVerifiedAt = new Date().toISOString()
+    // Award 10 bonus points to registrant's house upon fee verification
+    adjustHousePointsInternal(
+      reg.houseId,
+      10,
+      `Fest Fee Verified: ${reg.fullName} (${reg.id})`,
+      adminName,
+      adminLevel,
+    )
+  }
+
+  addAuditLog({
+    action: status === 'verified' ? 'PAYMENT_VERIFIED' : 'PAYMENT_STATUS_CHANGED',
+    performedBy: adminName,
+    adminLevel,
+    details: `${reg.fullName} (${reg.id}) payment status changed from ${prev.toUpperCase()} to ${status.toUpperCase()}.${notes ? ` Note: "${notes}"` : ''}`,
+  })
+
+  saveDatabase()
+  return { registration: reg, previousStatus: prev }
+}
+
+export function markEmailDispatched(id: string): void {
+  const db = ensureDbLoaded()
+  const reg = db.registrations.find((r) => r.id === id)
+  if (reg) {
+    reg.emailDispatched = true
+    reg.emailDispatchedAt = new Date().toISOString()
+    saveDatabase()
+  }
 }
 
 export function toggleCheckIn(
@@ -706,6 +846,12 @@ export function getDashboardStats() {
   const checkedInCount = db.registrations.filter((r) => r.checkedIn).length
   const attendanceRate = totalRegistrations > 0 ? Math.round((checkedInCount / totalRegistrations) * 100) : 0
 
+  const paidCount = db.registrations.filter((r) => r.paymentStatus === 'verified').length
+  const pendingPaymentCount = db.registrations.filter((r) => r.paymentStatus === 'pending').length
+  const totalRevenue = db.registrations
+    .filter((r) => r.paymentStatus === 'verified')
+    .reduce((sum, r) => sum + (r.amount || 250), 0)
+
   const houseBreakdown = {
     gryffindor: db.registrations.filter((r) => r.houseId === 'gryffindor').length,
     slytherin: db.registrations.filter((r) => r.houseId === 'slytherin').length,
@@ -723,12 +869,15 @@ export function getDashboardStats() {
     totalRegistrations,
     checkedInCount,
     attendanceRate,
+    paidCount,
+    pendingPaymentCount,
+    totalRevenue,
     totalEvents: db.events.length,
     totalAdmins: db.admins.length,
     standings: getRankedStandings(),
     houseBreakdown,
     departmentBreakdown,
-    recentRegistrations: db.registrations.slice(0, 5),
+    recentRegistrations: db.registrations.slice(0, 6),
     recentPointLogs: db.pointLogs.slice(0, 5),
     recentAuditLogs: db.auditLogs.slice(0, 8),
   }

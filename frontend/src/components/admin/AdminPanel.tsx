@@ -17,6 +17,11 @@ import {
   AlertTriangle,
   RefreshCw,
   Activity,
+  Eye,
+  Mail,
+  CreditCard,
+  X,
+  Check,
 } from 'lucide-react'
 import {
   loginAdminApi,
@@ -25,6 +30,8 @@ import {
   fetchAdminStatsApi,
   fetchAdminRegistrationsApi,
   toggleAdminCheckInApi,
+  updateAdminPaymentStatusApi,
+  resendAdminRegistrationEmailApi,
   deleteAdminRegistrationApi,
   exportAdminRegistrationsCsvApi,
   adjustAdminPointsApi,
@@ -44,6 +51,7 @@ import {
   type AuditLogItem,
   type DemoCredential,
   type AdminLevel,
+  type PaymentStatus,
 } from '../../api/client'
 
 const LEVEL_BADGES: Record<
@@ -85,10 +93,14 @@ export function AdminPanel() {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
+  // Receipt Modal State
+  const [viewingReceipt, setViewingReceipt] = useState<RegistrationItem | null>(null)
+
   // Registration Filter States
   const [regSearch, setRegSearch] = useState('')
   const [regHouseFilter, setRegHouseFilter] = useState<string>('all')
   const [regCheckinFilter, setRegCheckinFilter] = useState<'all' | 'true' | 'false'>('all')
+  const [regPaymentFilter, setRegPaymentFilter] = useState<'all' | 'verified' | 'pending' | 'rejected'>('all')
 
   // Award Points Form State
   const [pointTargetHouse, setPointTargetHouse] = useState<'gryffindor' | 'slytherin' | 'ravenclaw' | 'hufflepuff'>('gryffindor')
@@ -144,7 +156,6 @@ export function AdminPanel() {
           loadDashboardData(token)
         })
         .catch(() => {
-          // Token expired or invalid
           handleLogout()
         })
     }
@@ -158,6 +169,7 @@ export function AdminPanel() {
         fetchAdminRegistrationsApi(activeToken, {
           houseId: regHouseFilter,
           checkedIn: regCheckinFilter === 'all' ? undefined : regCheckinFilter === 'true',
+          paymentStatus: regPaymentFilter !== 'all' ? regPaymentFilter : undefined,
           search: regSearch,
         }).catch(() => null),
         fetchAdminPointLogsApi(activeToken).catch(() => null),
@@ -170,12 +182,10 @@ export function AdminPanel() {
       }
       if (pointsRes) setPointLogs(pointsRes.logs)
 
-      // Super Admin and Level 1 can view staff
       fetchAdminUsersApi(activeToken)
         .then((uRes) => setStaffList(uRes.admins))
         .catch(() => {})
 
-      // Super Admin can view audit logs
       fetchAdminAuditLogsApi(activeToken)
         .then((lRes) => setAuditLogs(lRes.logs))
         .catch(() => {})
@@ -246,6 +256,7 @@ export function AdminPanel() {
       const res = await fetchAdminRegistrationsApi(token, {
         houseId: regHouseFilter,
         checkedIn: regCheckinFilter === 'all' ? undefined : regCheckinFilter === 'true',
+        paymentStatus: regPaymentFilter !== 'all' ? regPaymentFilter : undefined,
         search: regSearch,
       })
       setRegistrations(res.registrations)
@@ -265,10 +276,37 @@ export function AdminPanel() {
         prev.map((r) => (r.id === id ? res.registration : r)),
       )
       setActionFeedback({ type: 'success', message: res.message })
-      // Refresh stats
       fetchAdminStatsApi(token).then(setStats).catch(() => {})
     } catch (err: any) {
       setActionFeedback({ type: 'error', message: err.message || 'Could not update check-in status' })
+    }
+  }
+
+  const handleUpdatePaymentStatus = async (id: string, newStatus: PaymentStatus) => {
+    if (!token) return
+    try {
+      const res = await updateAdminPaymentStatusApi(token, id, newStatus)
+      setRegistrations((prev) => prev.map((r) => (r.id === id ? res.registration : r)))
+      if (viewingReceipt?.id === id) {
+        setViewingReceipt(res.registration)
+      }
+      setActionFeedback({ type: 'success', message: res.message })
+      fetchAdminStatsApi(token).then(setStats).catch(() => {})
+    } catch (err: any) {
+      setActionFeedback({ type: 'error', message: err.message || 'Payment status update failed' })
+    }
+  }
+
+  const handleResendEmail = async (id: string, attendeeName: string) => {
+    if (!token) return
+    try {
+      const res = await resendAdminRegistrationEmailApi(token, id)
+      setActionFeedback({
+        type: 'success',
+        message: res.message || `Acceptance letter re-sent to ${attendeeName}.`,
+      })
+    } catch (err: any) {
+      setActionFeedback({ type: 'error', message: err.message || 'Failed to dispatch acceptance email' })
     }
   }
 
@@ -322,7 +360,6 @@ export function AdminPanel() {
       })
       setActionFeedback({ type: 'success', message: res.message })
       setPointReason('')
-      // Refresh stats and point logs
       fetchAdminStatsApi(token).then(setStats).catch(() => {})
       fetchAdminPointLogsApi(token).then((l) => setPointLogs(l.logs)).catch(() => {})
     } catch (err: any) {
@@ -356,7 +393,6 @@ export function AdminPanel() {
       setNewStaffUsername('')
       setNewStaffEmail('')
       setNewStaffPassword('')
-      // Refresh staff list
       fetchAdminUsersApi(token).then((u) => setStaffList(u.admins)).catch(() => {})
     } catch (err: any) {
       setActionFeedback({ type: 'error', message: err.message || 'Failed to appoint staff member.' })
@@ -428,11 +464,9 @@ export function AdminPanel() {
   if (!token || !admin) {
     return (
       <div className="min-h-screen bg-[#090503] text-stone-200 flex flex-col items-center justify-center p-4 selection:bg-amber-500/30">
-        {/* Subtle magical runes in background */}
         <div className="fixed inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#c9a44c_1px,transparent_1px)] [background-size:24px_24px]" />
 
         <div className="w-full max-w-xl z-10 my-6">
-          {/* Back to Site link */}
           <a
             href="#"
             className="inline-flex items-center gap-2 text-xs font-cinzel text-amber-400/80 hover:text-amber-300 transition-colors mb-6 cursor-pointer"
@@ -440,7 +474,6 @@ export function AdminPanel() {
             <ArrowLeft className="w-3.5 h-3.5" /> Return to Great Hall
           </a>
 
-          {/* Login Card */}
           <div className="bg-gradient-to-b from-[#180e07] via-[#120803] to-[#0a0402] border-2 border-amber-500/40 rounded-2xl p-6 sm:p-8 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
             <div className="text-center mb-6">
               <div className="w-14 h-14 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-3">
@@ -453,7 +486,7 @@ export function AdminPanel() {
                 Staff & Admin Chamber
               </h1>
               <p className="font-serif italic text-xs text-stone-400 mt-1">
-                Authorized entry only for Headmaster, Faculty, House Heads, and Prefects.
+                Authorized entry for Headmaster, Faculty, Gatekeepers, and Prefects.
               </p>
             </div>
 
@@ -646,11 +679,11 @@ export function AdminPanel() {
             {currentBadge.label}
           </span>
           <span className="text-stone-300 font-serif italic">
-            {admin.level === 0 && 'Supreme Dominion: Complete access to all data, staff accounts, house points, and audit logs.'}
-            {admin.level === 1 && 'High Council Dominion: Manage registrations, events schedule, and house point awards.'}
+            {admin.level === 0 && 'Supreme Dominion: Complete access to all data, payments, staff accounts, house points, and audit logs.'}
+            {admin.level === 1 && 'High Council Dominion: Manage registrations, verified payments, events schedule, and house point awards.'}
             {admin.level === 2 && `House Head Dominion: Jurisdiction over ${admin.houseId?.toUpperCase()} registrations and points.`}
             {admin.level === 3 && 'Event Lead Dominion: Manage festival competitions, venues, and schedule.'}
-            {admin.level === 4 && 'Gatekeeper Desk: Verify attendee tickets, USN check-in, and entry passes.'}
+            {admin.level === 4 && 'Gatekeeper Desk: Verify attendee payment receipts, UPI UTR numbers, and entry passes.'}
             {admin.level === 5 && 'House Cup Scorekeeper: Authorized to award/deduct house points with mandatory reasons.'}
             {admin.level === 6 && 'Prefect Observer: Read-only access to attendee lists, standings, and events.'}
           </span>
@@ -681,7 +714,7 @@ export function AdminPanel() {
                 : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Activity className="w-4 h-4" /> Overview & Stats
+            <Activity className="w-4 h-4" /> Overview & Revenue
           </button>
 
           <button
@@ -692,7 +725,7 @@ export function AdminPanel() {
                 : 'text-stone-400 hover:text-stone-200'
             }`}
           >
-            <Users className="w-4 h-4" /> Registrations Desk ({totalRegCount})
+            <Users className="w-4 h-4" /> Registrations & Payments ({totalRegCount})
           </button>
 
           <button
@@ -749,7 +782,7 @@ export function AdminPanel() {
         {/* ========================================== */}
         {activeTab === 'overview' && (
           <div className="mt-6 space-y-6">
-            {/* KPI Cards */}
+            {/* KPI Cards: Registration & Attendance */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
                 <div className="flex items-center justify-between text-stone-400 mb-2">
@@ -777,6 +810,20 @@ export function AdminPanel() {
                 </div>
               </div>
 
+              {/* Payment Revenue KPI */}
+              <div className="p-5 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
+                <div className="flex items-center justify-between text-stone-400 mb-2">
+                  <span className="font-cinzel text-xs uppercase font-bold text-emerald-400">Total Fest Revenue</span>
+                  <CreditCard className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div className="font-cinzel-decorative font-black text-3xl text-emerald-300">
+                  ₹{(stats?.totalRevenue ?? 0).toLocaleString()}
+                </div>
+                <div className="text-[11px] text-stone-400 mt-1 font-serif italic">
+                  {stats?.paidCount ?? 0} verified fees collected
+                </div>
+              </div>
+
               <div className="p-5 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
                 <div className="flex items-center justify-between text-stone-400 mb-2">
                   <span className="font-cinzel text-xs uppercase font-bold text-yellow-300">House Cup Leader</span>
@@ -787,19 +834,6 @@ export function AdminPanel() {
                 </div>
                 <div className="text-[11px] text-stone-400 mt-1 font-serif italic">
                   Leading with {stats?.standings[0]?.points || 0} points
-                </div>
-              </div>
-
-              <div className="p-5 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
-                <div className="flex items-center justify-between text-stone-400 mb-2">
-                  <span className="font-cinzel text-xs uppercase font-bold text-blue-300">Active Events</span>
-                  <Calendar className="w-5 h-5 text-blue-400" />
-                </div>
-                <div className="font-cinzel-decorative font-black text-3xl text-blue-200">
-                  {stats?.totalEvents ?? 6}
-                </div>
-                <div className="text-[11px] text-stone-400 mt-1 font-serif italic">
-                  Across INOVEX, NEXORA & Quidditch
                 </div>
               </div>
             </div>
@@ -835,10 +869,10 @@ export function AdminPanel() {
                 </div>
               </div>
 
-              {/* House Registration Distribution */}
+              {/* Payment & House Registration Distribution */}
               <div className="p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
                 <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                  <span>📊</span> Registrations by House
+                  <span>📊</span> Registrations by House & Fee Status
                 </h3>
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   {Object.entries(stats?.houseBreakdown || {}).map(([house, count]) => (
@@ -849,13 +883,15 @@ export function AdminPanel() {
                   ))}
                 </div>
 
-                <h4 className="font-cinzel text-xs uppercase text-amber-300 font-bold mb-2">Department Ratios</h4>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {Object.entries(stats?.departmentBreakdown || {}).map(([dept, count]) => (
-                    <span key={dept} className="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-500/30 text-amber-200">
-                      <strong>{dept}:</strong> {count}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30">
+                    <div className="font-cinzel text-[11px] uppercase text-emerald-400 font-bold">Verified Paid</div>
+                    <div className="font-mono font-black text-xl text-emerald-300">{stats?.paidCount ?? 0}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-yellow-950/40 border border-yellow-500/30">
+                    <div className="font-cinzel text-[11px] uppercase text-yellow-400 font-bold">Pending Review</div>
+                    <div className="font-mono font-black text-xl text-yellow-300">{stats?.pendingPaymentCount ?? 0}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -863,25 +899,25 @@ export function AdminPanel() {
         )}
 
         {/* ========================================== */}
-        {/* TAB 2: REGISTRATIONS DESK (LEVELS 0-6)     */}
+        {/* TAB 2: REGISTRATIONS & PAYMENTS (L0-L6)    */}
         {/* ========================================== */}
         {activeTab === 'registrations' && (
           <div className="mt-6 space-y-4">
             {/* Control Bar: Search, Filters, CSV Export */}
             <div className="p-4 rounded-xl bg-[#140b05] border border-amber-500/30 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+              <div className="flex items-center gap-2 flex-1 min-w-[220px]">
                 <Search className="w-4 h-4 text-amber-400" />
                 <input
                   type="text"
                   value={regSearch}
                   onChange={(e) => setRegSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleFilterRegistrations()}
-                  placeholder="Search by name, email, college, USN..."
+                  placeholder="Search by name, email, college, USN, UTR..."
                   className="w-full px-3 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs focus:border-amber-400 outline-none"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <select
                   value={regHouseFilter}
                   onChange={(e) => setRegHouseFilter(e.target.value)}
@@ -895,11 +931,22 @@ export function AdminPanel() {
                 </select>
 
                 <select
+                  value={regPaymentFilter}
+                  onChange={(e) => setRegPaymentFilter(e.target.value as any)}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs outline-none"
+                >
+                  <option value="all">All Payments</option>
+                  <option value="verified">🟢 Verified Paid</option>
+                  <option value="pending">🟡 Pending Review</option>
+                  <option value="rejected">🔴 Payment Rejected</option>
+                </select>
+
+                <select
                   value={regCheckinFilter}
                   onChange={(e) => setRegCheckinFilter(e.target.value as any)}
                   className="px-2.5 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs outline-none"
                 >
-                  <option value="all">All Status</option>
+                  <option value="all">All Attendance</option>
                   <option value="true">✓ Checked In</option>
                   <option value="false">⏳ Not Attended</option>
                 </select>
@@ -933,15 +980,16 @@ export function AdminPanel() {
                       <th className="p-3">Attendee</th>
                       <th className="p-3">College & USN</th>
                       <th className="p-3">House</th>
-                      <th className="p-3">Events</th>
-                      <th className="p-3">Status</th>
+                      <th className="p-3">Payment & UTR</th>
+                      <th className="p-3">Receipt</th>
+                      <th className="p-3">Check-In</th>
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-amber-500/10 font-sans">
                     {registrations.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-stone-400 font-serif italic">
+                        <td colSpan={7} className="p-8 text-center text-stone-400 font-serif italic">
                           No matching student registrations found in Hogwarts archives.
                         </td>
                       </tr>
@@ -965,34 +1013,71 @@ export function AdminPanel() {
                             {r.houseId === 'ravenclaw' && '🦅 Ravenclaw'}
                             {r.houseId === 'hufflepuff' && '🦡 Hufflepuff'}
                           </td>
+
+                          {/* Payment & UTR */}
                           <td className="p-3">
-                            <div className="flex flex-wrap gap-1 max-w-xs">
-                              {r.eventIds.map((eid) => (
-                                <span key={eid} className="px-1.5 py-0.5 rounded bg-black/50 border border-amber-500/20 text-[10px] text-amber-200">
-                                  {eid}
-                                </span>
-                              ))}
+                            <div className="font-mono font-bold text-stone-200">
+                              ₹{r.amount || 250}
                             </div>
+                            <div className="my-1">
+                              {r.paymentStatus === 'verified' ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[10px] font-bold">
+                                  ✓ Verified
+                                </span>
+                              ) : r.paymentStatus === 'rejected' ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-950/60 border border-red-500/60 text-red-300 text-[10px] font-bold">
+                                  ✕ Rejected
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-950/60 border border-yellow-500/60 text-yellow-300 text-[10px] font-bold">
+                                  ⏳ Under Review
+                                </span>
+                              )}
+                            </div>
+                            {r.transactionId && (
+                              <div className="font-mono text-[10px] text-amber-300/80 truncate max-w-[120px]" title={r.transactionId}>
+                                UTR: {r.transactionId}
+                              </div>
+                            )}
                           </td>
+
+                          {/* Receipt View Button */}
+                          <td className="p-3">
+                            {r.receiptUrl ? (
+                              <button
+                                type="button"
+                                onClick={() => setViewingReceipt(r)}
+                                className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/40 text-amber-300 text-[10px] font-cinzel font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <Eye className="w-3 h-3" /> View
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-stone-500 italic">No receipt</span>
+                            )}
+                          </td>
+
+                          {/* Check-In Attendance */}
                           <td className="p-3">
                             {r.checkedIn ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 text-[11px] font-bold">
-                                <CheckCircle className="w-3 h-3" /> Checked In
+                                <CheckCircle className="w-3 h-3" /> Attended
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-900 border border-stone-600 text-stone-400 text-[11px]">
-                                <Clock className="w-3 h-3" /> Not Attended
+                                <Clock className="w-3 h-3" /> Pending
                               </span>
                             )}
                           </td>
+
+                          {/* Row Actions */}
                           <td className="p-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {/* Check-In Toggle Button: Allowed for Level 4 and above */}
-                              {admin.level <= 4 ? (
+                              {/* Check-In Toggle */}
+                              {admin.level <= 4 && (
                                 <button
                                   type="button"
                                   onClick={() => handleToggleCheckin(r.id)}
-                                  className={`px-2.5 py-1 rounded text-[11px] font-cinzel font-bold cursor-pointer transition-colors ${
+                                  className={`px-2 py-1 rounded text-[10px] font-cinzel font-bold cursor-pointer transition-colors ${
                                     r.checkedIn
                                       ? 'border border-stone-600 text-stone-300 hover:bg-stone-800'
                                       : 'bg-emerald-600 hover:bg-emerald-500 text-white'
@@ -1000,17 +1085,27 @@ export function AdminPanel() {
                                 >
                                   {r.checkedIn ? 'Revert' : 'Check In'}
                                 </button>
-                              ) : (
-                                <span className="text-[10px] text-stone-500 italic">Read-only</span>
                               )}
 
-                              {/* Super Admin Delete Button */}
+                              {/* Resend Owl Pass Email */}
+                              {admin.level <= 4 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleResendEmail(r.id, r.fullName)}
+                                  className="p-1 rounded bg-amber-950/50 hover:bg-amber-900/60 border border-amber-500/30 text-amber-300 cursor-pointer transition-colors"
+                                  title="Resend Hogwarts Acceptance Owl Letter"
+                                >
+                                  <Mail className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+
+                              {/* Super Admin Delete */}
                               {admin.level === 0 && (
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteRegistration(r.id, r.fullName)}
                                   className="p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-950/40 cursor-pointer transition-colors"
-                                  title="Delete registration (Super Admin)"
+                                  title="Permanently remove registration (Super Admin)"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -1032,7 +1127,6 @@ export function AdminPanel() {
         {/* ========================================== */}
         {activeTab === 'points' && (
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Award Points Form */}
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
                 <span>⚡</span> Award or Deduct Points
@@ -1122,7 +1216,6 @@ export function AdminPanel() {
               )}
             </div>
 
-            {/* Point Logs Ledger */}
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
                 <span>📜</span> Chronological Scoring Ledger
@@ -1167,7 +1260,6 @@ export function AdminPanel() {
         {/* ========================================== */}
         {activeTab === 'events' && (
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Create Event Form (Levels 0, 1, 3) */}
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
                 <span>🎪</span> Add Festival Event
@@ -1302,46 +1394,40 @@ export function AdminPanel() {
               )}
             </div>
 
-            {/* Events List */}
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
                 <span>📅</span> Live Schedule Roster
               </h3>
               <div className="space-y-3">
-                {stats?.recentRegistrations ? (
-                  // Display events from backend
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { id: 'quidditch-cup', title: 'Inter-House Quidditch Cup', venue: 'Quidditch Pitch', time: 'Day 1 • 11:00 AM', pts: 100 },
-                      { id: 'hackathon-hex', title: 'Spellbound Hackathon (INOVEX MCA)', venue: 'Ada Lovelace Tech Lab', time: 'Day 1 • 10:00 AM', pts: 120 },
-                      { id: 'management-triwizard', title: 'Triwizard Business Conclave (NEXORA MBA)', venue: 'Strategy Chamber', time: 'Day 2 • 10:30 AM', pts: 110 },
-                      { id: 'potions-mastery', title: 'Potions & Mixology Conclave', venue: 'Alchemy Dungeons', time: 'Day 1 • 02:30 PM', pts: 80 },
-                      { id: 'dueling-club', title: 'The Great Dueling Club', venue: 'Central Courtyard', time: 'Day 2 • 02:00 PM', pts: 90 },
-                      { id: 'yule-ball', title: 'The Yule Ball & Cultural Night', venue: 'The Great Hall', time: 'Day 2 • 06:00 PM', pts: 50 },
-                    ].map((evt) => (
-                      <div key={evt.id} className="p-3.5 rounded-lg bg-black/40 border border-amber-500/20 text-xs flex flex-col justify-between">
-                        <div>
-                          <div className="font-cinzel font-bold text-amber-200 text-sm">{evt.title}</div>
-                          <div className="text-[11px] text-stone-400 mt-1">{evt.venue} • {evt.time}</div>
-                        </div>
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
-                          <span className="font-mono text-amber-400 font-bold">+{evt.pts} pts</span>
-                          {(admin.level === 0 || admin.level === 1 || admin.level === 3) && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteEvent(evt.id, evt.title)}
-                              className="text-red-400 hover:text-red-300 text-[11px] cursor-pointer"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { id: 'quidditch-cup', title: 'Inter-House Quidditch Cup', venue: 'Quidditch Pitch', time: 'Day 1 • 11:00 AM', pts: 100 },
+                    { id: 'hackathon-hex', title: 'Spellbound Hackathon (INOVEX MCA)', venue: 'Ada Lovelace Tech Lab', time: 'Day 1 • 10:00 AM', pts: 120 },
+                    { id: 'management-triwizard', title: 'Triwizard Business Conclave (NEXORA MBA)', venue: 'Strategy Chamber', time: 'Day 2 • 10:30 AM', pts: 110 },
+                    { id: 'potions-mastery', title: 'Potions & Mixology Conclave', venue: 'Alchemy Dungeons', time: 'Day 1 • 02:30 PM', pts: 80 },
+                    { id: 'dueling-club', title: 'The Great Dueling Club', venue: 'Central Courtyard', time: 'Day 2 • 02:00 PM', pts: 90 },
+                    { id: 'yule-ball', title: 'The Yule Ball & Cultural Night', venue: 'The Great Hall', time: 'Day 2 • 06:00 PM', pts: 50 },
+                  ].map((evt) => (
+                    <div key={evt.id} className="p-3.5 rounded-lg bg-black/40 border border-amber-500/20 text-xs flex flex-col justify-between">
+                      <div>
+                        <div className="font-cinzel font-bold text-amber-200 text-sm">{evt.title}</div>
+                        <div className="text-[11px] text-stone-400 mt-1">{evt.venue} • {evt.time}</div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-stone-400 text-xs font-serif italic">Loading schedule roster...</p>
-                )}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
+                        <span className="font-mono text-amber-400 font-bold">+{evt.pts} pts</span>
+                        {(admin.level === 0 || admin.level === 1 || admin.level === 3) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteEvent(evt.id, evt.title)}
+                            className="text-red-400 hover:text-red-300 text-[11px] cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1352,7 +1438,6 @@ export function AdminPanel() {
         {/* ========================================== */}
         {activeTab === 'staff' && (admin.level === 0 || admin.level === 1) && (
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Create Staff Form (Super Admin Level 0 Only) */}
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
                 <span>🧙‍♂️</span> Appoint Staff Member
@@ -1471,7 +1556,6 @@ export function AdminPanel() {
               )}
             </div>
 
-            {/* Staff Roster Table */}
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
                 <span>📜</span> Staff Roster & Clearance (Levels 0–6)
@@ -1570,6 +1654,136 @@ export function AdminPanel() {
           </div>
         )}
       </main>
+
+      {/* ========================================== */}
+      {/* LIGHTBOX MODAL: PAYMENT RECEIPT VIEWER     */}
+      {/* ========================================== */}
+      <AnimatePresence>
+        {viewingReceipt && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setViewingReceipt(null)}
+              className="fixed inset-0 bg-black/85 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-xl bg-gradient-to-b from-[#180e07] via-[#120803] to-[#070301] border-2 border-amber-500/50 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.3)] p-5 z-10 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-4">
+                <div>
+                  <span className="font-cinzel text-[10px] text-amber-400 font-bold uppercase tracking-widest block">
+                    ✦ Payment Verification ✦
+                  </span>
+                  <h3 className="font-cinzel font-bold text-base text-amber-200">
+                    Receipt for {viewingReceipt.fullName}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewingReceipt(null)}
+                  className="p-1 rounded-full text-stone-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Receipt Image / PDF */}
+              <div className="bg-black/80 rounded-xl p-2 border border-amber-500/20 max-h-[360px] flex items-center justify-center overflow-hidden mb-4">
+                {viewingReceipt.receiptUrl ? (
+                  viewingReceipt.receiptUrl.endsWith('.pdf') ? (
+                    <div className="py-12 text-center">
+                      <CreditCard className="w-12 h-12 text-amber-400 mx-auto mb-2" />
+                      <p className="text-xs text-stone-300 mb-3">PDF Payment Document Attached</p>
+                      <a
+                        href={viewingReceipt.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-cinzel text-xs font-bold"
+                      >
+                        Open PDF in New Tab
+                      </a>
+                    </div>
+                  ) : (
+                    <img
+                      src={viewingReceipt.receiptUrl}
+                      alt="Uploaded Payment Receipt"
+                      className="max-h-[340px] max-w-full object-contain rounded-lg"
+                    />
+                  )
+                ) : (
+                  <div className="py-12 text-stone-500 text-xs italic">No receipt file uploaded.</div>
+                )}
+              </div>
+
+              {/* Payment Details Metadata */}
+              <div className="p-3 rounded-lg bg-black/50 border border-amber-500/20 text-xs grid grid-cols-2 gap-2 mb-4 font-sans">
+                <div>
+                  <span className="text-stone-400">Pass Amount:</span>{' '}
+                  <strong className="text-stone-100 font-mono">₹{viewingReceipt.amount || 250}</strong>
+                </div>
+                <div>
+                  <span className="text-stone-400">House:</span>{' '}
+                  <strong className="text-amber-300 font-cinzel uppercase">{viewingReceipt.houseId}</strong>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-stone-400">Transaction Ref (UTR):</span>{' '}
+                  <strong className="text-amber-200 font-mono text-[11px]">{viewingReceipt.transactionId || 'None Provided'}</strong>
+                </div>
+                <div>
+                  <span className="text-stone-400">Current Status:</span>{' '}
+                  <strong className={`uppercase ${viewingReceipt.paymentStatus === 'verified' ? 'text-emerald-400' : viewingReceipt.paymentStatus === 'rejected' ? 'text-red-400' : 'text-yellow-400'}`}>
+                    {viewingReceipt.paymentStatus}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-stone-400">Email Dispatched:</span>{' '}
+                  <strong className={viewingReceipt.emailDispatched ? 'text-emerald-400' : 'text-stone-500'}>
+                    {viewingReceipt.emailDispatched ? '✓ Yes' : 'Pending'}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Admin Actions for Verification (Level 4 and above) */}
+              {admin.level <= 4 && (
+                <div className="flex items-center gap-2 pt-1 border-t border-amber-500/20">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePaymentStatus(viewingReceipt.id, 'verified')}
+                    className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-cinzel text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" /> Approve & Mark Verified (+10 Pts)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePaymentStatus(viewingReceipt.id, 'rejected')}
+                    className="py-2 px-3 rounded-xl border border-red-500/40 bg-red-950/40 hover:bg-red-950/80 text-red-300 font-cinzel text-xs font-bold transition-colors cursor-pointer"
+                    title="Reject Payment Receipt"
+                  >
+                    Reject
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleResendEmail(viewingReceipt.id, viewingReceipt.fullName)}
+                    className="p-2 rounded-xl border border-amber-500/30 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 cursor-pointer"
+                    title="Resend Hogwarts Acceptance Owl Letter"
+                  >
+                    <Mail className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

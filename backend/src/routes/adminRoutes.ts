@@ -3,6 +3,8 @@ import {
   getStats,
   getRegistrations,
   toggleRegistrationAttendance,
+  updateRegistrationPayment,
+  resendRegistrationEmail,
   removeRegistration,
   exportRegistrationsCsv,
   getAdmins,
@@ -22,6 +24,7 @@ import {
   createAdminSchema,
   updateAdminSchema,
   pointAdjustmentSchema,
+  updatePaymentStatusSchema,
   eventSchema,
 } from '../validation/schemas.js'
 
@@ -37,6 +40,13 @@ router.get('/stats', getStats)
 router.get('/registrations', getRegistrations)
 router.get('/registrations/export/csv', requireLevel(4), exportRegistrationsCsv)
 router.patch('/registrations/:id/checkin', requireLevel(4), toggleRegistrationAttendance)
+router.patch(
+  '/registrations/:id/payment',
+  requireLevel(4),
+  validateBody(updatePaymentStatusSchema),
+  updateRegistrationPayment,
+)
+router.post('/registrations/:id/email', requireLevel(4), resendRegistrationEmail)
 router.delete('/registrations/:id', requireLevel(0), removeRegistration)
 
 // Staff and Admin accounts management (Level 0 Super Admin & Level 1 Deputy)
