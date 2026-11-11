@@ -135,25 +135,25 @@ export default function App() {
       {/* ── When on home view (Great Hall experience) ──────────────────────── */}
       {route.view === 'home' && (
         <>
-          {/* Header with Burger Menu — visible throughout Great Hall exploration */}
+          {/* Header with Burger Menu — reveals only after the camera animation reaches the end (Chapter >= 7) */}
           <Header
             onTeamClick={() => {
               window.location.hash = '#/team'
             }}
             onRegisterClick={() => setIsRegisterOpen(true)}
             currentView="home"
-            isVisible={!showLoading}
+            isVisible={!showLoading && chapter >= 7}
           />
 
-          {/* Interactive Chapter Stepper HUD (Jump directly to any chapter) */}
-          {!showLoading && (
+          {/* Interactive Chapter Stepper HUD (Reveals at Chapter >= 7 with the rest of the navigation) */}
+          {!showLoading && chapter >= 7 && (
             <ChapterStepper
               currentChapter={chapter}
               totalChapters={8}
               onStepChange={(step) => {
                 window.dispatchEvent(new CustomEvent('go-to-step', { detail: { step } }))
               }}
-              isVisible={!showLoading}
+              isVisible={!showLoading && chapter >= 7}
             />
           )}
 
