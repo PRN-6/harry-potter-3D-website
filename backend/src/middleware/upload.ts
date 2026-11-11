@@ -46,3 +46,4 @@ export function handleReceiptUpload(req: Request, res: Response, next: NextFunct
     next()
   })
 }
+

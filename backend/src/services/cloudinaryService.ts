@@ -111,3 +111,4 @@ export async function deletePaymentReceipt(publicId: string, provider: 'cloudina
 export function getLocalUploadsPath(): string {
   return LOCAL_UPLOADS_DIR
 }
+
