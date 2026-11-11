@@ -704,10 +704,10 @@ export function AdminPanel() {
 
       {/* Dashboard Navigation Tabs */}
       <main className="max-w-7xl mx-auto px-4 sm:px-8 mt-6">
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-amber-500/20">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-amber-500/20 scrollbar-none">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
               activeTab === 'overview'
                 ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
                 : 'text-stone-400 hover:text-stone-200'
@@ -718,7 +718,7 @@ export function AdminPanel() {
 
           <button
             onClick={() => setActiveTab('registrations')}
-            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
               activeTab === 'registrations'
                 ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
                 : 'text-stone-400 hover:text-stone-200'
@@ -729,7 +729,7 @@ export function AdminPanel() {
 
           <button
             onClick={() => setActiveTab('points')}
-            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
               activeTab === 'points'
                 ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
                 : 'text-stone-400 hover:text-stone-200'
@@ -740,7 +740,7 @@ export function AdminPanel() {
 
           <button
             onClick={() => setActiveTab('events')}
-            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+            className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
               activeTab === 'events'
                 ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
                 : 'text-stone-400 hover:text-stone-200'
@@ -752,10 +752,10 @@ export function AdminPanel() {
           {(admin.level === 0 || admin.level === 1) && (
             <button
               onClick={() => setActiveTab('staff')}
-              className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+              className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
                 activeTab === 'staff'
                   ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
-                  : 'text-stone-400 hover:text-stone-200'
+                : 'text-stone-400 hover:text-stone-200'
               }`}
             >
               <Shield className="w-4 h-4" /> Staff & Admins (L0–L6)
@@ -765,7 +765,7 @@ export function AdminPanel() {
           {admin.level === 0 && (
             <button
               onClick={() => setActiveTab('logs')}
-              className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all ${
+              className={`px-4 py-2 rounded-t-lg font-cinzel text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shrink-0 ${
                 activeTab === 'logs'
                   ? 'bg-amber-500/20 text-amber-200 border-b-2 border-amber-400'
                   : 'text-stone-400 hover:text-stone-200'

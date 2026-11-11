@@ -140,25 +140,27 @@ export function TeamPage({ onBack }: TeamPageProps) {
             <div className="flex items-center justify-between px-4 sm:px-8 py-3.5 border-b-2 border-[#6d4620] bg-[#160c05]/95 sticky top-0 z-20 shadow-xl backdrop-blur-md">
               <button
                 onClick={() => setSelectedCard(null)}
-                className="group flex items-center gap-2 font-cinzel text-xs uppercase tracking-[0.2em] text-[#e5c78c] hover:text-[#ffd700] transition-colors border border-[#8c6738] hover:border-[#ffd700] bg-gradient-to-b from-[#2a170b] to-[#170c05] px-4 py-2 rounded-sm cursor-pointer shadow-md"
+                className="group flex items-center gap-1.5 sm:gap-2 font-cinzel text-xs uppercase tracking-[0.16em] sm:tracking-[0.2em] text-[#e5c78c] hover:text-[#ffd700] transition-colors border border-[#8c6738] hover:border-[#ffd700] bg-gradient-to-b from-[#2a170b] to-[#170c05] px-3 sm:px-4 py-1.5 sm:py-2 rounded-sm cursor-pointer shadow-md"
               >
                 <span className="text-[#ffd700] group-hover:-translate-x-1 transition-transform">←</span>
-                <span>Return to Gallery</span>
+                <span><span className="hidden xs:inline">Return to </span>Gallery</span>
               </button>
 
               {isCouncilMember(selectedCard) && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={() => navigateCard('prev')}
-                    className="px-3.5 py-1.5 rounded-sm border border-[#6d4620] hover:border-[#ffd700] bg-[#221308] text-[#e5c78c] hover:text-[#ffd700] font-cinzel text-xs uppercase tracking-wider cursor-pointer transition-colors shadow-sm"
+                    className="px-2.5 sm:px-3.5 py-1.5 rounded-sm border border-[#6d4620] hover:border-[#ffd700] bg-[#221308] text-[#e5c78c] hover:text-[#ffd700] font-cinzel text-[11px] sm:text-xs uppercase tracking-wider cursor-pointer transition-colors shadow-sm"
                   >
-                    ← Prev Wizard
+                    <span className="hidden sm:inline">← Prev Wizard</span>
+                    <span className="sm:hidden">← Prev</span>
                   </button>
                   <button
                     onClick={() => navigateCard('next')}
-                    className="px-3.5 py-1.5 rounded-sm border border-[#6d4620] hover:border-[#ffd700] bg-[#221308] text-[#e5c78c] hover:text-[#ffd700] font-cinzel text-xs uppercase tracking-wider cursor-pointer transition-colors shadow-sm"
+                    className="px-2.5 sm:px-3.5 py-1.5 rounded-sm border border-[#6d4620] hover:border-[#ffd700] bg-[#221308] text-[#e5c78c] hover:text-[#ffd700] font-cinzel text-[11px] sm:text-xs uppercase tracking-wider cursor-pointer transition-colors shadow-sm"
                   >
-                    Next Wizard →
+                    <span className="hidden sm:inline">Next Wizard →</span>
+                    <span className="sm:hidden">Next →</span>
                   </button>
                 </div>
               )}

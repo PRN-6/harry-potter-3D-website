@@ -18,8 +18,9 @@ export function ChapterOverlay({
   onJumpToChapter,
 }: ChapterOverlayProps) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center text-center p-3 sm:p-6">
-      <AnimatePresence mode="wait">
+    <div className="pointer-events-none fixed inset-0 z-20 flex flex-col justify-center items-center text-center p-3 sm:p-6 overflow-y-auto overscroll-contain">
+      <div className="my-auto w-full flex flex-col items-center py-6 sm:py-8">
+        <AnimatePresence mode="wait">
         {/* ══════════════════════════════════════════════════════════════════
             CHAPTER 0: HERO — GRAND COLLEGE FESTIVAL INCEPTION
         ══════════════════════════════════════════════════════════════════ */}
@@ -125,7 +126,7 @@ export function ChapterOverlay({
               onClick={() => onJumpToChapter(1)}
               className="mt-6 sm:mt-8 text-stone-400/80 hover:text-amber-300 font-cinzel text-[10px] sm:text-xs uppercase tracking-[0.25em] cursor-pointer pointer-events-auto transition-colors"
             >
-              Scroll to explore the Great Hall
+              Swipe or scroll to explore the Great Hall
             </motion.div>
           </motion.div>
         )}
@@ -436,6 +437,65 @@ export function ChapterOverlay({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
+
+      {/* ── Mobile Chapter Navigation Dock (Clean Touch Controls for Phones) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.4 }}
+        className="sm:hidden fixed bottom-3 inset-x-3 z-30 flex items-center justify-between gap-1.5 p-1.5 rounded-full bg-black/80 border border-amber-500/35 backdrop-blur-xl shadow-[0_4px_25px_rgba(0,0,0,0.85)] pointer-events-auto select-none"
+      >
+        {/* Left: Prev Button or Skip Tour */}
+        {chapter > 0 ? (
+          <button
+            onClick={() => onJumpToChapter(chapter - 1)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 active:bg-white/15 text-stone-300 hover:text-amber-200 font-cinzel text-[10px] uppercase tracking-wider font-bold border border-white/10 transition-colors cursor-pointer"
+          >
+            <span>← Prev</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => onJumpToChapter(7)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 active:bg-white/15 text-amber-300 font-cinzel text-[10px] uppercase tracking-wider font-bold border border-white/10 transition-colors cursor-pointer"
+          >
+            <span>Skip Tour</span>
+          </button>
+        )}
+
+        {/* Center: Chapter Dots */}
+        <div className="flex items-center gap-1 px-1.5">
+          {[0, 1, 2, 3, 4, 5, 6].map((step) => (
+            <button
+              key={step}
+              onClick={() => onJumpToChapter(step)}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                chapter === step
+                  ? 'w-4 bg-amber-400 shadow-[0_0_8px_#ffd700]'
+                  : 'w-1.5 bg-stone-600 hover:bg-stone-400'
+              }`}
+              aria-label={`Jump to Chapter ${step + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Right: Next Chapter or Jump to House Cards */}
+        {chapter < 6 ? (
+          <button
+            onClick={() => onJumpToChapter(chapter + 1)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-stone-950 font-cinzel text-[10px] uppercase tracking-wider font-black shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+          >
+            <span>Next →</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => onJumpToChapter(7)}
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-stone-950 font-cinzel text-[10px] uppercase tracking-wider font-black shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+          >
+            <span>Fest Cards ➔</span>
+          </button>
+        )}
+      </motion.div>
     </div>
   )
 }

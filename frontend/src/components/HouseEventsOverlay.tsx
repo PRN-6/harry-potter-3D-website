@@ -112,7 +112,8 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
                     }}
                   >
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
-                    <span className="hidden sm:inline">{h.name}</span>
+                    <span className="xs:hidden">{h.name.slice(0, 3)}</span>
+                    <span className="hidden xs:inline">{h.name}</span>
                   </button>
                 )
               })}

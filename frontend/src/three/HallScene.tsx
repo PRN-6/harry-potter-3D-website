@@ -171,31 +171,60 @@ function CameraRig({
     let touchStartY = 0
     let touchStartX = 0
 
+    const isInsideScrollable = (target: EventTarget | null): boolean => {
+      let el = target as HTMLElement | null
+      while (el && el !== document.body && el !== document.documentElement) {
+        if (el.classList?.contains('overflow-y-auto') || el.classList?.contains('overflow-auto')) {
+          return true
+        }
+        const style = window.getComputedStyle(el)
+        if (['auto', 'scroll'].includes(style.overflowY) && el.scrollHeight > el.clientHeight) {
+          return true
+        }
+        el = el.parentElement
+      }
+      return false
+    }
+
     const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY
       touchStartX = e.touches[0].clientX
     }
 
     const onTouchMove = (e: TouchEvent) => {
-      // Prevent browser rubber-banding and pull-to-refresh on 3D view
+      // Allow natural touch scroll when on cards finale (Chapter 7) or inside scrollable modals/drawers
+      if (currentStep.current >= 7 || isInsideScrollable(e.target)) {
+        return
+      }
+      // Prevent browser rubber-banding and pull-to-refresh on 3D canvas navigation
       if (e.cancelable) {
         e.preventDefault()
       }
     }
 
     const onTouchEnd = (e: TouchEvent) => {
+      // If user is interacting inside a scrollable modal, drawer, or on chapter >= 7, do not hijack swipe
+      if (currentStep.current >= 7 || isInsideScrollable(e.target)) return
       if (isAnimating.current) return
       const now = performance.now()
-      if (now - lastStepTime.current < 850) return
+      if (now - lastStepTime.current < 750) return
 
       const diffY = touchStartY - e.changedTouches[0].clientY
       const diffX = touchStartX - e.changedTouches[0].clientX
 
-      // Check if vertical swipe is prominent and exceeds threshold
-      if (Math.abs(diffY) > 30 && Math.abs(diffY) > Math.abs(diffX)) {
+      // Support vertical swipe (swipe up = next chapter, swipe down = prev chapter)
+      if (Math.abs(diffY) > 28 && Math.abs(diffY) >= Math.abs(diffX)) {
         if (diffY > 0 && currentStep.current < 7) {
           goToStep(currentStep.current + 1)
         } else if (diffY < 0 && currentStep.current > 0) {
+          goToStep(currentStep.current - 1)
+        }
+      }
+      // Support horizontal swipe (swipe left = next chapter, swipe right = prev chapter)
+      else if (Math.abs(diffX) > 36 && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 0 && currentStep.current < 7) {
+          goToStep(currentStep.current + 1)
+        } else if (diffX < 0 && currentStep.current > 0) {
           goToStep(currentStep.current - 1)
         }
       }

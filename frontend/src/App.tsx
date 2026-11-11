@@ -182,10 +182,10 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.7 }}
-                className="fixed inset-0 z-40 flex flex-col items-center justify-between p-4 sm:p-6 overflow-y-auto"
+                className="fixed inset-0 z-40 flex flex-col items-center p-3 sm:p-6 overflow-y-auto overscroll-contain"
               >
                 {/* Spacer for Top Header */}
-                <div className="h-16 sm:h-20 shrink-0" />
+                <div className="h-14 sm:h-20 shrink-0" />
 
                 {/* Floating Finale Heading */}
                 <motion.div
@@ -210,7 +210,7 @@ export default function App() {
                 </motion.div>
 
                 {/* The 4 Staggered Animated Cards */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:flex md:flex-row md:gap-8 lg:gap-12 w-full max-w-xs sm:max-w-md md:max-w-7xl mx-auto justify-center items-center my-auto py-2">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:flex md:flex-row md:gap-8 lg:gap-12 w-full max-w-sm sm:max-w-md md:max-w-7xl mx-auto justify-center items-center my-auto py-3">
                   {HOUSES.map((h, i) => (
                     <HouseCard
                       key={h.id}
@@ -229,7 +229,7 @@ export default function App() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="w-full max-w-5xl mx-auto mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-stone-400 text-xs select-none pb-4"
+                  className="w-full max-w-5xl mx-auto mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-stone-400 text-xs select-none pb-6"
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-cinzel font-bold text-amber-300">AJ-ASTRIX 2K27</span>
@@ -237,27 +237,27 @@ export default function App() {
                     <span className="text-stone-300 font-outfit">Department of MCA & MBA</span>
                   </div>
 
-                  <div className="flex items-center gap-3 font-cinzel text-[11px] text-amber-200/80">
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 font-cinzel text-[11px] text-amber-200/80">
                     <button
                       onClick={() => {
                         window.dispatchEvent(new CustomEvent('go-to-step', { detail: { step: 0 } }))
                       }}
-                      className="hover:text-amber-300 cursor-pointer"
+                      className="hover:text-amber-300 cursor-pointer p-0.5"
                     >
                       Return to Entrance
                     </button>
                     <span>·</span>
-                    <a href="#/map" className="hover:text-amber-300">
+                    <a href="#/map" className="hover:text-amber-300 p-0.5">
                       Events & Schedule
                     </a>
                     <span>·</span>
-                    <a href="#/team" className="hover:text-amber-300">
+                    <a href="#/team" className="hover:text-amber-300 p-0.5">
                       Meet The Team
                     </a>
                     <span>·</span>
                     <button
                       onClick={() => setIsRegisterOpen(true)}
-                      className="text-amber-400 font-bold hover:underline cursor-pointer"
+                      className="text-amber-400 font-bold hover:underline cursor-pointer p-0.5"
                     >
                       Register Pass (₹250)
                     </button>

@@ -18,7 +18,7 @@ export function ScrollHint({ className = '', isVisible = true }: ScrollHintProps
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 15 }}
       transition={{ duration: 0.5 }}
-      className={`pointer-events-none fixed bottom-8 sm:bottom-10 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-2.5 select-none ${className}`}
+      className={`pointer-events-none fixed bottom-8 sm:bottom-10 left-1/2 z-20 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2.5 select-none ${className}`}
       aria-hidden={!isVisible}
     >
       <motion.div

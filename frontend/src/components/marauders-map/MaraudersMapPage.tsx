@@ -137,10 +137,11 @@ export function MaraudersMapPage() {
           </button>
         }
         centerSlot={
-          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 max-w-full">
             <span className="text-amber-400 text-xs select-none animate-pulse">✦</span>
-            <h1 className="font-cinzel font-bold text-xs sm:text-base md:text-lg tracking-[0.2em] text-amber-200 uppercase truncate drop-shadow-md">
-              AJ-ASTRIX 2K27 · Event Map
+            <h1 className="font-cinzel font-bold text-xs sm:text-base md:text-lg tracking-[0.16em] sm:tracking-[0.2em] text-amber-200 uppercase truncate drop-shadow-md">
+              <span className="xs:hidden">Event Map</span>
+              <span className="hidden xs:inline">AJ-ASTRIX · Event Map</span>
             </h1>
             <span className="text-amber-400 text-xs select-none animate-pulse">✦</span>
           </div>
@@ -183,7 +184,7 @@ export function MaraudersMapPage() {
       </div>
 
       {/* ── Main Workspace ────────────────────────────────────────────── */}
-      <main className="flex-1 pt-24 sm:pt-20 pb-10 px-2 sm:px-6 max-w-[1700px] mx-auto w-full flex flex-col">
+      <main className="flex-1 pt-28 sm:pt-24 lg:pt-20 pb-10 px-2 sm:px-6 max-w-[1700px] mx-auto w-full flex flex-col">
         {/* ── 2-Column Responsive Layout: Map + Schedule Scroll ────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
           {/* ════════════════════════════════════════════════════════════

@@ -319,7 +319,7 @@ export function RegistrationModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[300] overflow-y-auto overscroll-contain p-2 sm:p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -329,14 +329,15 @@ export function RegistrationModal({
             className="fixed inset-0 bg-black/85 backdrop-blur-xl"
           />
 
-          {/* Modal Container */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-            className="relative w-full max-w-lg sm:max-w-xl bg-gradient-to-b from-[#180e07] via-[#100803] to-[#070301] border-2 border-amber-500/50 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.25)] p-5 sm:p-7 z-10 my-8 overflow-hidden select-none"
-          >
+          <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+              className="relative w-full max-w-lg sm:max-w-xl bg-gradient-to-b from-[#180e07] via-[#100803] to-[#070301] border-2 border-amber-500/50 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.25)] p-4 sm:p-7 z-10 overflow-hidden select-none my-auto"
+            >
             {/* Corner Runic Ornaments */}
             <span className="absolute top-2 left-2.5 text-xs text-amber-500/40">⚜</span>
             <span className="absolute top-2 right-2.5 text-xs text-amber-500/40">⚜</span>
@@ -712,6 +713,17 @@ export function RegistrationModal({
                       </button>
                     </div>
 
+                    {/* Direct UPI App Trigger on Mobile Phones */}
+                    {(paymentInfo?.upiIntentUri || paymentInfo?.upiId) && (
+                      <a
+                        href={paymentInfo?.upiIntentUri || `upi://pay?pa=${paymentInfo?.upiId || 'ajastrix2027@okhdfcbank'}&pn=AJ-ASTRIX-2K27&am=250&cu=INR`}
+                        className="sm:hidden w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-stone-950 font-cinzel font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all mt-1 cursor-pointer"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Open UPI App (GPay/PhonePe)</span>
+                      </a>
+                    )}
+
                     <p className="text-[10px] text-stone-400 leading-tight">
                       Supported: Google Pay, PhonePe, Paytm, BHIM, Cred & all UPI banking apps.
                     </p>
@@ -845,6 +857,7 @@ export function RegistrationModal({
               </form>
             )}
           </motion.div>
+          </div>
         </div>
       )}
     </AnimatePresence>

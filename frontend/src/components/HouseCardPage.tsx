@@ -96,6 +96,24 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
     setTilt({ rx: 0, ry: 0, glareX: 50, glareY: 50 })
   }
 
+  const handleCardTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!cardRef.current || e.touches.length === 0) return
+    const touch = e.touches[0]
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = touch.clientX - rect.left
+    const y = touch.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rx = ((y - centerY) / centerY) * -12
+    const ry = ((x - centerX) / centerX) * 12
+    setTilt({
+      rx,
+      ry,
+      glareX: (x / rect.width) * 100,
+      glareY: (y / rect.height) * 100,
+    })
+  }
+
   const house = HOUSE_BY_ID[selectedHouseId]
   const lore = HOUSE_LORE[selectedHouseId]
 
@@ -176,7 +194,8 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                   }}
                 >
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
-                  <span>{h.name}</span>
+                  <span className="xs:hidden">{h.name.slice(0, 3)}</span>
+                  <span className="hidden xs:inline">{h.name}</span>
                 </button>
               )
             })}
@@ -197,6 +216,8 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
               ref={cardRef}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
+              onTouchMove={handleCardTouchMove}
+              onTouchEnd={handleCardMouseLeave}
               className="relative w-full max-w-xs sm:max-w-sm aspect-[2/3] rounded-3xl border-2 transition-transform duration-200 ease-out cursor-pointer shadow-2xl group overflow-hidden select-none"
               style={{
                 borderColor: house.accent,
