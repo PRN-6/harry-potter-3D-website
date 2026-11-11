@@ -32,7 +32,7 @@ export const HOUSES: House[] = [
   {
     id: 'gryffindor',
     name: 'Gryffindor',
-    crest: '🦁',
+    crest: '✦',
     color: '#ae1c28',
     accent: '#d4a017',
     traits: ['Courage', 'Chivalry', 'Nerve'],
@@ -43,7 +43,7 @@ export const HOUSES: House[] = [
   {
     id: 'slytherin',
     name: 'Slytherin',
-    crest: '🐍',
+    crest: '✦',
     color: '#0a5c36',
     accent: '#c0c8d0',
     traits: ['Ambition', 'Cunning', 'Leadership'],
@@ -54,7 +54,7 @@ export const HOUSES: House[] = [
   {
     id: 'ravenclaw',
     name: 'Ravenclaw',
-    crest: '🦅',
+    crest: '✦',
     color: '#0e1a40',
     accent: '#8ec9ff',
     traits: ['Wit', 'Learning', 'Curiosity'],
@@ -65,7 +65,7 @@ export const HOUSES: House[] = [
   {
     id: 'hufflepuff',
     name: 'Hufflepuff',
-    crest: '🦡',
+    crest: '✦',
     color: '#ecb939',
     accent: '#6b4a12',
     traits: ['Loyalty', 'Patience', 'Fairness'],

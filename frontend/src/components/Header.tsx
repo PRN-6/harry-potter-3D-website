@@ -63,11 +63,11 @@ export function Header({
 
   const navLinks = [
     {
+      num: '01',
       title: 'Great Hall',
       fullTitle: 'The Great Hall',
       subtitle: 'Atmospheric 3D Entrance & Floating Candles',
       href: '#/',
-      icon: '🏰',
       active: currentView === 'home',
       onClick: () => {
         window.location.hash = '#/'
@@ -76,11 +76,11 @@ export function Header({
       },
     },
     {
+      num: '02',
       title: 'Events & Schedule',
       fullTitle: "Marauder's Event Map & 2-Day Schedule",
       subtitle: 'Interactive Castle Grounds & Competition Timeline',
       href: '#/map',
-      icon: '🗺️',
       active: currentView === 'map',
       onClick: () => {
         window.location.hash = '#/map'
@@ -88,11 +88,11 @@ export function Header({
       },
     },
     {
+      num: '03',
       title: 'The Team & Gazette',
       fullTitle: 'The Team & Daily Prophet',
       subtitle: 'Faculty Coordinators, Student Council & Dossiers',
       href: '#/team',
-      icon: '🗞️',
       active: currentView === 'team',
       onClick: () => {
         if (onTeamClick) onTeamClick()
@@ -101,11 +101,11 @@ export function Header({
       },
     },
     {
+      num: '04',
       title: 'Staff Chamber',
       fullTitle: 'Staff & Ministry Chamber',
       subtitle: 'Super Admin, Faculty & Prefects Console (RBAC)',
       href: '#/admin',
-      icon: '🏛️',
       active: currentView === 'admin',
       onClick: () => {
         window.location.hash = '#/admin'
@@ -115,10 +115,10 @@ export function Header({
   ]
 
   const houseLinks = [
-    { name: 'Gryffindor', id: 'gryffindor', crest: '🦁', motto: 'Bravery & Chivalry', color: '#ae0001', glow: '#d3a625' },
-    { name: 'Slytherin', id: 'slytherin', crest: '🐍', motto: 'Ambition & Cunning', color: '#1a472a', glow: '#5d5d5d' },
-    { name: 'Ravenclaw', id: 'ravenclaw', crest: '🦅', motto: 'Wisdom & Intellect', color: '#0e1a40', glow: '#946b2d' },
-    { name: 'Hufflepuff', id: 'hufflepuff', crest: '🦡', motto: 'Dedication & Loyalty', color: '#ecb939', glow: '#372e29' },
+    { name: 'Gryffindor', id: 'gryffindor', motto: 'Bravery & Chivalry', color: '#ae0001', glow: '#d3a625' },
+    { name: 'Slytherin', id: 'slytherin', motto: 'Ambition & Cunning', color: '#1a472a', glow: '#5d5d5d' },
+    { name: 'Ravenclaw', id: 'ravenclaw', motto: 'Wisdom & Intellect', color: '#0e1a40', glow: '#946b2d' },
+    { name: 'Hufflepuff', id: 'hufflepuff', motto: 'Dedication & Loyalty', color: '#ecb939', glow: '#372e29' },
   ]
 
   return (
@@ -180,13 +180,12 @@ export function Header({
                         e.preventDefault()
                         item.onClick()
                       }}
-                      className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-cinzel text-xs uppercase tracking-[0.16em] font-bold transition-all duration-300 cursor-pointer ${
+                      className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full font-cinzel text-xs uppercase tracking-[0.16em] font-bold transition-all duration-300 cursor-pointer ${
                         item.active
                           ? 'text-amber-200 bg-amber-400/20 border border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
                           : 'text-stone-300 hover:text-amber-200 hover:bg-white/10 border border-transparent hover:border-white/10'
                       }`}
                     >
-                      <span className="text-sm">{item.icon}</span>
                       <span>{item.title}</span>
                       {item.active && (
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#ffd700]" />
@@ -204,8 +203,7 @@ export function Header({
                 onClick={handleRegister}
                 className="relative group overflow-hidden rounded-full p-[1px] bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-600 shadow-[0_0_18px_rgba(245,158,11,0.4)] hover:shadow-[0_0_28px_rgba(245,158,11,0.75)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
               >
-                <div className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-cinzel font-black text-[10px] sm:text-xs tracking-[0.16em] uppercase">
-                  <span className="text-xs">⚡</span>
+                <div className="flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-cinzel font-black text-[10px] sm:text-xs tracking-[0.16em] uppercase">
                   <span>Register</span>
                   <span className="hidden xl:inline text-[9px] font-mono font-bold bg-stone-950/20 px-1.5 py-0.2 rounded-full">
                     LIVE
@@ -332,8 +330,8 @@ export function Header({
                             : 'bg-[#180e07]/80 hover:bg-[#25150a] border-amber-900/40 hover:border-amber-500/40'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-[#241308] border border-amber-500/30 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 group-hover:border-amber-400 transition-transform">
-                          {item.icon}
+                        <div className="w-10 h-10 rounded-lg bg-[#241308] border border-amber-500/30 flex items-center justify-center font-cinzel font-bold text-xs text-amber-300 shrink-0 group-hover:scale-105 group-hover:border-amber-400 transition-transform">
+                          {item.num}
                         </div>
                         <div className="flex-1 min-w-0">
                           <span className="font-cinzel font-bold text-sm sm:text-base tracking-wider text-amber-200 group-hover:text-amber-300 block mb-0.5 truncate uppercase">
@@ -376,9 +374,12 @@ export function Header({
                           style={{ backgroundColor: h.color }}
                         />
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-2xl group-hover:scale-110 transition-transform">
-                            {h.crest}
-                          </span>
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center font-cinzel font-bold text-xs text-white border border-amber-400/40 shadow-sm group-hover:scale-110 transition-transform"
+                            style={{ backgroundColor: h.color }}
+                          >
+                            {h.name[0]}
+                          </div>
                           <span className="text-amber-400 font-cinzel text-xs group-hover:translate-x-0.5 transition-transform">
                             →
                           </span>
@@ -400,7 +401,6 @@ export function Header({
                     onClick={handleRegister}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-cinzel font-black text-xs sm:text-sm tracking-[0.18em] uppercase bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 border border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer group"
                   >
-                    <span className="text-sm group-hover:animate-bounce">⚡</span>
                     <span>Register for Events & Contests</span>
                   </button>
                 </div>
@@ -420,7 +420,7 @@ export function Header({
                     onClick={() => setIsOpen(false)}
                     className="font-cinzel text-[10px] tracking-wider text-amber-400/80 hover:text-amber-200 transition-colors uppercase font-bold flex items-center gap-1 cursor-pointer pt-1"
                   >
-                    <span>🏛️</span> Enter Staff & Admin Chamber Portal
+                    <span>Enter Staff & Admin Chamber Portal →</span>
                   </a>
                 </div>
               </div>

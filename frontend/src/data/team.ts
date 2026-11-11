@@ -35,7 +35,7 @@ export const HOD_DATA: FacultyMember = {
   designation: 'Professor & Head',
   department: 'Department of Computer Science & Magical Engineering',
   image: '/characters/char1.jpg',
-  icon: '⚡',
+  icon: '✦',
   quote: 'Magic is science refined by boundless imagination. May this festival ignite the spark of brilliance and courage in every aspiring wizard.',
   bio: 'With over two decades of academic leadership and research in magical computing and arcane systems, Dr. Vance oversees the Department and serves as Chief Patron of AJ-ASTRIX 2K27.',
 }
@@ -51,7 +51,7 @@ export const FACULTY_DATA: FacultyMember[] = [
     designation: 'Associate Professor',
     department: 'School of Computing & Magical Arts',
     image: '/characters/char2.jpg',
-    icon: '🦉',
+    icon: '✦',
     quote: 'Guiding visionary minds to blend ancient wisdom with modern technology.',
     bio: 'Oversees overall festival planning, cross-house committee collaboration, and festival scheduling.',
   },
@@ -62,7 +62,7 @@ export const FACULTY_DATA: FacultyMember[] = [
     designation: 'Associate Professor',
     department: 'Software Systems & Enchantments',
     image: '/characters/char3.jpg',
-    icon: '📜',
+    icon: '✦',
     quote: 'Fostering innovation, collaboration, and student leadership across all houses.',
     bio: 'Directs festival operations, university patron communication, and academic competitions.',
   },
@@ -73,7 +73,7 @@ export const FACULTY_DATA: FacultyMember[] = [
     designation: 'Assistant Professor',
     department: 'Cyber Defence & Applied Potions',
     image: '/characters/char1.jpg',
-    icon: '🔮',
+    icon: '✦',
     quote: 'True mastery requires discipline, curiosity, and relentless pursuit of excellence.',
     bio: 'Advises on 3D web platforms, digital systems, interactive tech showcases, and hackathon challenges.',
   },
@@ -84,7 +84,7 @@ export const FACULTY_DATA: FacultyMember[] = [
     designation: 'Assistant Professor',
     department: 'Data Sorcery & Intelligent Systems',
     image: '/characters/char2.jpg',
-    icon: '⚖️',
+    icon: '✦',
     quote: 'Nurturing creativity, integrity, and the enduring spirit of camaraderie.',
     bio: 'Coordinates student welfare, house disputes, safety protocols, and student council activities.',
   },
@@ -104,7 +104,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Leading the inter-house student council, presiding over grand feast ceremonies, and representing the student body across all four houses.',
     responsibilities: ['Presiding over Council Assemblies', 'Directing the Core Organizing Team', 'Inter-House Diplomacy & Governance'],
     quote: 'True leadership is forging harmony where four distinct houses unite as one unstoppable realm.',
-    element: 'Crown 👑',
+    element: 'Crown',
   },
   {
     id: 'arts',
@@ -115,7 +115,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Directing the visual spectacle, mystical illumination, grand stage setups, and immersive artistic exhibitions across the castle grounds.',
     responsibilities: ['Visual Identity & Creative Direction', 'Stage & Hall Ambience Architecture', 'Enchanted Decor & Lighting'],
     quote: 'Every stone in the Great Hall tells a tale; our art simply awakens the magic already sleeping within.',
-    element: 'Palette 🎨',
+    element: 'Palette',
   },
   {
     id: 'eng',
@@ -126,7 +126,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Building the interactive 3D website, camera trajectories, dynamic WebGL shaders, and high-performance digital infrastructure for the festival.',
     responsibilities: ['3D Web Graphics & WebGL Shaders', 'Performance Optimization & Rendering', 'Interactive Systems & Architecture'],
     quote: 'Code is the modern wand-wave: logical, exacting, and capable of constructing entire worlds in light.',
-    element: 'Compass 📐',
+    element: 'Compass',
   },
   {
     id: 'ops',
@@ -137,7 +137,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Managing the overall operational flow, venue scheduling, crisis response, and day-to-day coordination of all festival activities.',
     responsibilities: ['Real-Time Event Operations', 'Venue Management & Scheduling', 'Protocol & Flow Coordination'],
     quote: 'When magic flows seamlessly from dawn till midnight, it is because operations never missed a beat.',
-    element: 'Hourglass ⏳',
+    element: 'Hourglass',
   },
   {
     id: 'lore',
@@ -148,7 +148,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Curating the festival lore, historical records, house points ledger, secret chamber quests, and daily announcements.',
     responsibilities: ['House Points Ledger Verification', 'Quest & Mystery Design', 'Festival Lore & Narrative Direction'],
     quote: 'History is not merely what was; it is the spell that weaves what we shall become.',
-    element: 'Scroll 📜',
+    element: 'Scroll',
   },
   {
     id: 'guard',
@@ -159,7 +159,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Maintaining perimeter safety, enchanted crowd barriers, emergency evacuation routes, and pitch safety throughout the games.',
     responsibilities: ['Perimeter Security & Crowd Flow', 'Safety Protocols & Wards', 'Emergency Response & First Aid Coordination'],
     quote: 'Vigilance is our armor; peace is our gift to the gathering.',
-    element: 'Shield 🛡️',
+    element: 'Shield',
   },
   {
     id: 'magic',
@@ -170,7 +170,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Designing the technical spellcasting competitions, hackathon challenges, interactive wand stations, and spell showcases.',
     responsibilities: ['Technical Hackathon Organization', 'Spell Dueling Tournament Rules', 'Interactive Tech & Magic Stalls'],
     quote: 'The brightest sparks arise when ancient spells meet algorithmic precision.',
-    element: 'Wand 🪄',
+    element: 'Wand',
   },
   {
     id: 'void',
@@ -181,7 +181,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Sound engineering, orchestral acoustic enchantments, cinematic lighting cues, and audio-visual stage production.',
     responsibilities: ['Live Audio Engineering & Acoustics', 'Projection Mapping & Screen Displays', 'Lighting Sequences & Cinematic Cues'],
     quote: 'Silence is the canvas; sound is the incantation that stirs the heart.',
-    element: 'Echo 🎵',
+    element: 'Echo',
   },
   {
     id: 'light',
@@ -192,7 +192,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Managing corporate partnerships, external sponsors, prize pools, VIP relations, and high table accommodations.',
     responsibilities: ['Sponsorship Outreach & Partnerships', 'Prize Pools & House Cup Trophies', 'VIP Guest Hospitality'],
     quote: 'Great feats require visionary allies who believe in the dawn before the sun rises.',
-    element: 'Sun ☀️',
+    element: 'Sun',
   },
   {
     id: 'dark',
@@ -203,7 +203,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Public relations, social media broadcasting, live festival coverage, press communiqués, and external invitations.',
     responsibilities: ['Social Media & Live Coverage', 'Press & Public Announcements', 'Campus Outreach & Engagement'],
     quote: 'A whisper in the dark can travel faster than an owl in full flight.',
-    element: 'Owl 🦉',
+    element: 'Owl',
   },
   {
     id: 'wind',
@@ -214,7 +214,7 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Logistics management, equipment movement, supply caravans, stage gear transport, and participant reception.',
     responsibilities: ['Supply Chain & Resource Dispatch', 'Broomstick Parking & Transport', 'Equipment Setup & Teardown'],
     quote: 'Swift as the gale, quiet as the breeze; everything arrives exactly when needed.',
-    element: 'Feather 🪶',
+    element: 'Feather',
   },
   {
     id: 'fire',
@@ -225,6 +225,6 @@ export const STUDENT_COUNCIL_DATA: StudentCouncilMember[] = [
     description: 'Participant reception, culinary feasts, house table dining arrangements, refreshments, and volunteer welfare.',
     responsibilities: ['Feast & Banquet Management', 'Participant Hospitality & Registration Desk', 'Volunteer Support & Welfare'],
     quote: 'Warmth at the hearth and a seat at the table for every traveler from afar.',
-    element: 'Flame 🔥',
+    element: 'Flame',
   },
 ]

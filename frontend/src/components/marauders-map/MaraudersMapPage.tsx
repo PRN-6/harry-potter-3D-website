@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin } from 'lucide-react'
 import { Header } from '../Header'
 import { MAP_LOCATIONS, FEST_SCHEDULE, type MapLocation } from '../../data/eventMapData'
 
@@ -151,36 +152,33 @@ export function MaraudersMapPage() {
       <div className="lg:hidden fixed top-14 sm:top-16 left-0 w-full z-40 bg-black/60 backdrop-blur-md border-b border-white/10 px-2 py-1.5 flex items-center justify-around shadow-lg">
         <button
           onClick={() => setActiveTab('map')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
             activeTab === 'map'
               ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-md border border-amber-300'
               : 'text-amber-200/80 hover:text-amber-200'
           }`}
         >
-          <span>🗺️</span>
-          <span>Fest Map</span>
+          Fest Map
         </button>
         <button
           onClick={() => setActiveTab('schedule')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
             activeTab === 'schedule'
               ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-md border border-amber-300'
               : 'text-amber-200/80 hover:text-amber-200'
           }`}
         >
-          <span>📜</span>
-          <span>Schedule Scroll</span>
+          Schedule
         </button>
         <button
           onClick={() => setActiveTab('locations')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-full font-cinzel text-[11px] uppercase tracking-wider font-bold transition-all cursor-pointer ${
             activeTab === 'locations'
               ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-md border border-amber-300'
               : 'text-amber-200/80 hover:text-amber-200'
           }`}
         >
-          <span>📍</span>
-          <span>All Venues</span>
+          All Venues
         </button>
       </div>
 
@@ -212,7 +210,6 @@ export function MaraudersMapPage() {
                         : 'bg-[#1e1107] text-[#e5c78c] border-[#6d4620] hover:border-[#ffd700]'
                     }`}
                   >
-                    <span>{loc.icon}</span>
                     <span className="font-cinzel font-bold tracking-wider text-[11px] uppercase">{loc.name}</span>
                   </button>
                 )
@@ -342,9 +339,9 @@ export function MaraudersMapPage() {
             <div className="rounded-md border border-[#7a4e23] bg-gradient-to-b from-[#1c1109] via-[#140b05] to-[#0c0602] p-4 sm:p-5 shadow-xl">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#4a2e14] pb-3 mb-3">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-md bg-[#2a170b] border border-[#8c6738] shadow-sm">
-                    {selectedLocation.icon}
-                  </span>
+                  <div className="p-2.5 rounded-md bg-[#2a170b] border border-[#8c6738] shadow-sm flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-amber-400" />
+                  </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="font-cinzel-decorative font-bold text-xl sm:text-2xl text-[#ffd700] tracking-wider uppercase">
@@ -467,7 +464,7 @@ export function MaraudersMapPage() {
                       className="p-2 rounded-sm bg-[#221308] hover:bg-[#331c0b] border border-[#6d4620] cursor-pointer"
                     >
                       <div className="flex items-center gap-1.5 text-xs font-cinzel font-bold text-[#ffd700]">
-                        <span>{loc.icon}</span>
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                         <span className="font-cinzel font-bold text-xs uppercase tracking-wider">{loc.name}</span>
                       </div>
                       <p className="text-[11px] text-[#bda075] font-serif">{loc.subtitle}</p>
@@ -486,7 +483,10 @@ export function MaraudersMapPage() {
                         <span>{ev.title}</span>
                         <span className="text-[#ffd700] text-[10px]">Day {ev.dayNumber}</span>
                       </div>
-                      <p className="text-[11px] text-[#bda075] font-serif">📍 {ev.locationName}</p>
+                      <p className="text-[11px] text-[#bda075] font-serif flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-amber-400" />
+                        <span>{ev.locationName}</span>
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -562,7 +562,10 @@ export function MaraudersMapPage() {
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-[#bda075] font-serif pt-1">
-                      <span>📍 {ev.locationName}</span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-amber-400" />
+                        <span>{ev.locationName}</span>
+                      </span>
                       <span className="text-[#c9a44c] font-cinzel uppercase text-[9px] font-bold">
                         Locate on Map →
                       </span>
@@ -613,7 +616,7 @@ export function MaraudersMapPage() {
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">{loc.icon}</span>
+                        <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
                         <h4 className="font-cinzel font-bold text-sm sm:text-base text-[#ffd700] uppercase tracking-wider">{loc.name}</h4>
                       </div>
                       <span className="text-[10px] font-cinzel uppercase px-2 py-0.5 rounded-sm bg-[#221308] border border-[#8c6738] text-[#e5c78c]">
@@ -653,7 +656,7 @@ export function MaraudersMapPage() {
           >
             <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#5c3c1e]">
               <div className="flex items-center gap-2">
-                <span className="text-xl">{selectedLocation.icon}</span>
+                <MapPin className="w-5 h-5 text-amber-400 shrink-0" />
                 <div>
                   <h3 className="font-cinzel-decorative font-bold text-base sm:text-lg text-[#ffd700] tracking-wider uppercase">
                     {selectedLocation.name}

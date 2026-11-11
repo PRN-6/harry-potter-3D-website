@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Volume2, VolumeX } from 'lucide-react'
 
 interface IntroVideoProps {
   onComplete: () => void
@@ -90,7 +91,7 @@ export function IntroVideo({ onComplete }: IntroVideoProps) {
       <div className="absolute top-4 sm:top-6 inset-x-4 sm:inset-x-8 flex items-center justify-between z-30 pointer-events-auto">
         {/* Brand Badge */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-amber-500/30">
-          <span className="text-amber-400 text-xs">⚡</span>
+          <span className="text-amber-400 text-xs">✦</span>
           <span className="font-cinzel font-bold text-xs tracking-[0.2em] uppercase text-amber-200">
             AJ-ASTRIX 2K27
           </span>
@@ -104,7 +105,7 @@ export function IntroVideo({ onComplete }: IntroVideoProps) {
             aria-label={isMuted ? 'Unmute video' : 'Mute video'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 hover:border-amber-400/50 text-amber-200 text-xs font-cinzel font-semibold transition-all cursor-pointer shadow-[0_0_15px_rgba(0,0,0,0.6)]"
           >
-            <span>{isMuted ? '🔇' : '🔊'}</span>
+            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{isMuted ? 'Sound On' : 'Muted'}</span>
           </button>
 

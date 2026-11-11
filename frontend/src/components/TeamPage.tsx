@@ -276,36 +276,33 @@ export function TeamPage({ onBack }: TeamPageProps) {
           <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-inner overflow-x-auto max-w-full">
             <button
               onClick={() => scrollTo('prophet')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'prophet'
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
                   : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
-              <span className="text-xs">🗞️</span>
               <span className="hidden md:inline">Daily </span>Prophet
             </button>
             <button
               onClick={() => scrollTo('faculty')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'faculty'
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
                   : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
-              <span className="text-xs">📜</span>
-              <span>Faculty</span>
+              Faculty
             </button>
             <button
               onClick={() => scrollTo('council')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
+              className={`px-3 py-1 sm:py-1.5 rounded-full font-cinzel text-[10px] sm:text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shrink-0 ${
                 activeSection === 'council'
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-black shadow-[0_0_12px_rgba(212,175,55,0.5)] border border-amber-300'
                   : 'text-amber-200/80 hover:text-amber-200 hover:bg-white/5 border border-transparent'
               }`}
             >
-              <span className="text-xs">🪄</span>
-              <span>Council</span>
+              Council
             </button>
           </div>
         }
@@ -496,7 +493,6 @@ export function TeamPage({ onBack }: TeamPageProps) {
               onClick={() => scrollTo('council')}
               className="group inline-flex items-center gap-2.5 font-cinzel text-xs tracking-widest uppercase text-[#e5c78c] hover:text-[#ffd700] transition-colors px-6 py-2.5 rounded-sm border border-[#8c6738] bg-[#1e1107] hover:bg-[#2e1b0d] shadow-md cursor-pointer"
             >
-              <span>🪄</span>
               <span>Explore The 12 Council Leads (Interactive Accordion)</span>
               <span className="group-hover:translate-y-0.5 transition-transform text-[#ffd700] font-black">↓</span>
             </button>
@@ -528,7 +524,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
             <div className="flex items-center justify-center gap-3 text-[#c9a44c] text-sm mt-3">
               <span>✦</span>
               <span className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c9a44c] to-transparent" />
-              <span>🪄</span>
+              <span>✦</span>
               <span className="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#c9a44c] to-transparent" />
               <span>✦</span>
             </div>
@@ -658,7 +654,7 @@ export function TeamPage({ onBack }: TeamPageProps) {
               onClick={onBack}
               className="group inline-flex items-center gap-2 font-cinzel text-xs tracking-widest uppercase text-[#120802] bg-gradient-to-b from-[#d4af37] via-[#b8860b] to-[#8c6516] hover:from-[#dfb564] hover:to-[#a3792c] transition-all px-6 py-2.5 rounded-sm font-black shadow-[0_4px_15px_rgba(212,175,55,0.4)] border border-[#ffe082] cursor-pointer"
             >
-              <span className="group-hover:-translate-x-1 transition-transform">⚡</span>
+              <span>←</span>
               <span>Return to Great Hall</span>
             </button>
           </div>

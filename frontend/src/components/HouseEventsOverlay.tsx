@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin } from 'lucide-react'
 import { HOUSES, HOUSE_BY_ID, type HouseId } from '../data/houses'
 import { EVENTS, DAYS, STANDINGS, TRACK_META, type EventTrack } from '../data/events'
 
@@ -110,7 +111,7 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
                       boxShadow: active ? `0 0 15px ${h.color}80` : undefined,
                     }}
                   >
-                    <span className="text-sm">{h.crest}</span>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
                     <span className="hidden sm:inline">{h.name}</span>
                   </button>
                 )
@@ -128,7 +129,12 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
               transition={{ duration: 0.4 }}
               className="text-center mb-8"
             >
-              <div className="text-4xl sm:text-5xl mb-2">{house.crest}</div>
+              <div
+                className="w-10 h-10 rounded-full mx-auto mb-2 border border-amber-400/50 flex items-center justify-center font-cinzel font-bold text-sm text-white shadow-md"
+                style={{ backgroundColor: house.color }}
+              >
+                {house.name[0]}
+              </div>
               <h1
                 className="font-cinzel text-3xl sm:text-5xl font-bold tracking-wider mb-2"
                 style={{
@@ -207,7 +213,7 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
                           : 'text-stone-400 hover:text-stone-200'
                       }`}
                     >
-                      <span>{meta.icon}</span>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: meta.color }} />
                       <span className="hidden sm:inline">{meta.label}</span>
                     </button>
                   )
@@ -261,8 +267,9 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
                       <h3 className="font-cinzel text-lg sm:text-xl font-bold text-stone-100 mb-1">
                         {event.title}
                       </h3>
-                      <p className="font-cinzel text-xs text-amber-300/80 uppercase tracking-widest mb-3">
-                        📍 {event.venue}
+                      <p className="font-cinzel text-xs text-amber-300/80 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{event.venue}</span>
                       </p>
 
                       {/* Blurb */}
@@ -284,7 +291,7 @@ export function HouseEventsOverlay({ initialHouseId, isOpen, onClose }: HouseEve
                             : 'border border-amber-500/50 text-amber-200 hover:bg-amber-500 hover:text-stone-900 bg-amber-950/20'
                         }`}
                       >
-                        {isRegistered ? 'Registered ✨' : 'Attend Event'}
+                        {isRegistered ? 'Registered' : 'Attend Event'}
                       </button>
                     </div>
                   </motion.div>

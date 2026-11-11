@@ -8,14 +8,14 @@ export interface ChapterStepperProps {
 }
 
 const STEP_LABELS = [
-  { short: 'Hero', full: 'Fest Inception', icon: '✦' },
-  { short: 'Hall', full: 'The Great Hall', icon: '🏰' },
-  { short: 'MCA', full: 'INOVEX Technical Symposium', icon: '💻' },
-  { short: 'MBA', full: 'NEXORA Management Conclave', icon: '📈' },
-  { short: 'Fest', full: 'AJ-ASTRIX Flagship Union', icon: '⚡' },
-  { short: 'Timer', full: 'Time-Turner Countdown', icon: '⏳' },
-  { short: 'Cup', full: 'House Championship', icon: '🏆' },
-  { short: 'Houses', full: 'House Collector Cards', icon: '🦁' },
+  { short: '01', full: 'Fest Inception' },
+  { short: '02', full: 'The Great Hall' },
+  { short: '03', full: 'INOVEX (MCA)' },
+  { short: '04', full: 'NEXORA (MBA)' },
+  { short: '05', full: 'AJ-ASTRIX Union' },
+  { short: '06', full: 'Time-Turner Countdown' },
+  { short: '07', full: 'House Championship' },
+  { short: '08', full: 'Collector Cards' },
 ]
 
 export function ChapterStepper({
@@ -66,8 +66,7 @@ export function ChapterStepper({
                 className="group relative flex items-center justify-center cursor-pointer p-1"
               >
                 {/* Floating Tooltip to the Left */}
-                <div className="absolute right-9 pointer-events-none opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap px-2.5 py-1 rounded-md bg-stone-950/95 border border-amber-500/40 text-amber-200 text-[11px] font-cinzel font-bold shadow-lg flex items-center gap-1.5 z-50">
-                  <span>{label.icon}</span>
+                <div className="absolute right-9 pointer-events-none opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap px-2.5 py-1 rounded-md bg-stone-950/95 border border-amber-500/40 text-amber-200 text-[11px] font-cinzel font-bold shadow-lg z-50">
                   <span>{label.full}</span>
                 </div>
 

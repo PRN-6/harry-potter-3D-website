@@ -25,12 +25,12 @@ export interface FestEvent {
 }
 
 export const TRACK_META: Record<EventTrack, { label: string; icon: string; color: string }> = {
-  quidditch: { label: 'Quidditch', icon: '🧹', color: '#7c3aed' },
-  potion: { label: 'Potions', icon: '⚗️', color: '#0ea5e9' },
-  arts: { label: 'Arts & Magic', icon: '🎨', color: '#ec4899' },
-  debate: { label: 'Debate', icon: '🗣️', color: '#f59e0b' },
-  music: { label: 'Music', icon: '🎵', color: '#10b981' },
-  quest: { label: 'Quest', icon: '🗝️', color: '#ef4444' },
+  quidditch: { label: 'Quidditch', icon: '✦', color: '#7c3aed' },
+  potion: { label: 'Potions', icon: '✦', color: '#0ea5e9' },
+  arts: { label: 'Arts & Magic', icon: '✦', color: '#ec4899' },
+  debate: { label: 'Debate', icon: '✦', color: '#f59e0b' },
+  music: { label: 'Music', icon: '✦', color: '#10b981' },
+  quest: { label: 'Quest', icon: '✦', color: '#ef4444' },
 }
 
 export const EVENTS: FestEvent[] = [

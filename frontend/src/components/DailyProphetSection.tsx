@@ -76,7 +76,7 @@ export function DailyProphetSection({
           {/* Click to inspect broadside indicator banner */}
           <div className="absolute bottom-3 right-3 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <span className="font-cinzel text-[10px] sm:text-xs uppercase tracking-widest text-[#1c1107] bg-[#ffd700]/90 px-3 py-1 rounded-sm font-bold shadow-md border border-[#8c6738]">
-              🔍 Click to Enlarge Broadside
+              Click to Enlarge Broadside
             </span>
           </div>
         </div>
@@ -102,7 +102,6 @@ export function DailyProphetSection({
               onClick={onExploreFaculty}
               className="group flex items-center gap-2 px-4 py-2.5 rounded-sm font-cinzel text-xs uppercase tracking-wider font-bold bg-gradient-to-b from-[#c9a44c] via-[#b58f38] to-[#8c6721] hover:from-[#dfb564] hover:to-[#a3792c] text-[#1a0f05] shadow-[0_4px_15px_rgba(201,164,76,0.3)] transition-all hover:scale-105 cursor-pointer border border-[#ffe082]"
             >
-              <span>📜</span>
               <span>Faculty Mentors</span>
               <span className="text-sm font-black group-hover:translate-y-0.5 transition-transform">↓</span>
             </button>
@@ -111,7 +110,6 @@ export function DailyProphetSection({
               onClick={onExploreCouncil}
               className="group flex items-center gap-2 px-4 py-2.5 rounded-sm font-cinzel text-xs uppercase tracking-wider font-bold border-2 border-[#c9a44c] hover:border-[#ffd700] text-[#e5c78c] hover:text-[#ffd700] bg-[#24150b]/90 hover:bg-[#331c0e] shadow-[0_4px_15px_rgba(0,0,0,0.6)] transition-all hover:scale-105 cursor-pointer"
             >
-              <span>🪄</span>
               <span>12 Council Mages</span>
               <span className="text-sm font-black text-[#ffd700] group-hover:translate-y-0.5 transition-transform">↓</span>
             </button>

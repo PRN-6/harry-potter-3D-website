@@ -33,7 +33,7 @@ export default function HouseSelector({ variant = 'full' }: { variant?: 'full' |
               boxShadow: house === h.id ? `0 0 0 2px ${h.accent}, 0 0 0 4px #0a0714` : undefined,
             }}
           >
-            <span aria-hidden>{h.crest}</span>
+            <span aria-hidden className="font-cinzel font-bold text-xs text-white">{h.name[0]}</span>
           </button>
         ))}
       </div>
@@ -50,7 +50,7 @@ export default function HouseSelector({ variant = 'full' }: { variant?: 'full' |
           className="mt-3 font-cinzel text-4xl font-bold sm:text-5xl"
           style={{ color: current.accent, textShadow: `0 0 40px ${current.color}` }}
         >
-          {current.crest} {current.name}
+          {current.name}
         </h2>
         <p className="mt-4 text-sm text-stone-400 sm:text-base">
           {current.traits.join(' · ')} — {current.motto}
@@ -60,13 +60,14 @@ export default function HouseSelector({ variant = 'full' }: { variant?: 'full' |
             <button
               key={h.id}
               onClick={() => setHouse(h.id)}
-              className={`rounded-full border px-4 py-2 text-sm transition-all ${
+              className={`rounded-full border px-4 py-2 text-sm transition-all flex items-center gap-2 ${
                 house === h.id
                   ? 'border-amber-300/60 bg-amber-300/10 text-amber-200'
                   : 'border-white/10 text-stone-400 hover:border-white/25 hover:text-stone-200'
               }`}
             >
-              {h.crest} {h.name}
+              <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: h.color }} />
+              <span>{h.name}</span>
             </button>
           ))}
         </div>
@@ -100,10 +101,10 @@ export default function HouseSelector({ variant = 'full' }: { variant?: 'full' |
             />
             <div className="relative flex items-start gap-4">
               <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl sm:h-14 sm:w-14 sm:text-3xl"
-                style={{ backgroundColor: `${h.color}33`, border: `1px solid ${h.color}66` }}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl font-cinzel font-black sm:h-14 sm:w-14 sm:text-3xl"
+                style={{ backgroundColor: `${h.color}33`, border: `1px solid ${h.color}66`, color: h.accent }}
               >
-                {h.crest}
+                {h.name[0]}
               </span>
               <div className="min-w-0">
                 <h3 className="font-cinzel text-lg font-bold sm:text-xl" style={{ color: h.accent }}>

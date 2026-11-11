@@ -394,8 +394,8 @@ export function RegistrationModal({
             {/* ========================================== */}
             {status === 'success' ? (
               <div className="py-6 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mb-3 shadow-[0_0_25px_rgba(245,158,11,0.4)]">
-                  ⚡
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 mb-3 shadow-[0_0_25px_rgba(16,185,129,0.3)]">
+                  <Check className="w-8 h-8" />
                 </div>
                 <h4 className="font-cinzel font-bold text-lg text-amber-200 mb-1 uppercase tracking-wider">
                   Registration & Payment Confirmed!
@@ -412,7 +412,7 @@ export function RegistrationModal({
                     <span>✓</span> Payment Receipt Uploaded to Cloudinary
                   </div>
                   <div className="text-[11px] text-stone-400">
-                    +5 Points added to your House in the House Cup! 🏆
+                    +5 Points added to your House in the House Cup!
                   </div>
                 </div>
 
@@ -598,7 +598,12 @@ export function RegistrationModal({
                               : 'border-amber-500/20 bg-black/40 hover:border-amber-500/40 text-stone-400'
                           }`}
                         >
-                          <div className="text-base mb-0.5">{h.crest}</div>
+                          <div
+                            className="w-5 h-5 rounded-full mb-1 flex items-center justify-center font-cinzel font-bold text-[10px] text-white border border-amber-400/40 shadow-sm"
+                            style={{ backgroundColor: h.color }}
+                          >
+                            {h.name[0]}
+                          </div>
                           <div className="font-cinzel text-xs font-bold text-amber-200">{h.name}</div>
                         </button>
                       )
@@ -833,10 +838,7 @@ export function RegistrationModal({
                         <span>Uploading Receipt & Inscribing Pass...</span>
                       </>
                     ) : (
-                      <>
-                        <span>⚡</span>
-                        <span>Complete Registration & Claim Pass</span>
-                      </>
+                      <span>Complete Registration & Claim Pass</span>
                     )}
                   </button>
                 </div>

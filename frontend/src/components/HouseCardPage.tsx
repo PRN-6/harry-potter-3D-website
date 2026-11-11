@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { MapPin } from 'lucide-react'
 import { Header } from './Header'
 import { useHouse } from '../context/HouseContext'
 import { HOUSES, HOUSE_BY_ID, type HouseId } from '../data/houses'
@@ -15,7 +16,7 @@ export const HOUSE_LORE: Record<HouseId, {
 }> = {
   gryffindor: {
     founder: 'Godric Gryffindor',
-    element: 'Fire 🔥',
+    element: 'Fire',
     ghost: 'Nearly Headless Nick',
     commonRoom: 'Gryffindor Tower (7th Floor)',
     headOfHouse: 'Prof. Minerva McGonagall',
@@ -23,7 +24,7 @@ export const HOUSE_LORE: Record<HouseId, {
   },
   slytherin: {
     founder: 'Salazar Slytherin',
-    element: 'Water 💧',
+    element: 'Water',
     ghost: 'The Bloody Baron',
     commonRoom: 'Slytherin Dungeon (Beneath the Black Lake)',
     headOfHouse: 'Prof. Severus Snape',
@@ -31,7 +32,7 @@ export const HOUSE_LORE: Record<HouseId, {
   },
   ravenclaw: {
     founder: 'Rowena Ravenclaw',
-    element: 'Air 💨',
+    element: 'Air',
     ghost: 'The Grey Lady (Helena Ravenclaw)',
     commonRoom: 'Ravenclaw Tower (West Wing)',
     headOfHouse: 'Prof. Filius Flitwick',
@@ -39,7 +40,7 @@ export const HOUSE_LORE: Record<HouseId, {
   },
   hufflepuff: {
     founder: 'Helga Hufflepuff',
-    element: 'Earth 🌿',
+    element: 'Earth',
     ghost: 'The Fat Friar',
     commonRoom: 'Basement Corridor (Near the Kitchens)',
     headOfHouse: 'Prof. Pomona Sprout',
@@ -174,8 +175,8 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                     boxShadow: active ? `0 0 12px ${h.color}80` : undefined,
                   }}
                 >
-                  <span>{h.crest}</span>
-                  <span className="hidden sm:inline">{h.name}</span>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
+                  <span>{h.name}</span>
                 </button>
               )
             })}
@@ -228,7 +229,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
 
               {/* Bottom Card Title Banner */}
               <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent flex flex-col items-center text-center">
-                <span className="text-2xl mb-1">{house.crest}</span>
+                <span className="text-amber-300 text-xs mb-1">✦</span>
                 <span
                   className="font-cinzel-decorative font-bold text-xl sm:text-2xl tracking-[0.2em] uppercase drop-shadow-md"
                   style={{ color: house.accent }}
@@ -250,7 +251,12 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
           <div className="lg:col-span-7 flex flex-col justify-center">
             {/* Crest & House Cup Badge */}
             <div className="flex flex-wrap items-center gap-3 mb-3">
-              <span className="text-3xl">{house.crest}</span>
+              <span
+                className="w-8 h-8 rounded-full border border-amber-400/50 flex items-center justify-center font-cinzel font-bold text-xs text-white"
+                style={{ backgroundColor: house.color }}
+              >
+                {house.name[0]}
+              </span>
               <div className="inline-flex items-center gap-2.5 px-4 py-1 rounded-full border border-white/15 bg-black/50 text-xs sm:text-sm text-amber-200">
                 <span className="font-bold text-amber-300">{houseStanding.points} House Points</span>
                 <span className="text-white/30">•</span>
@@ -388,7 +394,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                       : 'text-stone-400 hover:text-stone-200'
                   }`}
                 >
-                  <span>{meta.icon}</span>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: meta.color }} />
                   <span>{meta.label}</span>
                 </button>
               )
@@ -441,8 +447,9 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                     <h3 className="font-cinzel font-bold text-lg sm:text-xl text-[#ffd700] tracking-wide mb-1">
                       {event.title}
                     </h3>
-                    <p className="font-cinzel text-xs text-amber-300/80 uppercase tracking-widest mb-3">
-                      📍 {event.venue}
+                    <p className="font-cinzel text-xs text-amber-300/80 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{event.venue}</span>
                     </p>
 
                     {/* Blurb */}
@@ -464,7 +471,7 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
                           : 'border border-amber-500/50 text-amber-200 hover:bg-amber-500 hover:text-stone-900 bg-amber-950/20'
                       }`}
                     >
-                      {isRegistered ? 'Registered ✨' : 'Attend Event'}
+                      {isRegistered ? 'Registered' : 'Attend Event'}
                     </button>
                   </div>
                 </motion.div>
@@ -490,9 +497,10 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
               <button
                 key={h.id}
                 onClick={() => navigateHouse(h.id)}
-                className="font-cinzel text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-white/10 hover:border-amber-400 bg-black/40 text-stone-300 hover:text-white transition-all cursor-pointer"
+                className="font-cinzel text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-white/10 hover:border-amber-400 bg-black/40 text-stone-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
               >
-                {h.crest} {h.name}
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
+                <span>{h.name}</span>
               </button>
             ))}
           </div>

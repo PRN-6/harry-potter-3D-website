@@ -56,15 +56,15 @@ import {
 
 const LEVEL_BADGES: Record<
   AdminLevel,
-  { label: string; color: string; border: string; bg: string; icon: string }
+  { label: string; color: string; border: string; bg: string }
 > = {
-  0: { label: 'Level 0 · Super Admin (Headmaster)', color: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-950/60', icon: '👑' },
-  1: { label: 'Level 1 · Deputy Headmaster', color: 'text-purple-300', border: 'border-purple-400', bg: 'bg-purple-950/60', icon: '📜' },
-  2: { label: 'Level 2 · Head of House', color: 'text-emerald-300', border: 'border-emerald-400', bg: 'bg-emerald-950/60', icon: '🐍' },
-  3: { label: 'Level 3 · Chief Event Coordinator', color: 'text-blue-300', border: 'border-blue-400', bg: 'bg-blue-950/60', icon: '🎪' },
-  4: { label: 'Level 4 · Gatekeeper & Desk', color: 'text-orange-300', border: 'border-orange-400', bg: 'bg-orange-950/60', icon: '🗝️' },
-  5: { label: 'Level 5 · House Cup Scorekeeper', color: 'text-yellow-300', border: 'border-yellow-400', bg: 'bg-yellow-950/60', icon: '🏆' },
-  6: { label: 'Level 6 · Prefect Observer', color: 'text-stone-300', border: 'border-stone-500', bg: 'bg-stone-900/60', icon: '👁️' },
+  0: { label: 'Level 0 · Super Admin (Headmaster)', color: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-950/60' },
+  1: { label: 'Level 1 · Deputy Headmaster', color: 'text-purple-300', border: 'border-purple-400', bg: 'bg-purple-950/60' },
+  2: { label: 'Level 2 · Head of House', color: 'text-emerald-300', border: 'border-emerald-400', bg: 'bg-emerald-950/60' },
+  3: { label: 'Level 3 · Chief Event Coordinator', color: 'text-blue-300', border: 'border-blue-400', bg: 'bg-blue-950/60' },
+  4: { label: 'Level 4 · Gatekeeper & Desk', color: 'text-orange-300', border: 'border-orange-400', bg: 'bg-orange-950/60' },
+  5: { label: 'Level 5 · House Cup Scorekeeper', color: 'text-yellow-300', border: 'border-yellow-400', bg: 'bg-yellow-950/60' },
+  6: { label: 'Level 6 · Prefect Observer', color: 'text-stone-300', border: 'border-stone-500', bg: 'bg-stone-900/60' },
 }
 
 export function AdminPanel() {
@@ -476,8 +476,8 @@ export function AdminPanel() {
 
           <div className="bg-gradient-to-b from-[#180e07] via-[#120803] to-[#0a0402] border-2 border-amber-500/40 rounded-2xl p-6 sm:p-8 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
             <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-3">
-                🏛️
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-3">
+                <Shield className="w-7 h-7 text-amber-300" />
               </div>
               <span className="font-cinzel text-[11px] uppercase tracking-[0.3em] text-amber-400 font-bold block">
                 ✦ Ministry of Magic Portal ✦
@@ -566,8 +566,8 @@ export function AdminPanel() {
                       className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:brightness-125 ${badge.bg} ${badge.border}`}
                     >
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-cinzel font-bold text-amber-200 flex items-center gap-1">
-                          <span>{badge.icon}</span> {acc.name}
+                        <span className="font-cinzel font-bold text-amber-200">
+                          {acc.name}
                         </span>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${badge.color} bg-black/40`}>
                           L{acc.level}
@@ -626,10 +626,10 @@ export function AdminPanel() {
         <div className="flex items-center gap-3">
           <a
             href="#"
-            className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-lg hover:scale-105 transition-transform cursor-pointer"
+            className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400/60 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer text-amber-300"
             title="Return to Great Hall"
           >
-            ⚡
+            <ArrowLeft className="w-4 h-4" />
           </a>
           <div>
             <div className="flex items-center gap-2">
@@ -650,7 +650,6 @@ export function AdminPanel() {
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <div className="font-cinzel text-xs font-bold text-amber-200 flex items-center justify-end gap-1.5">
-              <span>{currentBadge.icon}</span>
               <span>{admin.fullName}</span>
             </div>
             <div className={`text-[10px] font-mono ${currentBadge.color}`}>{admin.roleTitle}</div>
@@ -843,7 +842,7 @@ export function AdminPanel() {
               {/* House Standings Progress */}
               <div className="p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
                 <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                  <span>🏆</span> Live House Cup Standings
+                  <Trophy className="w-4 h-4 text-amber-400" /> Live House Cup Standings
                 </h3>
                 <div className="space-y-4">
                   {(stats?.standings || []).map((h) => {
@@ -872,7 +871,7 @@ export function AdminPanel() {
               {/* Payment & House Registration Distribution */}
               <div className="p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
                 <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                  <span>📊</span> Registrations by House & Fee Status
+                  <Activity className="w-4 h-4 text-amber-400" /> Registrations by House & Fee Status
                 </h3>
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   {Object.entries(stats?.houseBreakdown || {}).map(([house, count]) => (
@@ -924,10 +923,10 @@ export function AdminPanel() {
                   className="px-2.5 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs outline-none"
                 >
                   <option value="all">All Houses</option>
-                  <option value="gryffindor">🦁 Gryffindor</option>
-                  <option value="slytherin">🐍 Slytherin</option>
-                  <option value="ravenclaw">🦅 Ravenclaw</option>
-                  <option value="hufflepuff">🦡 Hufflepuff</option>
+                  <option value="gryffindor">Gryffindor</option>
+                  <option value="slytherin">Slytherin</option>
+                  <option value="ravenclaw">Ravenclaw</option>
+                  <option value="hufflepuff">Hufflepuff</option>
                 </select>
 
                 <select
@@ -936,9 +935,9 @@ export function AdminPanel() {
                   className="px-2.5 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs outline-none"
                 >
                   <option value="all">All Payments</option>
-                  <option value="verified">🟢 Verified Paid</option>
-                  <option value="pending">🟡 Pending Review</option>
-                  <option value="rejected">🔴 Payment Rejected</option>
+                  <option value="verified">Verified Paid</option>
+                  <option value="pending">Pending Review</option>
+                  <option value="rejected">Payment Rejected</option>
                 </select>
 
                 <select
@@ -947,8 +946,8 @@ export function AdminPanel() {
                   className="px-2.5 py-1.5 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs outline-none"
                 >
                   <option value="all">All Attendance</option>
-                  <option value="true">✓ Checked In</option>
-                  <option value="false">⏳ Not Attended</option>
+                  <option value="true">Checked In</option>
+                  <option value="false">Not Attended</option>
                 </select>
 
                 <button
@@ -1008,10 +1007,7 @@ export function AdminPanel() {
                             </div>
                           </td>
                           <td className="p-3 font-cinzel uppercase font-bold text-amber-300">
-                            {r.houseId === 'gryffindor' && '🦁 Gryffindor'}
-                            {r.houseId === 'slytherin' && '🐍 Slytherin'}
-                            {r.houseId === 'ravenclaw' && '🦅 Ravenclaw'}
-                            {r.houseId === 'hufflepuff' && '🦡 Hufflepuff'}
+                            {r.houseId}
                           </td>
 
                           {/* Payment & UTR */}
@@ -1129,7 +1125,7 @@ export function AdminPanel() {
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
-                <span>⚡</span> Award or Deduct Points
+                <Sparkles className="w-4 h-4 text-amber-400" /> Award or Deduct Points
               </h3>
               <p className="font-serif italic text-xs text-stone-400 mb-4">
                 Changes immediately alter the great hourglasses and notify all houses.
@@ -1151,10 +1147,10 @@ export function AdminPanel() {
                       onChange={(e) => setPointTargetHouse(e.target.value as any)}
                       className="w-full px-3 py-2 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 text-xs focus:border-amber-400 outline-none"
                     >
-                      <option value="gryffindor">🦁 Gryffindor</option>
-                      <option value="slytherin">🐍 Slytherin</option>
-                      <option value="ravenclaw">🦅 Ravenclaw</option>
-                      <option value="hufflepuff">🦡 Hufflepuff</option>
+                      <option value="gryffindor">Gryffindor</option>
+                      <option value="slytherin">Slytherin</option>
+                      <option value="ravenclaw">Ravenclaw</option>
+                      <option value="hufflepuff">Hufflepuff</option>
                     </select>
                     {admin.level === 2 && (
                       <p className="text-[10px] text-amber-400 mt-1">
@@ -1218,7 +1214,7 @@ export function AdminPanel() {
 
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                <span>📜</span> Chronological Scoring Ledger
+                <Clock className="w-4 h-4 text-amber-400" /> Chronological Scoring Ledger
               </h3>
               <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                 {pointLogs.length === 0 ? (
@@ -1262,7 +1258,7 @@ export function AdminPanel() {
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
-                <span>🎪</span> Add Festival Event
+                <Calendar className="w-4 h-4 text-amber-400" /> Add Festival Event
               </h3>
               <p className="font-serif italic text-xs text-stone-400 mb-4">
                 Adds a new competition or spectacle to the festival calendar.
@@ -1396,7 +1392,7 @@ export function AdminPanel() {
 
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                <span>📅</span> Live Schedule Roster
+                <Calendar className="w-4 h-4 text-amber-400" /> Live Schedule Roster
               </h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1440,7 +1436,7 @@ export function AdminPanel() {
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-2 flex items-center gap-2">
-                <span>🧙‍♂️</span> Appoint Staff Member
+                <Users className="w-4 h-4 text-amber-400" /> Appoint Staff Member
               </h3>
               <p className="font-serif italic text-xs text-stone-400 mb-4">
                 Issue magical credentials with tiered clearance from Level 1 to Level 6.
@@ -1509,10 +1505,10 @@ export function AdminPanel() {
                         onChange={(e) => setNewStaffHouse(e.target.value as any)}
                         className="w-full px-3 py-2 rounded-lg bg-[#1a0f07] border border-amber-500/30 text-stone-200 outline-none"
                       >
-                        <option value="gryffindor">🦁 Gryffindor</option>
-                        <option value="slytherin">🐍 Slytherin</option>
-                        <option value="ravenclaw">🦅 Ravenclaw</option>
-                        <option value="hufflepuff">🦡 Hufflepuff</option>
+                        <option value="gryffindor">Gryffindor</option>
+                        <option value="slytherin">Slytherin</option>
+                        <option value="ravenclaw">Ravenclaw</option>
+                        <option value="hufflepuff">Hufflepuff</option>
                       </select>
                     </div>
                   )}
@@ -1558,7 +1554,7 @@ export function AdminPanel() {
 
             <div className="lg:col-span-2 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 mb-4 flex items-center gap-2">
-                <span>📜</span> Staff Roster & Clearance (Levels 0–6)
+                <Users className="w-4 h-4 text-amber-400" /> Staff Roster & Clearance (Levels 0–6)
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -1576,8 +1572,8 @@ export function AdminPanel() {
                       return (
                         <tr key={s.id} className="hover:bg-amber-950/20 transition-colors">
                           <td className="p-3">
-                            <div className="font-bold text-stone-100 flex items-center gap-1.5">
-                              <span>{badge.icon}</span> {s.fullName}
+                            <div className="font-bold text-stone-100">
+                              {s.fullName}
                             </div>
                             {s.houseId && (
                               <div className="text-[10px] text-amber-400 uppercase font-mono">
@@ -1624,7 +1620,7 @@ export function AdminPanel() {
           <div className="mt-6 p-6 rounded-xl bg-[#140b05] border border-amber-500/30 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-cinzel font-bold text-sm uppercase text-amber-300 flex items-center gap-2">
-                <span>🛡️</span> Ministry of Magic Security Audit Trail
+                <Shield className="w-4 h-4 text-amber-400" /> Ministry Security Audit Trail
               </h3>
               <span className="text-xs text-stone-400 font-mono">Showing {auditLogs.length} events</span>
             </div>

@@ -244,7 +244,7 @@ export default function App() {
                       }}
                       className="hover:text-amber-300 cursor-pointer"
                     >
-                      ▲ Return to Entrance
+                      Return to Entrance
                     </button>
                     <span>·</span>
                     <a href="#/map" className="hover:text-amber-300">

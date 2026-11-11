@@ -33,7 +33,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Main Auditorium',
     subtitle: 'The Grand Assembly Hall',
     category: 'Flagship Venue',
-    icon: '🏛️',
+    icon: '✦',
     x: 23.2,
     y: 35.0,
     description:
@@ -97,7 +97,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Cultural Stage',
     subtitle: 'Open-Air Amphitheatre',
     category: 'Performances',
-    icon: '🎭',
+    icon: '✦',
     x: 61.0,
     y: 36.8,
     description:
@@ -145,7 +145,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Gaming Zone',
     subtitle: 'The Battle Arena',
     category: 'Esports & Gaming',
-    icon: '🎮',
+    icon: '✦',
     x: 63.5,
     y: 56.5,
     description:
@@ -201,7 +201,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Workshop Halls',
     subtitle: 'Scholarly Labs & Tech Arenas',
     category: 'Workshops & Labs',
-    icon: '💻',
+    icon: '✦',
     x: 33.0,
     y: 51.3,
     description:
@@ -249,7 +249,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Food Court',
     subtitle: 'The Great Feast Pavilions',
     category: 'Hospitality & Dining',
-    icon: '🍔',
+    icon: '✦',
     x: 22.2,
     y: 67.4,
     description:
@@ -289,7 +289,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Registration & Help Desk',
     subtitle: 'Arrival Bureau & Information',
     category: 'Administration',
-    icon: '📋',
+    icon: '✦',
     x: 63.5,
     y: 77.7,
     description:
@@ -329,7 +329,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Event Entrance',
     subtitle: 'Gothic Castle Gateway',
     category: 'Welcome Portal',
-    icon: '🚪',
+    icon: '✦',
     x: 42.5,
     y: 89.5,
     description:
@@ -361,7 +361,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: 'Central Courtyard & Fountain',
     subtitle: 'The Heart of Hogwarts',
     category: 'Fountain Plaza',
-    icon: '🏰',
+    icon: '✦',
     x: 49.5,
     y: 52.8,
     description:
@@ -401,7 +401,7 @@ export const MAP_LOCATIONS: MapLocation[] = [
     name: "Hedwig's Owl Post",
     subtitle: 'Enchanted Messenger & Bureau',
     category: 'Magical Dispatch',
-    icon: '🦉',
+    icon: '✦',
     x: 8.5,
     y: 86.0,
     description:
