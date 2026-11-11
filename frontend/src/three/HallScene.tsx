@@ -255,6 +255,13 @@ function CameraRig({
       goToStep(0)
     }
 
+    const onGoToStep = (e: Event) => {
+      const customEvent = e as CustomEvent<{ step: number }>
+      if (typeof customEvent.detail?.step === 'number') {
+        goToStep(customEvent.detail.step)
+      }
+    }
+
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
@@ -264,6 +271,7 @@ function CameraRig({
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('pointerleave', onLeave)
     window.addEventListener('reset-hall-tour', onResetTour)
+    window.addEventListener('go-to-step', onGoToStep)
 
     return () => {
       window.removeEventListener('wheel', onWheel)
@@ -275,6 +283,7 @@ function CameraRig({
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerleave', onLeave)
       window.removeEventListener('reset-hall-tour', onResetTour)
+      window.removeEventListener('go-to-step', onGoToStep)
     }
   }, [path, isActive])
 

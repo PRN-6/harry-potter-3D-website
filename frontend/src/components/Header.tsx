@@ -76,9 +76,21 @@ export function Header({
       },
     },
     {
-      title: 'The Team',
-      fullTitle: 'The Team & Gazette',
-      subtitle: 'The Daily Prophet, Faculty & Student Council',
+      title: 'Events & Schedule',
+      fullTitle: "Marauder's Event Map & 2-Day Schedule",
+      subtitle: 'Interactive Castle Grounds & Competition Timeline',
+      href: '#/map',
+      icon: '🗺️',
+      active: currentView === 'map',
+      onClick: () => {
+        window.location.hash = '#/map'
+        setIsOpen(false)
+      },
+    },
+    {
+      title: 'The Team & Gazette',
+      fullTitle: 'The Team & Daily Prophet',
+      subtitle: 'Faculty Coordinators, Student Council & Dossiers',
       href: '#/team',
       icon: '🗞️',
       active: currentView === 'team',
@@ -89,21 +101,9 @@ export function Header({
       },
     },
     {
-      title: 'Event Map',
-      fullTitle: "Marauder's Event Map",
-      subtitle: 'Interactive Castle Grounds & 2-Day Schedule',
-      href: '#/map',
-      icon: '🗺️',
-      active: currentView === 'map',
-      onClick: () => {
-        window.location.hash = '#/map'
-        setIsOpen(false)
-      },
-    },
-    {
-      title: 'Staff Portal',
-      fullTitle: 'Staff & Admin Chamber',
-      subtitle: 'Super Admin, Faculty & Prefects Console',
+      title: 'Staff Chamber',
+      fullTitle: 'Staff & Ministry Chamber',
+      subtitle: 'Super Admin, Faculty & Prefects Console (RBAC)',
       href: '#/admin',
       icon: '🏛️',
       active: currentView === 'admin',
