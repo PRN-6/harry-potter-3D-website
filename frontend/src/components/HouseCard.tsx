@@ -9,26 +9,10 @@ interface HouseCardProps {
 }
 
 export function HouseCard({ house, isVisible, index = 0, onClick }: HouseCardProps) {
-  const handleClick = () => {
-    if (onClick) {
-      onClick()
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && onClick) {
-      e.preventDefault()
-      onClick()
-    }
-  }
-
   return (
     <motion.a
       href={`#/house/${house.id}`}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={isVisible ? 0 : -1}
+      onClick={() => onClick?.()}
       aria-label={`View ${house.name} card and events`}
       initial={{ opacity: 0, y: 50, scale: 0.9, rotateY: -10 }}
       animate={

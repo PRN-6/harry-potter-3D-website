@@ -1,8 +1,21 @@
+import crypto from 'crypto'
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { AdminTokenPayload, AdminUser, ADMIN_ROLE_NAMES } from '../models/types.js'
+import { getAdminById } from '../db/store.js'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'enchanted_hogwarts_secret_key_astrix_2027'
+const envSecret = process.env.JWT_SECRET?.trim()
+if (!envSecret && process.env.NODE_ENV === 'production') {
+  console.error(
+    'FATAL: JWT_SECRET environment variable must be configured in production. Generating ephemeral session key.',
+  )
+}
+
+const JWT_SECRET =
+  envSecret ||
+  (process.env.NODE_ENV === 'production'
+    ? crypto.randomBytes(32).toString('hex')
+    : 'dev_only_local_hogwarts_jwt_key_astrix_2027')
 
 declare global {
   namespace Express {
@@ -23,7 +36,7 @@ export function generateToken(admin: AdminUser): string {
     houseId: admin.houseId,
   }
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256', expiresIn: '12h' })
 }
 
 export function authenticateAdmin(req: Request, res: Response, next: NextFunction): void {
@@ -40,10 +53,28 @@ export function authenticateAdmin(req: Request, res: Response, next: NextFunctio
   const token = authHeader.split(' ')[1]
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AdminTokenPayload
-    req.admin = decoded
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as AdminTokenPayload
+    const liveAdmin = getAdminById(decoded.id)
+
+    if (!liveAdmin || !liveAdmin.isActive) {
+      res.status(401).json({
+        error: 'Account Inactive',
+        message: 'Your Ministry staff account is inactive or no longer exists. Please contact the Headmaster.',
+      })
+      return
+    }
+
+    req.admin = {
+      id: liveAdmin.id,
+      username: liveAdmin.username,
+      email: liveAdmin.email,
+      fullName: liveAdmin.fullName,
+      level: liveAdmin.level,
+      roleTitle: liveAdmin.roleTitle || ADMIN_ROLE_NAMES[liveAdmin.level],
+      houseId: liveAdmin.houseId,
+    }
     next()
-  } catch (err) {
+  } catch {
     res.status(401).json({
       error: 'Invalid Token',
       message: 'Your magical token has expired or is invalid. Please sign in again.',

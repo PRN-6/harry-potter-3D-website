@@ -4,136 +4,82 @@
       "id": "admin_super_01",
       "username": "headmaster",
       "email": "headmaster@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OMHcruSqBDd7Iq/fz9og5lk8gcikF10e",
+      "passwordHash": "$2b$10$N2AfcKN9KNcGtuwVVg7B3eQqzlpHixtONhEXRy97OtBgtEF9FlHxu",
       "fullName": "Professor Albus Dumbledore",
       "level": 0,
       "roleTitle": "Super Admin · Headmaster",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z",
-      "lastLoginAt": "2026-11-11T05:58:09.714Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl1_01",
       "username": "mcgonagall",
       "email": "mcgonagall@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OWgLFnQZSq11NuoZjEo3OYjD4ua.hW7a",
+      "passwordHash": "$2b$10$oeVMg7tsQd5qlxbmDWNwreAA5xjrqcivNJw1KFXDmXKMpyv1zvbMm",
       "fullName": "Professor Minerva McGonagall",
       "level": 1,
       "roleTitle": "Level 1 · Deputy Headmaster",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl2_01",
       "username": "snape",
       "email": "snape@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OVN32KW0AuFqYQ8B73QDcXgZPVzxVJ8.",
+      "passwordHash": "$2b$10$53X85jocye6thMgT5P8b2.2tg6bmwgD0Yo5f86Gkp2Ew4L1VqZYNO",
       "fullName": "Professor Severus Snape",
       "level": 2,
       "roleTitle": "Level 2 · Head of House",
       "houseId": "slytherin",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z",
-      "lastLoginAt": "2026-11-11T05:58:09.834Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl3_01",
       "username": "flitwick",
       "email": "flitwick@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OlUcIjCrQ8ibnUQgGPwySeJhLrMboo4W",
+      "passwordHash": "$2b$10$zAnpMnl7KUtsDF7cmYWW0urrML07TNuAre7/l.Sqm11RlXvIPtNqa",
       "fullName": "Professor Filius Flitwick",
       "level": 3,
       "roleTitle": "Level 3 · Chief Event Coordinator",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl4_01",
       "username": "filch",
       "email": "filch@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9ObOI.LI3ngxSrCYyXHugoI1l9VNmNgrK",
+      "passwordHash": "$2b$10$0mCeBhmgCj91bX1LYeHwteQxXodw.coQrBz7.Rh2RMV9qi8kGaABO",
       "fullName": "Argus Filch",
       "level": 4,
       "roleTitle": "Level 4 · Gatekeeper & Desk",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl5_01",
       "username": "hooch",
       "email": "hooch@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OZ8vE0rcyOfkNSLgTvKfz/FiHSal7yre",
+      "passwordHash": "$2b$10$VEMmWzRRryxnoVX/o1OeauiVKjDCnGnbDKstPWt739XYkwKYwIn/e",
       "fullName": "Madam Rolanda Hooch",
       "level": 5,
       "roleTitle": "Level 5 · House Cup Scorekeeper",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     },
     {
       "id": "admin_lvl6_01",
       "username": "percy",
       "email": "percy@hogwarts.edu",
-      "passwordHash": "$2b$10$q8BvhlEUQpp4ImENdVXC9OHK1fo4s9OOX5.F7moa8r5Gde1RxqC1G",
+      "passwordHash": "$2b$10$anp0YmCgFYRDgFrQiZ8sEOXwtOedJOce0QXXWbKukbwbRcdCOyyjS",
       "fullName": "Percy Weasley",
       "level": 6,
       "roleTitle": "Level 6 · Prefect Observer",
       "isActive": true,
-      "createdAt": "2026-11-11T05:56:12.241Z",
-      "lastLoginAt": "2026-11-11T05:58:09.777Z"
+      "createdAt": "2026-11-26T09:35:33.885Z"
     }
   ],
   "registrations": [
-    {
-      "fullName": "Neville Longbottom",
-      "email": "neville_1794376689651@gryffindor.hogwarts.ac.in",
-      "phone": "+91 98765 99999",
-      "college": "Hogwarts Herbology Academy",
-      "department": "BTech",
-      "usnOrRollNo": "1AJ23HB044",
-      "houseId": "gryffindor",
-      "eventIds": [
-        "potions-mastery",
-        "hackathon-hex"
-      ],
-      "id": "reg_1794376689653_2osge",
-      "checkedIn": true,
-      "createdAt": "2026-11-11T05:58:09.653Z",
-      "checkedInAt": "2026-11-11T05:58:09.721Z"
-    },
-    {
-      "fullName": "Neville Longbottom",
-      "email": "neville_1794376622126@gryffindor.hogwarts.ac.in",
-      "phone": "+91 98765 99999",
-      "college": "Hogwarts Herbology Academy",
-      "department": "BTech",
-      "usnOrRollNo": "1AJ23HB044",
-      "houseId": "gryffindor",
-      "eventIds": [
-        "potions-mastery",
-        "hackathon-hex"
-      ],
-      "id": "reg_1794376622128_ebdz6",
-      "checkedIn": true,
-      "createdAt": "2026-11-11T05:57:02.128Z",
-      "checkedInAt": "2026-11-11T05:57:02.200Z"
-    },
-    {
-      "fullName": "Neville Longbottom",
-      "email": "neville_1794376572238@gryffindor.hogwarts.ac.in",
-      "phone": "+91 98765 99999",
-      "college": "Hogwarts Herbology Academy",
-      "department": "BTech",
-      "usnOrRollNo": "1AJ23HB044",
-      "houseId": "gryffindor",
-      "eventIds": [
-        "potions-mastery",
-        "hackathon-hex"
-      ],
-      "id": "reg_1794376572624_wsbqf",
-      "checkedIn": true,
-      "createdAt": "2026-11-11T05:56:12.624Z",
-      "checkedInAt": "2026-11-11T05:56:12.689Z"
-    },
     {
       "id": "reg_demo_01",
       "fullName": "Harry Potter",
@@ -149,8 +95,15 @@
       ],
       "notes": "Team seeker for Quidditch tournament and MCA Hackathon hex.",
       "checkedIn": true,
-      "checkedInAt": "2026-11-11T05:56:12.624Z",
-      "createdAt": "2026-11-11T05:56:12.624Z"
+      "checkedInAt": "2026-11-26T09:35:34.281Z",
+      "amount": 250,
+      "paymentStatus": "verified",
+      "paymentMethod": "upi",
+      "transactionId": "UPI430981726543",
+      "receiptUrl": "/api/uploads/receipts/demo_receipt_01.png",
+      "emailDispatched": true,
+      "emailDispatchedAt": "2026-11-26T09:35:34.281Z",
+      "createdAt": "2026-11-26T09:35:34.281Z"
     },
     {
       "id": "reg_demo_02",
@@ -167,7 +120,14 @@
       ],
       "notes": "Leading the algorithm team in the hackathon.",
       "checkedIn": false,
-      "createdAt": "2026-11-11T05:56:12.624Z"
+      "amount": 250,
+      "paymentStatus": "verified",
+      "paymentMethod": "upi",
+      "transactionId": "UPI430981726544",
+      "receiptUrl": "/api/uploads/receipts/demo_receipt_02.png",
+      "emailDispatched": true,
+      "emailDispatchedAt": "2026-11-26T09:35:34.281Z",
+      "createdAt": "2026-11-26T09:35:34.281Z"
     },
     {
       "id": "reg_demo_03",
@@ -184,8 +144,15 @@
       ],
       "notes": "Representing Slytherin in the Business Conclave.",
       "checkedIn": true,
-      "checkedInAt": "2026-11-11T05:56:12.624Z",
-      "createdAt": "2026-11-11T05:56:12.624Z"
+      "checkedInAt": "2026-11-26T09:35:34.281Z",
+      "amount": 250,
+      "paymentStatus": "verified",
+      "paymentMethod": "upi",
+      "transactionId": "UPI430981726545",
+      "receiptUrl": "/api/uploads/receipts/demo_receipt_03.png",
+      "emailDispatched": true,
+      "emailDispatchedAt": "2026-11-26T09:35:34.281Z",
+      "createdAt": "2026-11-26T09:35:34.281Z"
     },
     {
       "id": "reg_demo_04",
@@ -202,7 +169,14 @@
       ],
       "notes": "Spectrespecs equipped for quantum mixology.",
       "checkedIn": false,
-      "createdAt": "2026-11-11T05:56:12.624Z"
+      "amount": 250,
+      "paymentStatus": "pending",
+      "paymentMethod": "upi",
+      "transactionId": "UPI430981726546",
+      "receiptUrl": "/api/uploads/receipts/demo_receipt_04.png",
+      "emailDispatched": true,
+      "emailDispatchedAt": "2026-11-26T09:35:34.281Z",
+      "createdAt": "2026-11-26T09:35:34.281Z"
     },
     {
       "id": "reg_demo_05",
@@ -219,30 +193,37 @@
       ],
       "notes": "Quidditch Captain & seeker.",
       "checkedIn": false,
-      "createdAt": "2026-11-11T05:56:12.624Z"
+      "amount": 250,
+      "paymentStatus": "pending",
+      "paymentMethod": "upi",
+      "transactionId": "UPI430981726547",
+      "receiptUrl": "/api/uploads/receipts/demo_receipt_05.png",
+      "emailDispatched": true,
+      "emailDispatchedAt": "2026-11-26T09:35:34.281Z",
+      "createdAt": "2026-11-26T09:35:34.281Z"
     }
   ],
   "standings": [
     {
       "house": "gryffindor",
       "name": "Gryffindor",
-      "crest": "🦁",
-      "points": 487,
+      "crest": "G",
+      "points": 472,
       "color": "#ae1c28",
       "accent": "#d4a017"
     },
     {
       "house": "slytherin",
       "name": "Slytherin",
-      "crest": "🐍",
-      "points": 606,
+      "crest": "S",
+      "points": 486,
       "color": "#0a5c36",
       "accent": "#c0c8d0"
     },
     {
       "house": "ravenclaw",
       "name": "Ravenclaw",
-      "crest": "🦅",
+      "crest": "R",
       "points": 426,
       "color": "#0e1a40",
       "accent": "#8ec9ff"
@@ -250,7 +231,7 @@
     {
       "house": "hufflepuff",
       "name": "Hufflepuff",
-      "crest": "🦡",
+      "crest": "H",
       "points": 352,
       "color": "#ecb939",
       "accent": "#6b4a12"
@@ -352,67 +333,13 @@
   ],
   "pointLogs": [
     {
-      "id": "plog_1794376689838_tnmj",
-      "houseId": "slytherin",
-      "points": 40,
-      "reason": "Exemplary potion brewing in dungeons",
-      "awardedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "timestamp": "2026-11-11T05:58:09.838Z"
-    },
-    {
-      "id": "plog_1794376689653_2lrb",
-      "houseId": "gryffindor",
-      "points": 5,
-      "reason": "New Registrant Bonus: Neville Longbottom",
-      "awardedBy": "Hogwarts Sorting Registry",
-      "adminLevel": 0,
-      "timestamp": "2026-11-11T05:58:09.653Z"
-    },
-    {
-      "id": "plog_1794376622322_7qzo",
-      "houseId": "slytherin",
-      "points": 40,
-      "reason": "Exemplary potion brewing in dungeons",
-      "awardedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "timestamp": "2026-11-11T05:57:02.322Z"
-    },
-    {
-      "id": "plog_1794376622128_2yi1",
-      "houseId": "gryffindor",
-      "points": 5,
-      "reason": "New Registrant Bonus: Neville Longbottom",
-      "awardedBy": "Hogwarts Sorting Registry",
-      "adminLevel": 0,
-      "timestamp": "2026-11-11T05:57:02.128Z"
-    },
-    {
-      "id": "plog_1794376572806_xogf",
-      "houseId": "slytherin",
-      "points": 40,
-      "reason": "Exemplary potion brewing in dungeons",
-      "awardedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "timestamp": "2026-11-11T05:56:12.806Z"
-    },
-    {
-      "id": "plog_1794376572624_6097",
-      "houseId": "gryffindor",
-      "points": 5,
-      "reason": "New Registrant Bonus: Neville Longbottom",
-      "awardedBy": "Hogwarts Sorting Registry",
-      "adminLevel": 0,
-      "timestamp": "2026-11-11T05:56:12.624Z"
-    },
-    {
       "id": "plog_init_01",
       "houseId": "gryffindor",
       "points": 50,
       "reason": "Courage and exceptional teamwork during setup",
       "awardedBy": "Professor Albus Dumbledore",
       "adminLevel": 0,
-      "timestamp": "2026-11-11T05:56:12.624Z"
+      "timestamp": "2026-11-26T09:35:34.281Z"
     },
     {
       "id": "plog_init_02",
@@ -421,146 +348,17 @@
       "reason": "Strategic planning for the Business Conclave",
       "awardedBy": "Professor Severus Snape",
       "adminLevel": 2,
-      "timestamp": "2026-11-11T05:56:12.624Z"
+      "timestamp": "2026-11-26T09:35:34.281Z"
     }
   ],
   "auditLogs": [
-    {
-      "action": "HOUSE_POINTS_ADJUSTED",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "+40 points to SLYTHERIN. Reason: \"Exemplary potion brewing in dungeons\".",
-      "id": "audit_1794376689838_65f6",
-      "timestamp": "2026-11-11T05:58:09.838Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "Professor Severus Snape logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376689835_gepo",
-      "timestamp": "2026-11-11T05:58:09.835Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Percy Weasley",
-      "adminLevel": 6,
-      "details": "Percy Weasley logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376689777_wm1a",
-      "timestamp": "2026-11-11T05:58:09.777Z"
-    },
-    {
-      "action": "CHECKIN_CONFIRMED",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Neville Longbottom (reg_1794376689653_2osge, GRYFFINDOR) check-in status marked ATTENDED.",
-      "id": "audit_1794376689721_mgmo",
-      "timestamp": "2026-11-11T05:58:09.721Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Professor Albus Dumbledore logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376689715_l41y",
-      "timestamp": "2026-11-11T05:58:09.715Z"
-    },
-    {
-      "action": "HOUSE_POINTS_ADJUSTED",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "+40 points to SLYTHERIN. Reason: \"Exemplary potion brewing in dungeons\".",
-      "id": "audit_1794376622322_ai69",
-      "timestamp": "2026-11-11T05:57:02.322Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "Professor Severus Snape logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376622319_ok7i",
-      "timestamp": "2026-11-11T05:57:02.319Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Percy Weasley",
-      "adminLevel": 6,
-      "details": "Percy Weasley logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376622261_kdgb",
-      "timestamp": "2026-11-11T05:57:02.261Z"
-    },
-    {
-      "action": "CHECKIN_CONFIRMED",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Neville Longbottom (reg_1794376622128_ebdz6, GRYFFINDOR) check-in status marked ATTENDED.",
-      "id": "audit_1794376622200_14a1",
-      "timestamp": "2026-11-11T05:57:02.200Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Professor Albus Dumbledore logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376622194_1wc4",
-      "timestamp": "2026-11-11T05:57:02.194Z"
-    },
-    {
-      "action": "HOUSE_POINTS_ADJUSTED",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "+40 points to SLYTHERIN. Reason: \"Exemplary potion brewing in dungeons\".",
-      "id": "audit_1794376572806_7423",
-      "timestamp": "2026-11-11T05:56:12.806Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Severus Snape",
-      "adminLevel": 2,
-      "details": "Professor Severus Snape logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376572803_kq9z",
-      "timestamp": "2026-11-11T05:56:12.803Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Percy Weasley",
-      "adminLevel": 6,
-      "details": "Percy Weasley logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376572746_nxz7",
-      "timestamp": "2026-11-11T05:56:12.746Z"
-    },
-    {
-      "action": "CHECKIN_CONFIRMED",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Neville Longbottom (reg_1794376572624_wsbqf, GRYFFINDOR) check-in status marked ATTENDED.",
-      "id": "audit_1794376572689_82kk",
-      "timestamp": "2026-11-11T05:56:12.689Z"
-    },
-    {
-      "action": "ADMIN_LOGIN",
-      "performedBy": "Professor Albus Dumbledore",
-      "adminLevel": 0,
-      "details": "Professor Albus Dumbledore logged into the staff portal.",
-      "ipAddress": "::1",
-      "id": "audit_1794376572683_jf11",
-      "timestamp": "2026-11-11T05:56:12.683Z"
-    },
     {
       "id": "audit_init_01",
       "action": "SYSTEM_BOOT",
       "performedBy": "System Core",
       "adminLevel": 0,
-      "details": "AJ-ASTRIX 2K27 Great Hall Database archives initialized with multi-tier RBAC.",
-      "timestamp": "2026-11-11T05:56:12.624Z"
+      "details": "AJ-ASTRIX 2K27 Great Hall Database archives initialized with multi-tier RBAC & high-concurrency storage.",
+      "timestamp": "2026-11-26T09:35:34.281Z"
     }
   ]
 }

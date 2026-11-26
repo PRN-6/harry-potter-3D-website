@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useGLTF, useProgress } from '@react-three/drei'
 import type { Group } from 'three'
 import type { HallBounds } from './hallBounds'
-import { findDoorHinges, type DoorHinges } from './doorRig'
+import { findDoorHinges, makeLeafSolid, type DoorHinges } from './doorRig'
 
 /**
  * THE DINING HALL — the real 3D model.
@@ -460,22 +460,8 @@ function Model({ onReady, onProgress, onBounds, onFit, skipNormalMaps }: ModelPr
     const hinges = findDoorHinges(scene)
 
     // Ensure they are made solid immediately
-    for (const hinge of [hinges.left, hinges.right]) {
-      if (hinge) {
-        hinge.traverse((obj) => {
-          const mesh = obj as THREE.Mesh
-          if (mesh.isMesh) {
-            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-            for (const material of materials) {
-              if (material) {
-                material.side = THREE.DoubleSide
-                material.needsUpdate = true
-              }
-            }
-          }
-        })
-      }
-    }
+    makeLeafSolid(hinges.left)
+    makeLeafSolid(hinges.right)
 
     // Set initial shut position
     if (hinges.left) hinges.left.rotation.y = 0

@@ -94,6 +94,11 @@ export const getCurrentAdmin = (req: Request, res: Response): void => {
  * Returns preset credentials for demo and evaluation purposes.
  */
 export const getDemoCredentials = (_req: Request, res: Response): void => {
+  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEMO_AUTH !== 'true') {
+    res.json({ accounts: [] })
+    return
+  }
+
   res.json({
     accounts: [
       {

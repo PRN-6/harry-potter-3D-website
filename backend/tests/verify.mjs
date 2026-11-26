@@ -1,8 +1,18 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import app from '../dist/index.js'
+import { forceSaveDatabaseSync } from '../dist/db/store.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const DB_FILE = path.resolve(__dirname, '../data/db.json')
+const UPLOADS_DIR = path.resolve(__dirname, '../data/uploads/receipts')
 
 async function run() {
+  const originalDbSnapshot = fs.existsSync(DB_FILE) ? fs.readFileSync(DB_FILE, 'utf-8') : null
+
   const server = app.listen(5055, async () => {
-    console.log('🧪 [Test Server] Listening on http://localhost:5055')
+    console.log('[Test Server] Listening on http://localhost:5055')
 
     try {
       const BASE = 'http://localhost:5055/api'
@@ -248,14 +258,101 @@ async function run() {
         throw new Error(`Expected 200 on email resend, got ${resendRes.status}`)
       }
 
-      console.log('\n🎉 ALL 16 TESTS PASSED FLAWLESSLY!')
+      // 17. Security: Unauthenticated PII & Point Mutation Endpoints Rejected
+      console.log('\n--- 17. Testing Auth Guards on Protected Routes (Expected 401) ---')
+      const unauthRegs = await fetch(`${BASE}/register`)
+      const unauthPts = await fetch(`${BASE}/standings/points`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ houseId: 'gryffindor', points: 500, reason: 'Unauthorized' }),
+      })
+      const unauthContact = await fetch(`${BASE}/contact`)
+      if (unauthRegs.status !== 401 || unauthPts.status !== 401 || unauthContact.status !== 401) {
+        throw new Error(`Expected 401 on unauthenticated protected endpoints, got ${unauthRegs.status}/${unauthPts.status}/${unauthContact.status}`)
+      }
+      console.log('✓ Unauthenticated GET /register, POST /standings/points, GET /contact all returned 401')
+
+      // 18. Security: Spoofed Receipt Upload Rejected by Magic-Byte Validation
+      console.log('\n--- 18. Testing Magic-Byte Rejection for Spoofed HTML Upload (Expected 400) ---')
+      const spoofForm = new FormData()
+      spoofForm.append('fullName', 'Spoof Tester')
+      spoofForm.append('email', `spoof_${Date.now()}@hogwarts.edu`)
+      spoofForm.append('phone', '+91 98765 33333')
+      spoofForm.append('college', 'Defense Academy')
+      spoofForm.append('houseId', 'ravenclaw')
+      spoofForm.append('receipt', new Blob(['<html><script>alert(1)</script></html>'], { type: 'image/png' }), 'evil.html')
+      const spoofRes = await fetch(`${BASE}/register`, { method: 'POST', body: spoofForm })
+      if (spoofRes.status !== 400) {
+        throw new Error(`Expected 400 for spoofed receipt file content, got ${spoofRes.status}`)
+      }
+      console.log('✓ Spoofed MIME/extension receipt rejected cleanly with 400')
+
+      // 19. Security: Forged Client Amount & Payment Status Ignored + Receipt Upload Cleanup
+      console.log('\n--- 19. Testing Server-Authoritative Pricing & PNG Receipt Upload + CSV Neutralization ---')
+      const validPngHeader = Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+      ])
+      const cleanPngForm = new FormData()
+      cleanPngForm.append('fullName', 'Cho Chang')
+      cleanPngForm.append('email', `cho_${Date.now()}@ravenclaw.hogwarts.ac.in`)
+      cleanPngForm.append('phone', '+91 98765 55555')
+      cleanPngForm.append('college', '=CMD|calc!A0')
+      cleanPngForm.append('houseId', 'ravenclaw')
+      cleanPngForm.append('amount', '1')
+      cleanPngForm.append('paymentStatus', 'verified')
+      cleanPngForm.append('receipt', new Blob([validPngHeader], { type: 'image/png' }), 'receipt.html')
+      const cleanPngRes = await fetch(`${BASE}/register`, { method: 'POST', body: cleanPngForm })
+      const cleanPngData = await cleanPngRes.json()
+      if (cleanPngRes.status !== 201) {
+        throw new Error(`Expected 201 for valid PNG upload, got ${cleanPngRes.status}: ${cleanPngData.message}`)
+      }
+      if (cleanPngData.registration.amount !== 250 || cleanPngData.registration.paymentStatus !== 'pending') {
+        throw new Error('Server failed to enforce authoritative amount=250 and paymentStatus=pending')
+      }
+      if (!cleanPngData.registration.receiptUrl?.endsWith('.png')) {
+        throw new Error(`Expected sanitized .png filename, got ${cleanPngData.registration.receiptUrl}`)
+      }
+      console.log('✓ Enforced amount=250, status=pending, and safe .png filename on upload')
+
+      // Check CSV export neutralizes leading '=' formula
+      const csvText = await fetch(`${BASE}/admin/registrations/export/csv`, {
+        headers: { Authorization: `Bearer ${superToken}` },
+      }).then((r) => r.text())
+      if (!csvText.includes(`"'=CMD|calc!A0"`)) {
+        throw new Error('CSV export did not escape formula injection prefix')
+      }
+      console.log('✓ CSV export safely quoted and neutralized formula injection prefix')
+
+      // Delete registration & verify receipt file cleanup
+      const uploadedFilename = cleanPngData.registration.receiptPublicId
+      const delRes = await fetch(`${BASE}/admin/registrations/${cleanPngData.registration.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${superToken}` },
+      })
+      if (delRes.status !== 200) {
+        throw new Error(`Expected 200 on registration delete, got ${delRes.status}`)
+      }
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      if (uploadedFilename && fs.existsSync(path.join(UPLOADS_DIR, uploadedFilename))) {
+        throw new Error('Deleted registration receipt file remained on disk')
+      }
+      console.log('✓ Registration deletion removed both record and stored receipt file')
+
+      console.log('\nALL 19 VERIFICATION & SECURITY TESTS PASSED!')
     } catch (err) {
-      console.error('❌ Test failed with error:', err)
-      process.exit(1)
+      console.error('Test failed with error:', err)
+      process.exitCode = 1
     } finally {
+      forceSaveDatabaseSync()
+      if (originalDbSnapshot !== null) {
+        fs.writeFileSync(DB_FILE, originalDbSnapshot, 'utf-8')
+      } else if (fs.existsSync(DB_FILE)) {
+        fs.unlinkSync(DB_FILE)
+      }
       server.close(() => {
         console.log('Test server closed.')
-        process.exit(0)
+        process.exit(process.exitCode ?? 0)
       })
     }
   })

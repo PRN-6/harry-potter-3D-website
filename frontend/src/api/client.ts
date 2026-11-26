@@ -174,37 +174,15 @@ export interface PaymentGatewayInfo {
 // PUBLIC FESTIVAL ENDPOINTS
 // ==========================================
 
-export async function checkBackendHealth() {
-  const res = await fetch(`${API_BASE}/health`)
-  if (!res.ok) throw new Error(`Health check failed: ${res.statusText}`)
-  return res.json()
-}
-
 export async function fetchPaymentInfo(): Promise<PaymentGatewayInfo> {
   const res = await fetch(`${API_BASE}/payment/info`)
   if (!res.ok) throw new Error('Failed to load payment gateway information')
   return res.json()
 }
 
-export async function fetchStandings() {
-  const res = await fetch(`${API_BASE}/standings`)
-  if (!res.ok) throw new Error(`Failed to load standings: ${res.statusText}`)
-  return res.json()
-}
-
-export async function castHouseVote(houseId: string) {
-  const res = await fetch(`${API_BASE}/standings/vote`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ houseId }),
-  })
-  if (!res.ok) throw new Error(`Failed to cast vote: ${res.statusText}`)
-  return res.json()
-}
-
-export async function fetchSchedule() {
-  const res = await fetch(`${API_BASE}/events/schedule`)
-  if (!res.ok) throw new Error(`Failed to fetch schedule: ${res.statusText}`)
+export async function fetchEventsApi(): Promise<{ events: FestEventItem[] }> {
+  const res = await fetch(`${API_BASE}/events`)
+  if (!res.ok) throw new Error('Failed to load festival schedule')
   return res.json()
 }
 
@@ -443,20 +421,6 @@ export async function createAdminEventApi(token: string, eventData: Partial<Fest
   return data
 }
 
-export async function updateAdminEventApi(token: string, id: string, updates: Partial<FestEventItem>) {
-  const res = await fetch(`${API_BASE}/admin/events/${id}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updates),
-  })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.message || data.error || 'Failed to update event')
-  return data
-}
-
 export async function deleteAdminEventApi(token: string, id: string) {
   const res = await fetch(`${API_BASE}/admin/events/${id}`, {
     method: 'DELETE',
@@ -500,24 +464,6 @@ export async function createAdminUserApi(
   })
   const result = await res.json()
   if (!res.ok) throw new Error(result.message || result.error || 'Failed to create staff member')
-  return result
-}
-
-export async function updateAdminUserApi(
-  token: string,
-  id: string,
-  data: Partial<AdminUserItem> & { password?: string },
-) {
-  const res = await fetch(`${API_BASE}/admin/users/${id}`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
-  const result = await res.json()
-  if (!res.ok) throw new Error(result.message || result.error || 'Failed to update staff member')
   return result
 }
 

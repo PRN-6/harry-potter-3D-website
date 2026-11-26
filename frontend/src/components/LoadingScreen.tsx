@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useProgress } from '@react-three/drei'
 
 interface LoadingScreenProps {
@@ -12,11 +12,15 @@ export function LoadingScreen({ progress: propProgress, modelReady }: LoadingScr
 
   // Target progress: prioritize modelReady (100) or real-time 3D loader progress
   const targetProgress = modelReady ? 100 : Math.max(dreiProgress, (propProgress ?? 0) * 100)
+  const targetRef = useRef(targetProgress)
+  const readyRef = useRef(modelReady)
+  targetRef.current = targetProgress
+  readyRef.current = modelReady
 
   useEffect(() => {
     const interval = setInterval(() => {
       setDisplayPercent((prev) => {
-        if (modelReady) {
+        if (readyRef.current) {
           if (prev >= 100) {
             clearInterval(interval)
             return 100
@@ -25,16 +29,17 @@ export function LoadingScreen({ progress: propProgress, modelReady }: LoadingScr
         }
 
         // Smoothly approach targetProgress
-        if (prev < targetProgress) {
-          const step = Math.max(0.5, (targetProgress - prev) * 0.15)
-          return Math.min(targetProgress, prev + step)
+        const target = targetRef.current
+        if (prev < target) {
+          const step = Math.max(0.5, (target - prev) * 0.15)
+          return Math.min(target, prev + step)
         }
         return prev
       })
     }, 30)
 
     return () => clearInterval(interval)
-  }, [targetProgress, modelReady])
+  }, [])
 
   const rounded = Math.min(100, Math.floor(displayPercent))
 

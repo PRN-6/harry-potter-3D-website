@@ -6,11 +6,21 @@ import {
   getRegistrationsList,
   getRegistrationById as dbGetRegistrationById,
   markEmailDispatched,
+  DuplicateRegistrationError,
 } from '../db/store.js'
-import { uploadPaymentReceipt } from '../services/cloudinaryService.js'
+import { uploadPaymentReceipt, deletePaymentReceipt } from '../services/cloudinaryService.js'
 import { sendAcceptanceEmail } from '../services/emailService.js'
 
+function getAuthoritativePassAmount(): number {
+  const parsed = parseInt(process.env.FEST_PASS_AMOUNT || '250', 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 250
+}
+
 export const createRegistration = async (req: Request, res: Response): Promise<void> => {
+  let receiptUrl: string | undefined
+  let receiptPublicId: string | undefined
+  let receiptProvider: 'cloudinary' | 'local' = 'local'
+
   try {
     const {
       fullName,
@@ -22,12 +32,10 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
       houseId,
       eventIds,
       notes,
-      amount = 250,
-      paymentMethod = 'upi',
       transactionId,
     } = req.body
 
-    // 1. Check if email already registered
+    // 1. Fast pre-check if email already registered
     const existingEmail = findRegistrationByEmail(email)
     if (existingEmail) {
       res.status(409).json({
@@ -38,7 +46,7 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
       return
     }
 
-    // 2. Check if transaction ref ID already submitted
+    // 2. Fast pre-check if transaction ref ID already submitted
     if (transactionId && typeof transactionId === 'string' && transactionId.trim()) {
       const existingTx = findRegistrationByTransactionId(transactionId)
       if (existingTx) {
@@ -51,26 +59,23 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
     }
 
     // 3. Handle Payment Receipt Upload (Cloudinary / Local fallback)
-    let receiptUrl: string | undefined
-    let receiptPublicId: string | undefined
-
     if (req.file) {
       try {
-        const uploadResult = await uploadPaymentReceipt(
-          req.file.buffer,
-          req.file.originalname,
-          req.file.mimetype,
-        )
+        const uploadResult = await uploadPaymentReceipt(req.file.buffer)
         receiptUrl = uploadResult.url
         receiptPublicId = uploadResult.publicId
+        receiptProvider = uploadResult.provider
       } catch (uploadErr) {
         console.error('Payment receipt upload error:', uploadErr)
+        res.status(400).json({
+          error: 'Receipt Upload Failed',
+          message: 'Could not securely store your payment receipt. Please try uploading a valid JPG, PNG, WEBP, or PDF.',
+        })
+        return
       }
     }
 
-    const assignedPaymentStatus = receiptUrl || transactionId ? 'pending' : 'pending'
-
-    // 4. Save registration
+    // 4. Save registration with server-authoritative amount & pending verification state
     const newRegistration = insertRegistration({
       fullName,
       email,
@@ -81,9 +86,9 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
       houseId,
       eventIds: Array.isArray(eventIds) ? eventIds : [],
       notes: notes || undefined,
-      amount: Number(amount) || 250,
-      paymentStatus: assignedPaymentStatus,
-      paymentMethod,
+      amount: getAuthoritativePassAmount(),
+      paymentStatus: 'pending',
+      paymentMethod: 'upi',
       transactionId: transactionId ? String(transactionId).trim() : undefined,
       receiptUrl,
       receiptPublicId,
@@ -98,7 +103,7 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
         }
       })
       .catch((emailErr) => {
-        console.warn('⚠️ Acceptance email background dispatch warning:', emailErr)
+        console.warn('Acceptance email background dispatch warning:', emailErr)
       })
 
     res.status(201).json({
@@ -107,6 +112,17 @@ export const createRegistration = async (req: Request, res: Response): Promise<v
       registration: newRegistration,
     })
   } catch (err) {
+    if (err instanceof DuplicateRegistrationError) {
+      if (receiptPublicId) {
+        deletePaymentReceipt(receiptPublicId, receiptProvider).catch(() => {})
+      }
+      res.status(409).json({
+        error: err.code === 'EMAIL_EXISTS' ? 'Already Registered' : 'Duplicate Transaction Reference',
+        message: err.message,
+        ...(err.code === 'EMAIL_EXISTS' ? { registrationId: err.existingId } : {}),
+      })
+      return
+    }
     console.error('Registration creation error:', err)
     res.status(500).json({ error: 'Internal magical failure while saving registration.' })
   }

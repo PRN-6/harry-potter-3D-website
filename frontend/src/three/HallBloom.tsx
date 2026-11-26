@@ -31,9 +31,9 @@ function BloomPipeline({
     const c = new EffectComposer(gl)
     c.addPass(new RenderPass(scene, camera))
 
-    // Bloom computed at 75% resolution: softer glow and saves 44% pixel processing
+    // Bloom resolution is synced via composer.setSize in the resize effect below
     const bloom = new UnrealBloomPass(
-      new THREE.Vector2(Math.round(size.width * 0.75), Math.round(size.height * 0.75)),
+      new THREE.Vector2(1, 1),
       strength,
       radius,
       threshold,
@@ -42,7 +42,7 @@ function BloomPipeline({
     c.addPass(new OutputPass())
 
     return c
-  }, [gl, scene, camera, size.width, size.height, strength, radius, threshold])
+  }, [gl, scene, camera, strength, radius, threshold])
 
   useEffect(() => {
     composer.setPixelRatio(bloomDpr)

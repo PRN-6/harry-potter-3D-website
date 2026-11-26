@@ -53,11 +53,13 @@ export function TeamPage({ onBack }: TeamPageProps) {
     }
   }
 
-  // Update active section tab on scroll
+  // Update active section tab on scroll (works inside App.tsx fixed overflow container or window)
   useEffect(() => {
+    const scrollContainer = facultyRef.current?.closest('.overflow-y-auto') as HTMLElement | null
+
     const onScroll = () => {
       if (!facultyRef.current || !councilRef.current) return
-      const scrollPos = window.scrollY
+      const scrollPos = scrollContainer ? scrollContainer.scrollTop : window.scrollY
       const facultyTop = facultyRef.current.offsetTop - 200
       const councilTop = councilRef.current.offsetTop - 200
 
@@ -70,8 +72,9 @@ export function TeamPage({ onBack }: TeamPageProps) {
       }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const target: EventTarget = scrollContainer ?? window
+    target.addEventListener('scroll', onScroll, { passive: true })
+    return () => target.removeEventListener('scroll', onScroll)
   }, [])
 
   // Navigate to previous or next card in card detail view

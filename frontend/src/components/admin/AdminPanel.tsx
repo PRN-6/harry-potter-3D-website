@@ -40,6 +40,7 @@ import {
   createAdminUserApi,
   deleteAdminUserApi,
   fetchAdminAuditLogsApi,
+  fetchEventsApi,
   createAdminEventApi,
   deleteAdminEventApi,
   type AdminProfile,
@@ -49,10 +50,16 @@ import {
   type AdminUserItem,
   type PointLogItem,
   type AuditLogItem,
+  type FestEventItem,
   type DemoCredential,
   type AdminLevel,
   type PaymentStatus,
 } from '../../api/client'
+
+function isSafeReceiptUrl(url?: string): boolean {
+  if (!url) return false
+  return url.startsWith('/api/uploads/') || url.startsWith('https://') || url.startsWith('http://')
+}
 
 const LEVEL_BADGES: Record<
   AdminLevel,
@@ -90,6 +97,7 @@ export function AdminPanel() {
   const [staffList, setStaffList] = useState<AdminUserItem[]>([])
   const [pointLogs, setPointLogs] = useState<PointLogItem[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([])
+  const [eventsList, setEventsList] = useState<FestEventItem[]>([])
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
@@ -164,7 +172,7 @@ export function AdminPanel() {
   const loadDashboardData = async (activeToken: string) => {
     setIsLoadingData(true)
     try {
-      const [statsRes, regsRes, pointsRes] = await Promise.all([
+      const [statsRes, regsRes, pointsRes, eventsRes] = await Promise.all([
         fetchAdminStatsApi(activeToken).catch(() => null),
         fetchAdminRegistrationsApi(activeToken, {
           houseId: regHouseFilter,
@@ -173,6 +181,7 @@ export function AdminPanel() {
           search: regSearch,
         }).catch(() => null),
         fetchAdminPointLogsApi(activeToken).catch(() => null),
+        fetchEventsApi().catch(() => null),
       ])
 
       if (statsRes) setStats(statsRes)
@@ -181,6 +190,7 @@ export function AdminPanel() {
         setTotalRegCount(regsRes.totalCount)
       }
       if (pointsRes) setPointLogs(pointsRes.logs)
+      if (eventsRes?.events) setEventsList(eventsRes.events)
 
       fetchAdminUsersApi(activeToken)
         .then((uRes) => setStaffList(uRes.admins))
@@ -244,6 +254,16 @@ export function AdminPanel() {
     setToken(null)
     setAdmin(null)
     setPermissions(null)
+    setStats(null)
+    setRegistrations([])
+    setTotalRegCount(0)
+    setStaffList([])
+    setPointLogs([])
+    setAuditLogs([])
+    setEventsList([])
+    setViewingReceipt(null)
+    setActionFeedback(null)
+    setLoginError('')
     setUsernameInput('')
     setPasswordInput('')
   }
@@ -437,6 +457,11 @@ export function AdminPanel() {
       setActionFeedback({ type: 'success', message: res.message })
       setNewEventTitle('')
       setNewEventDesc('')
+      if (res.event) {
+        setEventsList((prev) => [...prev, res.event])
+      } else {
+        fetchEventsApi().then((r) => setEventsList(r.events)).catch(() => {})
+      }
       fetchAdminStatsApi(token).then(setStats).catch(() => {})
     } catch (err: any) {
       setActionFeedback({ type: 'error', message: err.message || 'Failed to create event.' })
@@ -451,6 +476,7 @@ export function AdminPanel() {
 
     try {
       await deleteAdminEventApi(token, id)
+      setEventsList((prev) => prev.filter((evt) => evt.id !== id))
       setActionFeedback({ type: 'success', message: `Event "${title}" removed.` })
       fetchAdminStatsApi(token).then(setStats).catch(() => {})
     } catch (err: any) {
@@ -545,40 +571,42 @@ export function AdminPanel() {
               </button>
             </form>
 
-            {/* Quick Demo Switcher */}
-            <div className="mt-8 pt-6 border-t border-amber-500/20">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-cinzel text-[10px] tracking-wider text-amber-400 uppercase font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  1-Click Role Switcher (Test Levels 0 to 6)
-                </span>
-                <span className="text-[10px] text-stone-500 font-mono">Instant Auth</span>
-              </div>
+            {/* Quick Demo Switcher (only shown when backend demo mode is enabled) */}
+            {demoAccounts.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-amber-500/20">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-cinzel text-[10px] tracking-wider text-amber-400 uppercase font-bold flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    1-Click Role Switcher (Test Levels 0 to 6)
+                  </span>
+                  <span className="text-[10px] text-stone-500 font-mono">Instant Auth</span>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {demoAccounts.map((acc) => {
-                  const badge = LEVEL_BADGES[acc.level]
-                  return (
-                    <button
-                      key={acc.username}
-                      type="button"
-                      onClick={() => handleQuickLogin(acc)}
-                      className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:brightness-125 ${badge.bg} ${badge.border}`}
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-cinzel font-bold text-amber-200">
-                          {acc.name}
-                        </span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${badge.color} bg-black/40`}>
-                          L{acc.level}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-stone-400 line-clamp-1">{acc.role}</p>
-                    </button>
-                  )
-                })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {demoAccounts.map((acc) => {
+                    const badge = LEVEL_BADGES[acc.level]
+                    return (
+                      <button
+                        key={acc.username}
+                        type="button"
+                        onClick={() => handleQuickLogin(acc)}
+                        className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all hover:brightness-125 ${badge.bg} ${badge.border}`}
+                      >
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="font-cinzel font-bold text-amber-200">
+                            {acc.name}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${badge.color} bg-black/40`}>
+                            L{acc.level}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-stone-400 line-clamp-1">{acc.role}</p>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -851,8 +879,12 @@ export function AdminPanel() {
                     return (
                       <div key={h.house}>
                         <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="font-cinzel font-bold flex items-center gap-1.5">
-                            <span>{h.crest}</span> {h.name}
+                          <span className="font-cinzel font-bold flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block border border-white/20"
+                              style={{ backgroundColor: h.color }}
+                            />
+                            {h.name}
                           </span>
                           <span className="font-mono font-bold text-amber-300">{h.points} pts</span>
                         </div>
@@ -1026,7 +1058,7 @@ export function AdminPanel() {
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-950/60 border border-yellow-500/60 text-yellow-300 text-[10px] font-bold">
-                                  ⏳ Under Review
+                                  <Clock className="w-3 h-3" /> Under Review
                                 </span>
                               )}
                             </div>
@@ -1395,35 +1427,34 @@ export function AdminPanel() {
                 <Calendar className="w-4 h-4 text-amber-400" /> Live Schedule Roster
               </h3>
               <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { id: 'quidditch-cup', title: 'Inter-House Quidditch Cup', venue: 'Quidditch Pitch', time: 'Day 1 • 11:00 AM', pts: 100 },
-                    { id: 'hackathon-hex', title: 'Spellbound Hackathon (INOVEX MCA)', venue: 'Ada Lovelace Tech Lab', time: 'Day 1 • 10:00 AM', pts: 120 },
-                    { id: 'management-triwizard', title: 'Triwizard Business Conclave (NEXORA MBA)', venue: 'Strategy Chamber', time: 'Day 2 • 10:30 AM', pts: 110 },
-                    { id: 'potions-mastery', title: 'Potions & Mixology Conclave', venue: 'Alchemy Dungeons', time: 'Day 1 • 02:30 PM', pts: 80 },
-                    { id: 'dueling-club', title: 'The Great Dueling Club', venue: 'Central Courtyard', time: 'Day 2 • 02:00 PM', pts: 90 },
-                    { id: 'yule-ball', title: 'The Yule Ball & Cultural Night', venue: 'The Great Hall', time: 'Day 2 • 06:00 PM', pts: 50 },
-                  ].map((evt) => (
-                    <div key={evt.id} className="p-3.5 rounded-lg bg-black/40 border border-amber-500/20 text-xs flex flex-col justify-between">
-                      <div>
-                        <div className="font-cinzel font-bold text-amber-200 text-sm">{evt.title}</div>
-                        <div className="text-[11px] text-stone-400 mt-1">{evt.venue} • {evt.time}</div>
+                {eventsList.length === 0 ? (
+                  <div className="p-6 text-center text-stone-500 text-xs italic border border-amber-500/10 rounded-lg bg-black/30">
+                    No festival events scheduled yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {eventsList.map((evt) => (
+                      <div key={evt.id} className="p-3.5 rounded-lg bg-black/40 border border-amber-500/20 text-xs flex flex-col justify-between">
+                        <div>
+                          <div className="font-cinzel font-bold text-amber-200 text-sm">{evt.title}</div>
+                          <div className="text-[11px] text-stone-400 mt-1">{evt.venue} · Day {evt.day} · {evt.time}</div>
+                        </div>
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
+                          <span className="font-mono text-amber-400 font-bold">+{evt.points} pts</span>
+                          {(admin.level === 0 || admin.level === 1 || admin.level === 3) && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEvent(evt.id, evt.title)}
+                              className="text-red-400 hover:text-red-300 text-[11px] cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
-                        <span className="font-mono text-amber-400 font-bold">+{evt.pts} pts</span>
-                        {(admin.level === 0 || admin.level === 1 || admin.level === 3) && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteEvent(evt.id, evt.title)}
-                            className="text-red-400 hover:text-red-300 text-[11px] cursor-pointer"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1692,15 +1723,15 @@ export function AdminPanel() {
 
               {/* Receipt Image / PDF */}
               <div className="bg-black/80 rounded-xl p-2 border border-amber-500/20 max-h-[360px] flex items-center justify-center overflow-hidden mb-4">
-                {viewingReceipt.receiptUrl ? (
-                  viewingReceipt.receiptUrl.endsWith('.pdf') ? (
+                {isSafeReceiptUrl(viewingReceipt.receiptUrl) ? (
+                  viewingReceipt.receiptUrl!.toLowerCase().endsWith('.pdf') ? (
                     <div className="py-12 text-center">
                       <CreditCard className="w-12 h-12 text-amber-400 mx-auto mb-2" />
                       <p className="text-xs text-stone-300 mb-3">PDF Payment Document Attached</p>
                       <a
                         href={viewingReceipt.receiptUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="px-4 py-1.5 rounded-lg bg-amber-500 text-stone-950 font-cinzel text-xs font-bold"
                       >
                         Open PDF in New Tab
@@ -1714,7 +1745,9 @@ export function AdminPanel() {
                     />
                   )
                 ) : (
-                  <div className="py-12 text-stone-500 text-xs italic">No receipt file uploaded.</div>
+                  <div className="py-12 text-stone-500 text-xs italic">
+                    {viewingReceipt.receiptUrl ? 'Blocked untrusted receipt URL.' : 'No receipt file uploaded.'}
+                  </div>
                 )}
               </div>
 

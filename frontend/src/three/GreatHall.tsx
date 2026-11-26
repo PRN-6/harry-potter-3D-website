@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { getHallMaterials } from './hallTheme'
 import { EnchantedCeiling, FloatingCandles, Sparkles } from './Atmosphere'
@@ -53,10 +53,9 @@ interface HouseTableProps {
   house: House
   x: number
   z: number
-  clothColor: THREE.Color
 }
 
-function HouseTable({ house, x, z, clothColor }: HouseTableProps) {
+function HouseTable({ house, x, z }: HouseTableProps) {
   const materials = getHallMaterials()
 
   // Goblets and platters are placed once and shared by all four tables.
@@ -79,11 +78,17 @@ function HouseTable({ house, x, z, clothColor }: HouseTableProps) {
     [],
   )
 
-  // One cloth material per house, cached by house id.
+  // One cloth material per house, cached by house colour.
   const clothMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: clothColor, roughness: 0.95 }),
-    [clothColor],
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(house.color).multiplyScalar(0.55),
+        roughness: 0.95,
+      }),
+    [house.color],
   )
+
+  useEffect(() => () => clothMaterial.dispose(), [clothMaterial])
 
   return (
     <group position={[x, 0, z]}>
@@ -164,6 +169,7 @@ function HighTable() {
     () => new THREE.MeshStandardMaterial({ color: '#7a1f2c', roughness: 0.9 }),
     [],
   )
+  useEffect(() => () => highCloth.dispose(), [highCloth])
 
   return (
     <group position={[0, 0, z]}>
@@ -238,6 +244,12 @@ function Walls() {
     () => new THREE.MeshBasicMaterial({ color: '#ffe6a8', toneMapped: false }),
     [],
   )
+
+  useEffect(() => () => {
+    windowMaterial.dispose()
+    sconceMaterial.dispose()
+    flameMaterial.dispose()
+  }, [windowMaterial, sconceMaterial, flameMaterial])
 
   return (
     <group>
@@ -316,6 +328,11 @@ function Floor() {
     [],
   )
 
+  useEffect(() => () => {
+    tileMaterial.dispose()
+    runnerMaterial.dispose()
+  }, [tileMaterial, runnerMaterial])
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow material={materials.floor}>
@@ -368,7 +385,6 @@ export default function GreatHall() {
           house={HOUSE_BY_ID[spot.house]}
           x={spot.x}
           z={spot.z}
-          clothColor={new THREE.Color(HOUSE_BY_ID[spot.house].color).multiplyScalar(0.55)}
         />
       ))}
       <FloatingCandles count={candleCount} features={features} />

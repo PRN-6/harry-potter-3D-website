@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { Request, Response } from 'express'
 import {
   getDashboardStats as getDbStats,
@@ -21,6 +22,18 @@ import {
 } from '../db/store.js'
 import { FestEvent } from '../models/types.js'
 import { sendPaymentVerifiedEmail, sendAcceptanceEmail } from '../services/emailService.js'
+import { deletePaymentReceipt } from '../services/cloudinaryService.js'
+
+/**
+ * Escapes CSV cell values and neutralizes formula injection prefixes (=, +, -, @, tab, CR).
+ */
+function escapeCsvCell(value: unknown): string {
+  let str = String(value ?? '')
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`
+  }
+  return `"${str.replace(/"/g, '""')}"`
+}
 
 export const getStats = (_req: Request, res: Response): void => {
   try {
@@ -102,8 +115,8 @@ export const updateRegistrationPayment = async (req: Request, res: Response): Pr
       return
     }
 
-    // If verified, send verified owl notification
-    if (status === 'verified') {
+    // If newly verified, send verified owl notification
+    if (status === 'verified' && result.previousStatus !== 'verified') {
       sendPaymentVerifiedEmail(result.registration).catch((err) => {
         console.warn('Payment verification email dispatch warning:', err)
       })
@@ -163,6 +176,13 @@ export const removeRegistration = (req: Request, res: Response): void => {
       return
     }
 
+    if (reg.receiptPublicId) {
+      const provider = reg.receiptUrl?.startsWith('http') ? 'cloudinary' : 'local'
+      deletePaymentReceipt(reg.receiptPublicId, provider).catch((err) => {
+        console.warn('Failed to clean up deleted registration receipt:', err)
+      })
+    }
+
     res.json({
       success: true,
       message: `Registration for ${reg.fullName} (${reg.email}) permanently expunged.`,
@@ -196,28 +216,29 @@ export const exportRegistrationsCsv = (_req: Request, res: Response): void => {
     ]
 
     const rows = list.map((r) => [
-      r.id,
-      `"${r.fullName.replace(/"/g, '""')}"`,
-      r.email,
-      `"${r.phone}"`,
-      `"${r.college.replace(/"/g, '""')}"`,
-      r.department || 'Other',
-      `"${r.usnOrRollNo || ''}"`,
-      r.houseId.toUpperCase(),
-      r.amount || 250,
-      r.paymentStatus.toUpperCase(),
-      r.paymentMethod.toUpperCase(),
-      `"${r.transactionId || ''}"`,
-      `"${r.receiptUrl || ''}"`,
-      `"${(r.eventIds || []).join('; ')}"`,
-      r.checkedIn ? 'YES' : 'NO',
-      r.checkedInAt || '',
-      r.createdAt,
+      escapeCsvCell(r.id),
+      escapeCsvCell(r.fullName),
+      escapeCsvCell(r.email),
+      escapeCsvCell(r.phone),
+      escapeCsvCell(r.college),
+      escapeCsvCell(r.department || 'Other'),
+      escapeCsvCell(r.usnOrRollNo || ''),
+      escapeCsvCell(r.houseId.toUpperCase()),
+      escapeCsvCell(r.amount || 250),
+      escapeCsvCell(r.paymentStatus.toUpperCase()),
+      escapeCsvCell(r.paymentMethod.toUpperCase()),
+      escapeCsvCell(r.transactionId || ''),
+      escapeCsvCell(r.receiptUrl || ''),
+      escapeCsvCell((r.eventIds || []).join('; ')),
+      escapeCsvCell(r.checkedIn ? 'YES' : 'NO'),
+      escapeCsvCell(r.checkedInAt || ''),
+      escapeCsvCell(r.createdAt),
     ])
 
-    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\r\n')
+    const csvContent = [headers.map(escapeCsvCell).join(','), ...rows.map((row) => row.join(','))].join('\r\n')
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('X-Content-Type-Options', 'nosniff')
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="AJ-ASTRIX-2K27-Registrations-${new Date().toISOString().slice(0, 10)}.csv"`,
@@ -291,6 +312,28 @@ export const updateAdminAccount = (req: Request, res: Response): void => {
     if (!req.admin) {
       res.status(401).json({ error: 'Unauthorized' })
       return
+    }
+
+    if (
+      req.admin.id === id &&
+      (req.body.isActive === false || (req.body.level !== undefined && req.body.level !== req.admin.level))
+    ) {
+      res.status(400).json({
+        error: 'Action Denied',
+        message: 'You cannot deactivate or demote your own active Super Admin account.',
+      })
+      return
+    }
+
+    if (req.body.email) {
+      const existingByEmail = getAdminByUsernameOrEmail(req.body.email)
+      if (existingByEmail && existingByEmail.id !== id) {
+        res.status(409).json({
+          error: 'Conflict',
+          message: 'Another staff member already uses this email address.',
+        })
+        return
+      }
     }
 
     const updated = updateAdmin(id, req.body, req.admin.fullName, req.admin.level)
@@ -419,7 +462,7 @@ export const createEvent = (req: Request, res: Response): void => {
 
     const eventData: FestEvent = {
       ...req.body,
-      id: req.body.id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      id: req.body.id || `evt_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
     }
 
     const created = insertEvent(eventData, req.admin.fullName, req.admin.level)

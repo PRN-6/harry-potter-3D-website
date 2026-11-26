@@ -44,11 +44,15 @@ export const castHouseVote = (req: Request, res: Response): void => {
 }
 
 export const addHousePoints = (req: Request, res: Response): void => {
-  const { houseId, points, reason } = req.body
+  if (!req.admin) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
 
-  const pts = parseInt(points, 10)
-  if (!houseId || isNaN(pts)) {
-    res.status(400).json({ error: 'houseId and numeric points are required.' })
+  const { houseId, points, reason } = req.body
+  const pts = Number(points)
+  if (!houseId || !Number.isInteger(pts) || pts === 0) {
+    res.status(400).json({ error: 'houseId and non-zero integer points are required.' })
     return
   }
 
@@ -56,8 +60,8 @@ export const addHousePoints = (req: Request, res: Response): void => {
     houseId.toLowerCase() as HouseId,
     pts,
     reason || 'Manual Adjustment',
-    'Hogwarts Faculty',
-    1,
+    req.admin.fullName,
+    req.admin.level,
   )
 
   if (!result) {

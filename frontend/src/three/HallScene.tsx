@@ -63,13 +63,11 @@ function CameraRig({
   path,
   onChapter,
   doorRef,
-  fadeRef,
   isActive = true,
 }: {
   path: CameraPath
   onChapter?: (index: number) => void
   doorRef: React.MutableRefObject<DoorHinges | null>
-  fadeRef?: React.RefObject<HTMLDivElement | null>
   isActive?: boolean
 }) {
   const { camera } = useThree()
@@ -456,16 +454,6 @@ function CameraRig({
       doorState.currentT = smoothedT
       animateDoors(doorRef.current, smoothedT)
     }
-
-    // Subtle door passage glow
-    if (fadeRef?.current) {
-      if (currentU.current >= 0.015 && currentU.current <= 0.08) {
-        const tFade = Math.sin(((currentU.current - 0.015) / 0.065) * Math.PI)
-        fadeRef.current.style.opacity = Math.max(0, tFade).toFixed(2)
-      } else {
-        fadeRef.current.style.opacity = '0'
-      }
-    }
   })
 
   return null
@@ -522,7 +510,6 @@ export interface HallSceneProps {
   onLoadProgress?: (p: number) => void
   onModelReady?: () => void
   onChapter?: (index: number) => void
-  fadeRef?: React.RefObject<HTMLDivElement | null>
   isActive?: boolean
 }
 
@@ -531,7 +518,6 @@ export default function HallScene({
   onLoadProgress,
   onModelReady,
   onChapter,
-  fadeRef,
   isActive = true,
 }: HallSceneProps) {
   const [tier] = useState<QualityTier>(() => detectQualityTier())
@@ -583,6 +569,7 @@ export default function HallScene({
 
   return (
     <Canvas
+      frameloop={isActive ? 'always' : 'never'}
       shadows={!isMobile && tier === 'high'}
       dpr={dpr}
       gl={{
@@ -644,7 +631,6 @@ export default function HallScene({
         path={path}
         onChapter={onChapter}
         doorRef={doorRef}
-        fadeRef={fadeRef}
         isActive={isActive}
       />
 

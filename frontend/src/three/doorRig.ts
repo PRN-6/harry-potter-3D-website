@@ -87,26 +87,6 @@ function openAngleOf(hinge: THREE.Object3D | null, fallback: number): number {
 }
 
 /**
- * Turns the doors to their open angle, once, and makes them solid.
- *
- * The two leaves swing in opposite directions, because they are hinged
- * at opposite edges: the left leaf's hinge carries a negative angle and
- * the right leaf's a positive one. The sign is baked into the model.
- */
-export function openDoors(hinges: DoorHinges): void {
-  if (hinges.left) {
-    hinges.left.rotation.y = 0
-  }
-  if (hinges.right) {
-    hinges.right.rotation.y = 0
-  }
-
-  for (const hinge of [hinges.left, hinges.right]) {
-    makeLeafSolid(hinge)
-  }
-}
-
-/**
  * Smoothly opens the doors from shut (0) to their open angle.
  *
  * This is called every frame by the render loop.
@@ -130,7 +110,7 @@ export function animateDoors(hinges: DoorHinges, t: number): void {
  * through from the wrong side — and, because the shell's faces point
  * into the room, that is the side the camera sees first.
  */
-function makeLeafSolid(hinge: THREE.Object3D | null): void {
+export function makeLeafSolid(hinge: THREE.Object3D | null): void {
   if (!hinge) return
 
   hinge.traverse((obj) => {

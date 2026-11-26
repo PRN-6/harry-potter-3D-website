@@ -1,6 +1,4 @@
 import * as THREE from 'three'
-import type { House, HouseId } from '../data/houses'
-import { HOUSE_BY_ID } from '../data/houses'
 
 /**
  * Materials and palette for the Great Hall.
@@ -23,11 +21,6 @@ export const WOOD = '#3d2b1f'
 export const WOOD_LIGHT = '#6b4a2f'
 export const GOLD = '#c9a227'
 export const CANDLE_FLAME = '#fff3c4'
-
-/** The hot core of a flame. */
-export const FIRE_FLAME_COLOUR = '#ffb43c'
-/** The soft halo thrown off by a flame. */
-export const FIRE_GLOW_COLOUR = '#ff7a1a'
 
 export interface HallMaterials {
   floor: THREE.MeshStandardMaterial
@@ -297,61 +290,4 @@ export function getGlowTexture(): THREE.Texture {
   texture.needsUpdate = true
   _glowTexture = texture
   return texture
-}
-
-/**
- * The four house table settings.
- *
- * The four long tables run the length of the hall, two on each side of a
- * central aisle — exactly as in the film.
- */
-export interface TableSetting {
-  house: House
-  /** Position of the table's centre along the Z axis (length of the hall). */
-  z: number
-  /** Position along X. */
-  x: number
-  /** Cloth tint taken from the house colour, kept dark enough to read. */
-  clothColor: THREE.Color
-  bannerColor: THREE.Color
-}
-
-/**
- * Seating layout for the PROCEDURAL hall.
- *
- * The procedural hall runs along Z. Gryffindor and Ravenclaw sit on the
- * left, Slytherin and Hufflepuff on the right, and the High Table sits at
- * the far end (+Z).
- *
- * The Z positions are derived from the hall's dimensions rather than picked
- * by eye, because the two tables on each side must NOT overlap:
- *   table length 18 × 2 tables = 36, plus a 4-unit gap = 40.
- *   That leaves the span from z = -24 (4 units from the entrance doors)
- *   to z = 16 (5 units clear of the High Table dais at z = 21).
- *
- * The REAL model's seating is measured from the GLB and lives in
- * `hallBounds.ts`; this function is only for the fallback.
- */
-export function buildTableSettings(): TableSetting[] {
-  const nearZ = -15 // spans -24 to -6
-  const farZ = 7 //   spans  -2 to 16
-
-  const layout: { id: HouseId; x: number; z: number }[] = [
-    { id: 'gryffindor', x: -5.5, z: nearZ },
-    { id: 'ravenclaw', x: -5.5, z: farZ },
-    { id: 'slytherin', x: 5.5, z: nearZ },
-    { id: 'hufflepuff', x: 5.5, z: farZ },
-  ]
-
-  return layout.map(({ id, x, z }) => {
-    const house = HOUSE_BY_ID[id]
-    return {
-      house,
-      x,
-      z,
-      // The cloth keeps the house hue but is darkened so the gold still reads.
-      clothColor: new THREE.Color(house.color).multiplyScalar(0.55),
-      bannerColor: new THREE.Color(house.color),
-    }
-  })
 }

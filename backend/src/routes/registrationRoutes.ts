@@ -8,6 +8,7 @@ import {
 import { validateBody, registrationSchema } from '../validation/schemas.js'
 import { handleReceiptUpload } from '../middleware/upload.js'
 import { registrationRateLimiter, antiSpamGuard } from '../middleware/rateLimiter.js'
+import { authenticateAdmin, requireLevel } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -21,8 +22,9 @@ router.post(
   createRegistration,
 )
 
-router.get('/', getRegistrations)
-router.get('/:id', getRegistrationById)
-router.post('/:id/resend-email', resendAcceptanceEmail)
+// Protected staff-only PII & email re-dispatch routes
+router.get('/', authenticateAdmin, requireLevel(4), getRegistrations)
+router.get('/:id', authenticateAdmin, requireLevel(4), getRegistrationById)
+router.post('/:id/resend-email', authenticateAdmin, requireLevel(4), resendAcceptanceEmail)
 
 export default router

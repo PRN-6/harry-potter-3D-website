@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import { fileURLToPath } from 'url'
 import bcrypt from 'bcryptjs'
 import {
@@ -32,7 +33,6 @@ const DATA_DIR = path.resolve(__dirname, '../../data')
 const DB_FILE = path.join(DATA_DIR, 'db.json')
 
 function createInitialAdmins(): AdminUser[] {
-  const salt = bcrypt.genSaltSync(10)
   const now = new Date().toISOString()
 
   return [
@@ -40,7 +40,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_super_01',
       username: 'headmaster',
       email: 'headmaster@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('AlbusDumbledore2027!', salt),
+      passwordHash: bcrypt.hashSync('AlbusDumbledore2027!', 10),
       fullName: 'Professor Albus Dumbledore',
       level: 0,
       roleTitle: ADMIN_ROLE_NAMES[0],
@@ -51,7 +51,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl1_01',
       username: 'mcgonagall',
       email: 'mcgonagall@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('Transfiguration2027!', salt),
+      passwordHash: bcrypt.hashSync('Transfiguration2027!', 10),
       fullName: 'Professor Minerva McGonagall',
       level: 1,
       roleTitle: ADMIN_ROLE_NAMES[1],
@@ -62,7 +62,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl2_01',
       username: 'snape',
       email: 'snape@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('PotionsMaster2027!', salt),
+      passwordHash: bcrypt.hashSync('PotionsMaster2027!', 10),
       fullName: 'Professor Severus Snape',
       level: 2,
       roleTitle: ADMIN_ROLE_NAMES[2],
@@ -74,7 +74,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl3_01',
       username: 'flitwick',
       email: 'flitwick@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('CharmsMaster2027!', salt),
+      passwordHash: bcrypt.hashSync('CharmsMaster2027!', 10),
       fullName: 'Professor Filius Flitwick',
       level: 3,
       roleTitle: ADMIN_ROLE_NAMES[3],
@@ -85,7 +85,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl4_01',
       username: 'filch',
       email: 'filch@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('Caretaker2027!', salt),
+      passwordHash: bcrypt.hashSync('Caretaker2027!', 10),
       fullName: 'Argus Filch',
       level: 4,
       roleTitle: ADMIN_ROLE_NAMES[4],
@@ -96,7 +96,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl5_01',
       username: 'hooch',
       email: 'hooch@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('Quidditch2027!', salt),
+      passwordHash: bcrypt.hashSync('Quidditch2027!', 10),
       fullName: 'Madam Rolanda Hooch',
       level: 5,
       roleTitle: ADMIN_ROLE_NAMES[5],
@@ -107,7 +107,7 @@ function createInitialAdmins(): AdminUser[] {
       id: 'admin_lvl6_01',
       username: 'percy',
       email: 'percy@hogwarts.edu',
-      passwordHash: bcrypt.hashSync('PrefectBadge2027!', salt),
+      passwordHash: bcrypt.hashSync('PrefectBadge2027!', 10),
       fullName: 'Percy Weasley',
       level: 6,
       roleTitle: ADMIN_ROLE_NAMES[6],
@@ -419,16 +419,52 @@ export function findRegistrationByTransactionId(transactionId: string): Registra
   return db.registrations.find((r) => r.transactionId?.toLowerCase() === clean)
 }
 
+export class DuplicateRegistrationError extends Error {
+  constructor(
+    public readonly code: 'EMAIL_EXISTS' | 'TRANSACTION_EXISTS',
+    public readonly existingId: string,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'DuplicateRegistrationError'
+  }
+}
+
 export function insertRegistration(
   data: Omit<Registration, 'id' | 'createdAt' | 'checkedIn' | 'emailDispatched'> & {
     emailDispatched?: boolean
   },
 ): Registration {
   const db = ensureDbLoaded()
+
+  // Atomic synchronous duplicate check right before insertion prevents async-upload TOCTOU races
+  const cleanEmail = data.email.trim().toLowerCase()
+  const existingEmail = db.registrations.find((r) => r.email.toLowerCase() === cleanEmail)
+  if (existingEmail) {
+    throw new DuplicateRegistrationError(
+      'EMAIL_EXISTS',
+      existingEmail.id,
+      'This magical owl address is already registered for AJ-ASTRIX 2K27.',
+    )
+  }
+
+  if (data.transactionId && data.transactionId.trim()) {
+    const cleanTx = data.transactionId.trim().toLowerCase()
+    const existingTx = db.registrations.find((r) => r.transactionId?.toLowerCase() === cleanTx)
+    if (existingTx) {
+      throw new DuplicateRegistrationError(
+        'TRANSACTION_EXISTS',
+        existingTx.id,
+        'This UPI transaction reference has already been submitted for another registration.',
+      )
+    }
+  }
+
   const now = new Date().toISOString()
   const newReg: Registration = {
     ...data,
-    id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    email: cleanEmail,
+    id: `reg_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
     checkedIn: false,
     emailDispatched: Boolean(data.emailDispatched),
     createdAt: now,
@@ -463,10 +499,10 @@ export function updatePaymentStatus(
   const prev = reg.paymentStatus
   reg.paymentStatus = status
 
-  if (status === 'verified') {
+  if (status === 'verified' && prev !== 'verified') {
     reg.paymentVerifiedBy = adminName
     reg.paymentVerifiedAt = new Date().toISOString()
-    // Award 10 bonus points to registrant's house upon fee verification
+    // Award 10 bonus points to registrant's house once upon transitioning to verified
     adjustHousePointsInternal(
       reg.houseId,
       10,
@@ -570,7 +606,7 @@ function adjustHousePointsInternal(
   target.points = Math.max(0, target.points + points)
 
   const log: PointLog = {
-    id: `plog_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: `plog_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
     houseId,
     points,
     reason,
@@ -580,6 +616,9 @@ function adjustHousePointsInternal(
   }
 
   db.pointLogs.unshift(log)
+  if (db.pointLogs.length > 1000) {
+    db.pointLogs.length = 1000
+  }
   return target
 }
 
@@ -721,7 +760,7 @@ export function insertAdmin(
   const now = new Date().toISOString()
 
   const newAdmin: AdminUser = {
-    id: `admin_lvl${data.level}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: `admin_lvl${data.level}_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
     username: data.username.trim().toLowerCase(),
     email: data.email.trim().toLowerCase(),
     passwordHash: bcrypt.hashSync(data.password, salt),
@@ -767,8 +806,8 @@ export function updateAdmin(
   const admin = db.admins.find((a) => a.id === id)
   if (!admin) return null
 
-  if (updates.fullName) admin.fullName = updates.fullName
-  if (updates.email) admin.email = updates.email
+  if (updates.fullName) admin.fullName = updates.fullName.trim()
+  if (updates.email) admin.email = updates.email.trim().toLowerCase()
   if (updates.level !== undefined) {
     admin.level = updates.level
     admin.roleTitle = ADMIN_ROLE_NAMES[updates.level]
@@ -823,7 +862,7 @@ export function addAuditLog(entry: Omit<AuditLog, 'id' | 'timestamp'>): AuditLog
   const db = ensureDbLoaded()
   const log: AuditLog = {
     ...entry,
-    id: `audit_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: `audit_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
     timestamp: new Date().toISOString(),
   }
 

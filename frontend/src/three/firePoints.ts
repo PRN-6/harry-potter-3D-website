@@ -140,27 +140,7 @@ const TABLE_CANDLES: RawFire[] = [
  * hall's length) and 540 tall (Y, which is up in the SketchUp export).
  *
  * The model is rotated into Y-up by the root node, and the fitted scene
- * scales the hall's LENGTH to `TARGET_LENGTH` world units. So one model
- * unit along the hall is `TARGET_LENGTH / 1744` world units.
- */
-
-/** How long the room should be, in world units. Matches `DiningHallModel`. */
-const TARGET_LENGTH = 56
-
-/** The hall's length in the model's own units. */
-const MODEL_LENGTH = 1744.5
-
-/** The hall's width in the model's own units. */
-const MODEL_WIDTH = 630
-
-/** The hall's height in the model's own units. */
-const MODEL_HEIGHT = 540.7
-
-/**
- * Builds the fire points for a given model fit.
- *
- * `scale` and `offset` come from the same fit the model itself is given, so
- * the flames land on the model's own candles and bowls.
+ * scales the hall's LENGTH to `TARGET_LENGTH` (56) world units.
  */
 export function buildFirePoints(
   scale: number,
@@ -178,12 +158,4 @@ export function buildFirePoints(
     scale: f.scale * scale,
     kind: f.kind,
   }))
-}
-
-/** The model-space size of the hall, for callers that need to reason about it. */
-export const MODEL_SIZE = {
-  width: MODEL_WIDTH,
-  height: MODEL_HEIGHT,
-  length: MODEL_LENGTH,
-  targetLength: TARGET_LENGTH,
 }

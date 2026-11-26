@@ -1,18 +1,15 @@
+import crypto from 'crypto'
 import { Request, Response } from 'express'
 import { OwlPostMessage } from '../models/types.js'
 
 const owlMessages: OwlPostMessage[] = []
+const MAX_OWL_MESSAGES = 500
 
 export const submitOwlPost = (req: Request, res: Response): void => {
   const { senderName, email, subject, message } = req.body
 
-  if (!senderName || !email || !message) {
-    res.status(400).json({ error: 'senderName, email, and message are required for Owl Post dispatch.' })
-    return
-  }
-
   const post: OwlPostMessage = {
-    id: `owl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: `owl_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
     senderName: String(senderName).trim(),
     email: String(email).trim().toLowerCase(),
     subject: subject ? String(subject).trim() : 'Inquiry for Hogwarts Fest Committee',
@@ -20,7 +17,10 @@ export const submitOwlPost = (req: Request, res: Response): void => {
     createdAt: new Date().toISOString(),
   }
 
-  owlMessages.push(post)
+  owlMessages.unshift(post)
+  if (owlMessages.length > MAX_OWL_MESSAGES) {
+    owlMessages.length = MAX_OWL_MESSAGES
+  }
 
   res.status(201).json({
     success: true,

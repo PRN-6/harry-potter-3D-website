@@ -203,14 +203,14 @@ All backend routes are prefixed with `/api`.
       "registration": { "id": "reg_1731137...", "houseId": "gryffindor", ... }
     }
     ```
-- **`GET /api/register`** — Returns all registered participants.
-- **`GET /api/register/:id`** — Returns details for a specific registration ID.
+- **`GET /api/register`** *(Staff Auth: L0–L4)* — Returns registered participants.
+- **`GET /api/register/:id`** *(Staff Auth: L0–L4)* — Returns details for a specific registration ID.
 
 ### 3. House Cup Standings
 - **`GET /api/standings`** — Returns ranked house standings and the current House Cup leader.
-- **`POST /api/standings/vote`** — Casts an enchanted vote for a house (+10 pts).
+- **`POST /api/standings/vote`** — Casts an enchanted vote for a house (+10 pts, rate-limited).
   - **Body:** `{ "houseId": "slytherin" }`
-- **`POST /api/standings/points`** — Awards custom points for competition wins.
+- **`POST /api/standings/points`** *(Staff Auth: L0–L5)* — Awards custom points for competition wins.
   - **Body:** `{ "houseId": "ravenclaw", "points": 50, "reason": "Won Hackathon Hex" }`
 
 ### 4. Events & Schedule
@@ -247,8 +247,8 @@ The website includes an authenticated **Staff & Ministry Portal** featuring a mu
 - `GET /api/admin/stats` — Dashboard overview counts, revenue analytics & house ratios
 - `GET /api/admin/registrations` — Search, filter by house, attendance & payment status, pagination
 - `PATCH /api/admin/registrations/:id/checkin` — Toggle check-in status (L0–L4)
-- `PATCH /api/admin/registrations/:id/payment` — Verify or reject payment (+10 house pts on verify) (L0–L2)
-- `POST /api/admin/registrations/:id/email` — Re-dispatch Hogwarts Acceptance Letter (L0–L2)
+- `PATCH /api/admin/registrations/:id/payment` — Verify or reject payment (+10 house pts on verify) (L0–L4)
+- `POST /api/admin/registrations/:id/email` — Re-dispatch Hogwarts Acceptance Letter (L0–L4)
 - `DELETE /api/admin/registrations/:id` — Delete registration (Super Admin L0)
 - `GET /api/admin/registrations/export/csv` — Download attendee list CSV with payment status (L0–L4)
 - `GET /api/admin/users` — List staff accounts (L0–L1)

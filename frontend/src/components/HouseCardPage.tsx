@@ -70,9 +70,14 @@ export function HouseCardPage({ houseId, onBack }: HouseCardPageProps) {
     setHouse(houseId)
   }, [houseId, setHouse])
 
-  // Scroll to top when switching houses
+  // Scroll to top when switching houses (handles both fixed overflow container and window)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const scrollContainer = cardRef.current?.closest('.overflow-y-auto')
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }, [selectedHouseId])
 
   // Handle card 3D mouse move

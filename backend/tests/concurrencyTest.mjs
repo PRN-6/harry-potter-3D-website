@@ -1,5 +1,11 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import app from '../dist/index.js'
-import { getRegistrationsList } from '../dist/db/store.js'
+import { forceSaveDatabaseSync, getRegistrationsList } from '../dist/db/store.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const DB_FILE = path.resolve(__dirname, '../data/db.json')
 
 function numberToWord(n) {
   const units = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
@@ -10,7 +16,9 @@ function numberToWord(n) {
 }
 
 async function runConcurrencyStressTest() {
-  console.log('⚡ Starting High-Concurrency Stress Test: 200 Concurrent Real-World Registrations...')
+  console.log('Starting High-Concurrency Stress Test: 200 Concurrent Registrations...')
+
+  const originalDbSnapshot = fs.existsSync(DB_FILE) ? fs.readFileSync(DB_FILE, 'utf-8') : null
 
   const server = app.listen(5088, async () => {
     const BASE = 'http://127.0.0.1:5088/api'
@@ -18,7 +26,7 @@ async function runConcurrencyStressTest() {
     const startTime = Date.now()
 
     try {
-      console.log(`🚀 Dispatching ${TOTAL_USERS} simultaneous registrations across unique client IPs...`)
+      console.log(`Dispatching ${TOTAL_USERS} simultaneous registrations across unique client IPs...`)
 
       const requests = Array.from({ length: TOTAL_USERS }, (_, i) => {
         const studentIndex = i + 1
@@ -39,8 +47,6 @@ async function runConcurrencyStressTest() {
             usnOrRollNo: `1AJ23CS${studentIndex}`,
             houseId: ['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'][studentIndex % 4],
             eventIds: ['potions-mastery', 'quidditch-cup'],
-            amount: 250,
-            paymentMethod: 'upi',
             transactionId: `STRESS_UTR_${Date.now()}_${studentIndex}`,
           }),
         }).then(async (res) => ({
@@ -55,7 +61,7 @@ async function runConcurrencyStressTest() {
       const successCount = results.filter((r) => r.status === 201).length
       const failureCount = results.filter((r) => r.status !== 201).length
 
-      console.log(`\n📊 Stress Test Completed in ${durationMs}ms (${(durationMs / 1000).toFixed(2)}s)`)
+      console.log(`\nStress Test Completed in ${durationMs}ms (${(durationMs / 1000).toFixed(2)}s)`)
       console.log(`✓ Successful (201 Created): ${successCount}/${TOTAL_USERS}`)
       console.log(`✓ Failed: ${failureCount}/${TOTAL_USERS}`)
       console.log(`✓ Throughput: ${(TOTAL_USERS / (durationMs / 1000)).toFixed(1)} req/sec`)
@@ -67,17 +73,23 @@ async function runConcurrencyStressTest() {
       }
 
       // Verify store integrity and persistence
-      const { total } = getRegistrationsList({ limit: 1000 })
-      console.log(`✓ Store integrity confirmed: ${total} total records in database without corruption.`)
+      const allRegs = getRegistrationsList()
+      console.log(`✓ Store integrity confirmed: ${allRegs.length} total records in database without corruption.`)
 
-      console.log('\n🌟 200 CONCURRENT REGISTRATIONS HANDLED FLAWLESSLY!')
+      console.log('\n200 CONCURRENT REGISTRATIONS HANDLED FLAWLESSLY!')
     } catch (err) {
-      console.error('❌ Concurrency stress test failed:', err)
-      process.exit(1)
+      console.error('Concurrency stress test failed:', err)
+      process.exitCode = 1
     } finally {
+      forceSaveDatabaseSync()
+      if (originalDbSnapshot !== null) {
+        fs.writeFileSync(DB_FILE, originalDbSnapshot, 'utf-8')
+      } else if (fs.existsSync(DB_FILE)) {
+        fs.unlinkSync(DB_FILE)
+      }
       server.close(() => {
         console.log('Stress test server closed.')
-        process.exit(0)
+        process.exit(process.exitCode ?? 0)
       })
     }
   })

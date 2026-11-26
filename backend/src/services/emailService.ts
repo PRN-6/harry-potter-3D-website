@@ -37,6 +37,15 @@ export interface EmailDispatchResult {
   error?: string
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function generateAcceptanceLetterHtml(r: Registration): string {
   const houseColor =
     r.houseId === 'gryffindor'
@@ -47,8 +56,15 @@ function generateAcceptanceLetterHtml(r: Registration): string {
       ? '#0e1a40'
       : '#ecb939'
 
-  const houseCrestEmoji =
-    r.houseId === 'gryffindor' ? '🦁' : r.houseId === 'slytherin' ? '🐍' : r.houseId === 'ravenclaw' ? '🦅' : '🦡'
+  const safeName = escapeHtml(r.fullName)
+  const safeId = escapeHtml(r.id)
+  const safeCollege = escapeHtml(r.college)
+  const safeDept = escapeHtml(r.department || 'General')
+  const safeHouse = escapeHtml(r.houseId.toUpperCase())
+  const safeEvents = r.eventIds.length > 0 ? escapeHtml(r.eventIds.join(', ')) : 'All-Access Symposium Pass'
+  const safePaymentStatus = escapeHtml(r.paymentStatus.toUpperCase())
+  const safeAmount = escapeHtml(r.amount)
+  const safeTxId = r.transactionId ? escapeHtml(r.transactionId) : ''
 
   return `
 <!DOCTYPE html>
@@ -67,7 +83,6 @@ function generateAcceptanceLetterHtml(r: Registration): string {
           <!-- Header Seal Banner -->
           <tr>
             <td align="center" style="padding: 30px 20px 20px 20px; border-bottom: 1px solid rgba(212, 175, 55, 0.3); background-color: #100803;">
-              <div style="font-size: 38px; margin-bottom: 8px;">⚡</div>
               <h1 style="margin: 0; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; color: #ffd700; font-weight: 900;">
                 AJ-ASTRIX 2K27
               </h1>
@@ -84,7 +99,7 @@ function generateAcceptanceLetterHtml(r: Registration): string {
           <tr>
             <td style="padding: 30px 35px 25px 35px; line-height: 1.7; font-size: 14px; color: #eae0d0;">
               <p style="margin-top: 0; font-size: 16px; font-weight: bold; color: #ffd700;">
-                Dear ${r.fullName},
+                Dear ${safeName},
               </p>
 
               <p>
@@ -94,12 +109,11 @@ function generateAcceptanceLetterHtml(r: Registration): string {
 
               <!-- House Crest Card -->
               <div style="text-align: center; margin: 25px 0; padding: 18px; border: 1px solid ${houseColor}; border-radius: 12px; background-color: #0d0603;">
-                <span style="font-size: 32px;">${houseCrestEmoji}</span>
                 <h2 style="margin: 6px 0 2px 0; color: #ffd700; letter-spacing: 3px; font-size: 20px; text-transform: uppercase;">
-                  ${r.houseId.toUpperCase()}
+                  ${safeHouse}
                 </h2>
                 <div style="font-size: 11px; color: #c9a44c; letter-spacing: 1px;">
-                  +5 Points awarded to your House in the House Cup! 🏆
+                  +5 Points awarded to your House in the House Cup!
                 </div>
               </div>
 
@@ -107,11 +121,11 @@ function generateAcceptanceLetterHtml(r: Registration): string {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="background-color: #0d0703; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; margin-bottom: 25px; font-size: 12px;">
                 <tr>
                   <td style="color: #c9a44c; border-bottom: 1px solid #2a1608;">Registration ID:</td>
-                  <td style="font-weight: bold; color: #ffffff; border-bottom: 1px solid #2a1608; font-family: monospace;">${r.id}</td>
+                  <td style="font-weight: bold; color: #ffffff; border-bottom: 1px solid #2a1608; font-family: monospace;">${safeId}</td>
                 </tr>
                 <tr>
                   <td style="color: #c9a44c; border-bottom: 1px solid #2a1608;">Institution / College:</td>
-                  <td style="color: #ffffff; border-bottom: 1px solid #2a1608;">${r.college} (${r.department || 'General'})</td>
+                  <td style="color: #ffffff; border-bottom: 1px solid #2a1608;">${safeCollege} (${safeDept})</td>
                 </tr>
                 <tr>
                   <td style="color: #c9a44c; border-bottom: 1px solid #2a1608;">Festival Dates:</td>
@@ -123,19 +137,19 @@ function generateAcceptanceLetterHtml(r: Registration): string {
                 </tr>
                 <tr>
                   <td style="color: #c9a44c; border-bottom: 1px solid #2a1608;">Registered Events:</td>
-                  <td style="color: #ffffff; border-bottom: 1px solid #2a1608;">${r.eventIds.length > 0 ? r.eventIds.join(', ') : 'All-Access Symposium Pass'}</td>
+                  <td style="color: #ffffff; border-bottom: 1px solid #2a1608;">${safeEvents}</td>
                 </tr>
                 <tr>
                   <td style="color: #c9a44c;">Payment Status:</td>
                   <td style="font-weight: bold; color: ${r.paymentStatus === 'verified' ? '#4ade80' : '#facc15'};">
-                    ${r.paymentStatus.toUpperCase()} (₹${r.amount}) ${r.transactionId ? `· UTR: ${r.transactionId}` : ''}
+                    ${safePaymentStatus} (&#8377;${safeAmount}) ${safeTxId ? `· UTR: ${safeTxId}` : ''}
                   </td>
                 </tr>
               </table>
 
               <p style="font-size: 13px; color: #bbb;">
-                Please present this owl dispatch or your <strong>Registration ID (${r.id})</strong> at the 
-                arrival desk (Platform 9¾ / Gatekeeper Desk) to claim your physical badge and house lanyard.
+                Please present this owl dispatch or your <strong>Registration ID (${safeId})</strong> at the 
+                arrival desk (Platform 9&#190; / Gatekeeper Desk) to claim your physical badge and house lanyard.
               </p>
 
               <!-- Sign-off -->
@@ -168,7 +182,8 @@ function generateAcceptanceLetterHtml(r: Registration): string {
  * Dispatches the official Hogwarts Acceptance Letter & Fest Entry Pass.
  */
 export async function sendAcceptanceEmail(registration: Registration): Promise<EmailDispatchResult> {
-  const subject = `✦ Hogwarts Acceptance Letter & Entry Pass · AJ-ASTRIX 2K27 [${registration.id}]`
+  const safeSubjectId = String(registration.id).replace(/[\r\n]/g, '')
+  const subject = `Hogwarts Acceptance Letter & Entry Pass · AJ-ASTRIX 2K27 [${safeSubjectId}]`
   const html = generateAcceptanceLetterHtml(registration)
 
   if (isSmtpConfigured && transporter) {
@@ -179,21 +194,21 @@ export async function sendAcceptanceEmail(registration: Registration): Promise<E
         subject,
         html,
       })
-      console.log(`✉️ [Owl Post Sent] Dispatched to ${registration.email} (MessageID: ${info.messageId})`)
+      console.log(`[Owl Post Sent] Dispatched to ${registration.email} (MessageID: ${info.messageId})`)
       return { sent: true, mode: 'live_smtp', messageId: info.messageId }
     } catch (err: any) {
-      console.error(`❌ [Owl Post Error] Failed to send email to ${registration.email}:`, err)
+      console.error(`[Owl Post Error] Failed to send email to ${registration.email}:`, err)
       return { sent: false, mode: 'live_smtp', error: err.message }
     }
   }
 
   // Fallback: Test Preview Mode
-  console.log(`\n📬 ================= [OWL POST LETTER DISPATCH (PREVIEW)] =================`)
+  console.log(`\n================= [OWL POST LETTER DISPATCH (PREVIEW)] =================`)
   console.log(`To: ${registration.fullName} <${registration.email}>`)
   console.log(`Subject: ${subject}`)
   console.log(`Registration ID: ${registration.id} | House: ${registration.houseId.toUpperCase()}`)
   console.log(`Payment Status: ${registration.paymentStatus.toUpperCase()} (₹${registration.amount}) | UTR: ${registration.transactionId || 'None'}`)
-  console.log(`===========================================================================\n`)
+  console.log(`========================================================================\n`)
 
   return { sent: true, mode: 'test_preview' }
 }
@@ -202,16 +217,22 @@ export async function sendAcceptanceEmail(registration: Registration): Promise<E
  * Dispatches payment verified confirmation email when an admin approves the payment receipt.
  */
 export async function sendPaymentVerifiedEmail(registration: Registration): Promise<EmailDispatchResult> {
-  const subject = `✓ Payment Verified & Sealed · AJ-ASTRIX 2K27 [${registration.id}]`
+  const safeSubjectId = String(registration.id).replace(/[\r\n]/g, '')
+  const subject = `Payment Verified & Sealed · AJ-ASTRIX 2K27 [${safeSubjectId}]`
+  const safeName = escapeHtml(registration.fullName)
+  const safeId = escapeHtml(registration.id)
+  const safeAmount = escapeHtml(registration.amount)
+  const safeTxId = escapeHtml(registration.transactionId || 'Verified')
+  const safeHouse = escapeHtml(registration.houseId.toUpperCase())
   const html = `
     <div style="background-color: #120904; color: #f5eedc; font-family: Georgia, serif; padding: 25px; border-radius: 12px; border: 1px solid #d4af37; max-width: 550px; margin: auto;">
-      <h2 style="color: #4ade80; margin-top: 0;">⚡ Payment Confirmed & Verified</h2>
-      <p>Dear ${registration.fullName},</p>
-      <p>Your payment receipt of <strong>₹${registration.amount}</strong> for the AJ-ASTRIX 2K27 Grand Festival has been officially verified and approved by the Hogwarts High Council.</p>
+      <h2 style="color: #4ade80; margin-top: 0;">Payment Confirmed & Verified</h2>
+      <p>Dear ${safeName},</p>
+      <p>Your payment receipt of <strong>&#8377;${safeAmount}</strong> for the AJ-ASTRIX 2K27 Grand Festival has been officially verified and approved by the Hogwarts High Council.</p>
       <div style="background: #080402; padding: 12px; border-radius: 8px; border: 1px solid #332010; font-family: monospace; font-size: 13px;">
-        Registration ID: ${registration.id}<br>
-        Transaction Ref (UTR): ${registration.transactionId || 'Verified'}<br>
-        House: ${registration.houseId.toUpperCase()}
+        Registration ID: ${safeId}<br>
+        Transaction Ref (UTR): ${safeTxId}<br>
+        House: ${safeHouse}
       </div>
       <p>We eagerly await your arrival at the Great Hall!</p>
       <p style="font-size: 12px; color: #a09080;">— The Hogwarts High Council</p>
@@ -232,6 +253,6 @@ export async function sendPaymentVerifiedEmail(registration: Registration): Prom
     }
   }
 
-  console.log(`📬 [Owl Post Verified Notification] Payment verified for ${registration.email}`)
+  console.log(`[Owl Post Verified Notification] Payment verified for ${registration.email}`)
   return { sent: true, mode: 'test_preview' }
 }

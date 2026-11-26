@@ -5,6 +5,7 @@ import { requestLogger } from './middleware/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { globalApiLimiter } from './middleware/rateLimiter.js'
 import { getLocalUploadsPath } from './services/cloudinaryService.js'
+import { forceSaveDatabaseSync } from './db/store.js'
 import healthRoutes from './routes/healthRoutes.js'
 import registrationRoutes from './routes/registrationRoutes.js'
 import standingsRoutes from './routes/standingsRoutes.js'
@@ -16,26 +17,63 @@ import adminRoutes from './routes/adminRoutes.js'
 dotenv.config()
 
 const app = express()
+app.disable('x-powered-by')
 app.set('trust proxy', 1)
 const PORT = process.env.PORT || 5000
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
-// Enable CORS for frontend development and production
+const configuredOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean)
+
+const devOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173']
+const allowedOrigins = new Set(
+  process.env.NODE_ENV === 'production'
+    ? configuredOrigins
+    : [...configuredOrigins, ...devOrigins],
+)
+
+// Baseline security headers
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  next()
+})
+
+// Enable CORS for configured origins
 app.use(
   cors({
-    origin: [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true)
+      } else {
+        callback(null, false)
+      }
+    },
     credentials: true,
   }),
 )
 
-app.use(express.json())
+app.use(express.json({ limit: '64kb' }))
 app.use(requestLogger)
 
 // Apply global API rate limiting (protects against high-concurrency DoS / flood attacks)
 app.use('/api', globalApiLimiter)
 
-// Serve local payment receipts
-app.use('/api/uploads/receipts', express.static(getLocalUploadsPath()))
+// Serve local payment receipts safely (never execute inline scripts or serve dotfiles)
+app.use(
+  '/api/uploads/receipts',
+  express.static(getLocalUploadsPath(), {
+    dotfiles: 'deny',
+    index: false,
+    setHeaders: (res) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+      res.setHeader('Cache-Control', 'public, max-age=86400')
+    },
+  }),
+)
 
 // Public Payment Configuration & UPI Scanner Info
 app.get('/api/payment/info', (_req: Request, res: Response) => {
@@ -113,10 +151,20 @@ app.use((req: Request, res: Response) => {
 // Centralized Error Handler
 app.use(errorHandler)
 
-app.listen(PORT, () => {
-  console.log(`⚡ [AJ-ASTRIX 2K27 Backend] Magic awakens on http://localhost:${PORT}`)
-  console.log(`📜 [API Endpoints] Health: http://localhost:${PORT}/api/health`)
-  console.log(`🗝️ [Admin Portal API] http://localhost:${PORT}/api/admin`)
+const server = app.listen(PORT, () => {
+  console.log(`[AJ-ASTRIX 2K27 Backend] Server running on http://localhost:${PORT}`)
+  console.log(`[API Endpoints] Health: http://localhost:${PORT}/api/health`)
+  console.log(`[Admin Portal API] http://localhost:${PORT}/api/admin`)
 })
+
+const handleGracefulShutdown = () => {
+  forceSaveDatabaseSync()
+  server.close(() => {
+    process.exit(0)
+  })
+}
+
+process.on('SIGINT', handleGracefulShutdown)
+process.on('SIGTERM', handleGracefulShutdown)
 
 export default app

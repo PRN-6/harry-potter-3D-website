@@ -35,7 +35,8 @@ export const registrationRateLimiter = rateLimit({
  */
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 25, // Max 25 attempts per 15 minutes
+  max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 25, // Max 25 failed attempts per 15 minutes
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -45,15 +46,43 @@ export const loginRateLimiter = rateLimit({
 })
 
 /**
+ * Rate limiter for Owl Post public contact submissions.
+ */
+export const contactRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: Number(process.env.CONTACT_RATE_LIMIT_MAX) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Owl Post Rate Limit Exceeded',
+    message: 'Too many Owl Post messages dispatched recently. Please wait a few minutes before sending another.',
+  },
+})
+
+/**
+ * Rate limiter for public house applause/voting endpoint.
+ */
+export const voteRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: Number(process.env.VOTE_RATE_LIMIT_MAX) || 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Vote Rate Limit Exceeded',
+    message: 'Too many house votes cast from this network. Please pause before cheering again.',
+  },
+})
+
+/**
  * Anti-spam Honeypot & Time-lock validation middleware.
  * Checks for:
  * 1. Invisible honeypot field (`incantation_trap`) - if bots fill this, rejection triggers.
- * 2. Time-lock velocity check: Humans take at least 1.5 seconds to fill forms.
+ * 2. Time-lock velocity check: Humans take at least 1.2 seconds to fill forms.
  */
 export function antiSpamGuard(req: Request, res: Response, next: NextFunction): void {
   const honeypot = req.body?.incantation_trap
   if (honeypot && typeof honeypot === 'string' && honeypot.trim().length > 0) {
-    console.warn(`🛑 [Bot Trap Triggered] Automated bot detected from IP ${req.ip}. Honeypot filled: "${honeypot}"`)
+    console.warn(`[Bot Trap Triggered] Automated bot detected from IP ${req.ip}.`)
     res.status(400).json({
       error: 'Bot Detected',
       message: 'Automated incantations detected by Great Hall wards.',
@@ -61,12 +90,22 @@ export function antiSpamGuard(req: Request, res: Response, next: NextFunction): 
     return
   }
 
-  // Velocity check if timestamp provided
+  // Velocity check if client timestamp is provided
   const renderTime = req.body?._formRenderTime
-  if (renderTime) {
-    const elapsedMs = Date.now() - Number(renderTime)
-    if (elapsedMs < 1200) {
-      console.warn(`🛑 [Velocity Spam Detected] Form submitted in ${elapsedMs}ms from IP ${req.ip}`)
+  if (renderTime !== undefined && renderTime !== '') {
+    const parsedRenderTime = Number(renderTime)
+    if (!Number.isFinite(parsedRenderTime)) {
+      res.status(400).json({
+        error: 'Invalid Submission',
+        message: 'Invalid form timing metadata. Please refresh and try again.',
+      })
+      return
+    }
+
+    const elapsedMs = Date.now() - parsedRenderTime
+    // Only flag realistic non-negative fast elapsed times to avoid false positives from device clock skew
+    if (elapsedMs >= 0 && elapsedMs < 1200) {
+      console.warn(`[Velocity Spam Detected] Form submitted in ${elapsedMs}ms from IP ${req.ip}`)
       res.status(400).json({
         error: 'Submission Too Fast',
         message: 'Registration scroll inscribed suspiciously fast. Please review your details and submit normally.',
